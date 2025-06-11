@@ -1,0 +1,83 @@
+RAPPORT DE VALIDATION GPU - SUPERWHISPER V6
+================================================================================
+
+Fichier: benchmarks/benchmark_stt_realistic.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: LLM/llm_manager_enhanced.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: LUXA_TTS/tts_handler_coqui.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: Orchestrator/fallback_manager.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: STT/vad_manager_optimized.py
+Statut: ❌ ERREURS
+  - Erreur lecture fichier: cannot access local variable 're' where it is not associated with a value
+
+Fichier: TTS/tts_handler_coqui.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: TTS/tts_handler_piper_native.py
+Statut: ✅ OK
+
+Fichier: tests/test_double_check_corrections.py
+Statut: ❌ ERREURS
+  - Erreur lecture fichier: cannot access local variable 're' where it is not associated with a value
+
+Fichier: tests/test_double_check_validation_simple.py
+Statut: ❌ ERREURS
+  - Erreur lecture fichier: cannot access local variable 're' where it is not associated with a value
+
+Fichier: test_cuda_debug.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+
+Fichier: test_cuda.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: test_espeak_french.py
+Statut: ✅ OK
+
+Fichier: test_french_voice.py
+Statut: ✅ OK
+
+Fichier: test_gpu_correct.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+
+Fichier: test_piper_native.py
+Statut: ✅ OK
+
+Fichier: test_tts_fixed.py
+Statut: ✅ OK
+
+Fichier: test_tts_long_feedback.py
+Statut: ✅ OK
+
+Fichier: test_upmc_model.py
+Statut: ✅ OK
+
+Fichier: test_validation_decouverte.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+  - ❌ Référence 'cuda:1' trouvée (doit être 'cuda:0')
+
+Fichier: TTS/tts_handler_piper_rtx3090.py
+Statut: ❌ ERREURS
+  - ❌ CUDA_VISIBLE_DEVICES='1' (doit être '0')
+

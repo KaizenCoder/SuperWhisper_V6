@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""
+VALIDATION FACTUELLE - test_rtx3090_detection.py
+Test pour vérifier que le script de détection utilise RTX 3090 (CUDA:0)
+"""
+
+import os
+import torch
+import subprocess
+import sys
+
+def test_detection_script_config():
+    """Test factuel de la configuration dans le script de détection"""
+    print("🔍 VALIDATION - test_rtx3090_detection.py")
+    print("="*50)
+    
+    # Lire le contenu du fichier
+    script_path = "test_rtx3090_detection.py"
+    
+    try:
+        with open(script_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        print(f"✅ Fichier lu: {script_path}")
+        
+        # Vérifier CUDA_VISIBLE_DEVICES
+        cuda_visible_line = None
+        for line in content.split('\n'):
+            if 'CUDA_VISIBLE_DEVICES' in line and '=' in line and 'environ' in line:
+                cuda_visible_line = line.strip()
+                break
+        
+        if cuda_visible_line:
+            print(f"   Configuration trouvée: {cuda_visible_line}")
+            if "'0'" in cuda_visible_line:
+                print("   ✅ CUDA_VISIBLE_DEVICES utilise '0' (RTX 3090)")
+                config_ok = True
+            else:
+                print("   ❌ CUDA_VISIBLE_DEVICES n'utilise pas '0'")
+                config_ok = False
+        else:
+            print("   ❌ CUDA_VISIBLE_DEVICES non trouvé")
+            config_ok = False
+        
+        # Vérifier les références device dans les commentaires et le code
+        device_issues = []
+        for i, line in enumerate(content.split('\n'), 1):
+            if 'cuda:0' in line.lower() or 'device 0' in line.lower():
+                print(f"   ✅ Ligne {i}: Référence correcte CUDA:0")
+            elif 'cuda:1' in line.lower() or ('device 1' in line.lower() and 'visible' not in line.lower()):
+                device_issues.append(f"Ligne {i}: {line.strip()}")
+        
+        if device_issues:
+            print("   ❌ Références incorrectes trouvées:")
+            for issue in device_issues:
+                print(f"     - {issue}")
+            device_ok = False
+        else:
+            print("   ✅ Aucune référence incorrecte trouvée")
+            device_ok = True
+        
+        return config_ok and device_ok
+        
+    except Exception as e:
+        print(f"❌ Erreur lecture fichier: {e}")
+        return False
+
+def test_script_execution():
+    """Test d'exécution du script de détection"""
+    print("\n🚀 TEST EXÉCUTION SCRIPT")
+    print("="*40)
+    
+    try:
+        # Nettoyer l'environnement pour test propre
+        env = os.environ.copy()
+        if 'CUDA_VISIBLE_DEVICES' in env:
+            del env['CUDA_VISIBLE_DEVICES']
+        
+        # Exécuter le script
+        result = subprocess.run(
+            [sys.executable, "test_rtx3090_detection.py"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=env
+        )
+        
+        print(f"   Code retour: {result.returncode}")
+        
+        if result.returncode == 0:
+            output = result.stdout
+            print("   ✅ Script exécuté avec succès")
+            
+            # Vérifier que RTX 3090 est détectée
+            if "RTX 3090" in output and "✅ OUI" in output:
+                print("   ✅ RTX 3090 détectée par le script")
+                return True
+            else:
+                print("   ❌ RTX 3090 non détectée correctement")
+                print("   Output:", output[:200])
+                return False
+        else:
+            print(f"   ❌ Script a échoué")
+            print("   Erreur:", result.stderr[:200])
+            return False
+            
+    except subprocess.TimeoutExpired:
+        print("   ❌ Script timeout (>30s)")
+        return False
+    except Exception as e:
+        print(f"   ❌ Erreur exécution: {e}")
+        return False
+
+def test_gpu_direct():
+    """Test direct de la GPU RTX 3090"""
+    print("\n🎮 TEST GPU DIRECT")
+    print("="*30)
+    
+    # Clear environment
+    if 'CUDA_VISIBLE_DEVICES' in os.environ:
+        del os.environ['CUDA_VISIBLE_DEVICES']
+    
+    if not torch.cuda.is_available():
+        print("❌ CUDA non disponible")
+        return False
+    
+    try:
+        # Test device 0
+        gpu_name = torch.cuda.get_device_name(0)
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+        
+        print(f"   Device 0: {gpu_name}")
+        print(f"   VRAM: {gpu_memory:.1f}GB")
+        
+        is_rtx3090 = "3090" in gpu_name
+        print(f"   RTX 3090 confirmée: {'✅ OUI' if is_rtx3090 else '❌ NON'}")
+        
+        return is_rtx3090
+        
+    except Exception as e:
+        print(f"❌ Erreur GPU: {e}")
+        return False
+
+if __name__ == "__main__":
+    print("🚨 VALIDATION DÉTECTION RTX 3090")
+    print("="*60)
+    
+    # Tests
+    config_valid = test_detection_script_config()
+    exec_valid = test_script_execution()
+    gpu_valid = test_gpu_direct()
+    
+    # Résultat final
+    print(f"\n🎯 RÉSULTAT FINAL:")
+    print(f"   Configuration script: {'✅' if config_valid else '❌'}")
+    print(f"   Exécution script: {'✅' if exec_valid else '❌'}")
+    print(f"   GPU directe: {'✅' if gpu_valid else '❌'}")
+    
+    overall_success = config_valid and exec_valid and gpu_valid
+    print(f"   Validation globale: {'✅ RÉUSSIE' if overall_success else '❌ ÉCHEC'}")
+    
+    if overall_success:
+        print("   ✅ test_rtx3090_detection.py utilise correctement RTX 3090")
+    else:
+        print("   ❌ test_rtx3090_detection.py nécessite correction") 

@@ -1,0 +1,85 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS specific
+.DS_Store
+
+# Task files
+tasks.json
+tasks/ 
+# Modèles LLM volumineux
+models/
+venv_*/
+*.bin
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.model
+huggingface_cache/
+transformers_cache/
+venv_*/
+# Exclusions gros fichiers pour GitHub
+piper/.git/objects/pack/
+models/
+# Submodules volumineux
+piper/
+luxa/
+piper-phonemize/
+
+# Exclusions gros fichiers pour GitHub - COMPLET
+models/
+C:\Dev\SuperWhisper_V6\models
+*.bin
+*.onnx
+*.safetensors
+*.pt
+*.pth
+*.model
+*.whl
+
+# Sous-modules et dépôts Git volumineux
+piper/.git/
+luxa/.git/  
+piper-phonemize/.git/
+.git/objects/pack/pack-*.pack
+.git/objects/pack/pack-*.idx
+
+# Fichiers spécifiques volumineux identifiés
+fr_FR-upmc-medium.onnx
+fr_FR-siwis-medium.onnx
+test_voice.onnx
+model.bin
+libtashkeel_model.ort
+piper_windows_amd64.zip
+piper_phonemize-1.1.0-cp312-cp312-macosx_13_0_x86_64.whl
+onnxruntime.dll
+
+# Cache et données temporaires  
+transformers_cache/
+huggingface_cache/
+__pycache__/
+*.pyc
+temp/
+tmp/
+C:\Dev\SuperWhisper_V6\models

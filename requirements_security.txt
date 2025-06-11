@@ -1,0 +1,25 @@
+# Dépendances Sécurité LUXA SuperWhisper V6 - Sprint 1
+# =====================================================
+
+# Authentification et cryptographie
+PyJWT==2.8.0                    # Tokens JWT sécurisés
+cryptography==41.0.7            # Chiffrement Fernet + crypto moderne
+passlib[bcrypt]==1.7.4          # Hachage mots de passe (future extension)
+
+# Framework API sécurisé
+fastapi==0.104.1                # Framework API moderne
+uvicorn[standard]==0.24.0       # Serveur ASGI performant
+python-multipart==0.0.6         # Support upload fichiers
+
+# Validation et sécurité
+pydantic==2.5.0                 # Validation données structurées
+email-validator==2.1.0          # Validation emails (future)
+
+# Tests de sécurité
+pytest==7.4.3                   # Framework tests
+pytest-asyncio==0.21.1          # Tests async
+pytest-cov==4.1.0               # Coverage tests
+requests==2.31.0                # Client HTTP tests
+
+# Monitoring sécurité
+python-json-logger==2.0.7       # Logs JSON structurés 

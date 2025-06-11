@@ -1,0 +1,240 @@
+{
+  "timestamp": "2025-06-11T23:00:04.082156",
+  "total_modules": 18,
+  "functional_modules": 6,
+  "non_functional_modules": 12,
+  "gpu_modules_required": 10,
+  "gpu_modules_ok": 5,
+  "gpu_success_rate": 50.0,
+  "mission_status": "IN_PROGRESS",
+  "results": {
+    "superwhisper_v6.py": {
+      "filename": "superwhisper_v6.py",
+      "description": "Script principal SuperWhisper V6",
+      "gpu_required": true,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\superwhisper_v6.py"
+      ],
+      "warnings": []
+    },
+    "audio_input_handler.py": {
+      "filename": "audio_input_handler.py",
+      "description": "Gestionnaire d'entrée audio",
+      "gpu_required": true,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\audio_input_handler.py"
+      ],
+      "warnings": []
+    },
+    "luxa_superwhisper_v6_gui.py": {
+      "filename": "luxa_superwhisper_v6_gui.py",
+      "description": "Interface graphique GUI",
+      "gpu_required": false,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\luxa_superwhisper_v6_gui.py"
+      ],
+      "warnings": []
+    },
+    "superwhisper_v6_debug.py": {
+      "filename": "superwhisper_v6_debug.py",
+      "description": "Mode debug SuperWhisper",
+      "gpu_required": false,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\superwhisper_v6_debug.py"
+      ],
+      "warnings": []
+    },
+    "test_memory_leak_v4.py": {
+      "filename": "test_memory_leak_v4.py",
+      "description": "Test Memory Leak V4",
+      "gpu_required": false,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\test_memory_leak_v4.py"
+      ],
+      "warnings": []
+    },
+    "memory_leak_v4.py": {
+      "filename": "memory_leak_v4.py",
+      "description": "Memory Leak Manager V4",
+      "gpu_required": false,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": true,
+      "functional": true,
+      "errors": [],
+      "warnings": [
+        "Module sans GPU - config non vérifiée"
+      ]
+    },
+    "STT/stt_manager_optimized.py": {
+      "filename": "STT/stt_manager_optimized.py",
+      "description": "Manager STT optimisé",
+      "gpu_required": true,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\STT\\stt_manager_optimized.py"
+      ],
+      "warnings": []
+    },
+    "STT/transcription_with_context.py": {
+      "filename": "STT/transcription_with_context.py",
+      "description": "Transcription avec contexte",
+      "gpu_required": true,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\STT\\transcription_with_context.py"
+      ],
+      "warnings": []
+    },
+    "STT/vad_manager_optimized.py": {
+      "filename": "STT/vad_manager_optimized.py",
+      "description": "VAD Manager optimisé",
+      "gpu_required": true,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Import: Dépendance manquante: No module named 'vad_manager'"
+      ],
+      "warnings": []
+    },
+    "STT/whisper_manager_gpu.py": {
+      "filename": "STT/whisper_manager_gpu.py",
+      "description": "Whisper Manager GPU",
+      "gpu_required": true,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\STT\\whisper_manager_gpu.py"
+      ],
+      "warnings": []
+    },
+    "LUXA_LLM/claude_handler.py": {
+      "filename": "LUXA_LLM/claude_handler.py",
+      "description": "Handler Claude",
+      "gpu_required": false,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\LUXA_LLM\\claude_handler.py"
+      ],
+      "warnings": []
+    },
+    "LUXA_LLM/llm_luxa_handler.py": {
+      "filename": "LUXA_LLM/llm_luxa_handler.py",
+      "description": "LLM LUXA Handler",
+      "gpu_required": false,
+      "file_exists": false,
+      "gpu_config_ok": false,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Fichier introuvable: C:\\Dev\\SuperWhisper_V6\\LUXA_LLM\\llm_luxa_handler.py"
+      ],
+      "warnings": []
+    },
+    "TTS/tts_handler_coqui.py": {
+      "filename": "TTS/tts_handler_coqui.py",
+      "description": "TTS Handler Coqui",
+      "gpu_required": true,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": true,
+      "functional": true,
+      "errors": [],
+      "warnings": []
+    },
+    "TTS/tts_handler_piper_native.py": {
+      "filename": "TTS/tts_handler_piper_native.py",
+      "description": "TTS Handler Piper Native",
+      "gpu_required": true,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": true,
+      "functional": true,
+      "errors": [],
+      "warnings": []
+    },
+    "LLM/llm_manager_enhanced.py": {
+      "filename": "LLM/llm_manager_enhanced.py",
+      "description": "LLM Manager Enhanced",
+      "gpu_required": true,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": true,
+      "functional": true,
+      "errors": [],
+      "warnings": []
+    },
+    "LUXA_TTS/tts_handler_coqui.py": {
+      "filename": "LUXA_TTS/tts_handler_coqui.py",
+      "description": "LUXA TTS Handler Coqui",
+      "gpu_required": true,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": false,
+      "functional": false,
+      "errors": [
+        "Import: Dépendance manquante: No module named 'TTS.api'"
+      ],
+      "warnings": []
+    },
+    "Orchestrator/fallback_manager.py": {
+      "filename": "Orchestrator/fallback_manager.py",
+      "description": "Fallback Manager",
+      "gpu_required": false,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": true,
+      "functional": true,
+      "errors": [],
+      "warnings": [
+        "Module sans GPU - config non vérifiée"
+      ]
+    },
+    "benchmarks/benchmark_stt_realistic.py": {
+      "filename": "benchmarks/benchmark_stt_realistic.py",
+      "description": "Benchmark STT réaliste",
+      "gpu_required": false,
+      "file_exists": true,
+      "gpu_config_ok": true,
+      "import_ok": true,
+      "functional": true,
+      "errors": [],
+      "warnings": [
+        "Module sans GPU - config non vérifiée"
+      ]
+    }
+  }
+}

@@ -1,0 +1,70 @@
+# TTS/tts_handler_coqui.py
+import os
+import sys
+import tempfile
+import sounddevice as sd
+import soundfile as sf
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+
+# Import spécifique pour éviter conflit avec dossier TTS local
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import coqui_tts
+from coqui_tts import TTS
+
+class TTSHandlerCoqui:
+    def __init__(self, config):
+        self.config = config
+        
+        # Modèle français local Coqui-TTS
+        self.model_name = config.get('model_name', 'tts_models/fr/css10/vits')
+        # RTX 3090 via CUDA_VISIBLE_DEVICES='1' - Device automatique sécurisé
+        self.device = 'cuda' if config.get('use_gpu', True) else 'cpu'  # RTX 3090 automatiquement
+        
+        try:
+            # Initialiser Coqui-TTS (100% local)
+            self.tts = TTS(model_name=self.model_name).to(self.device)
+            print(f"✅ TTS Handler Coqui initialisé")
+            print(f"📦 Modèle: {self.model_name}")
+            print(f"🚀 Device: {self.device}")
+        except Exception as e:
+            print(f"❌ Erreur chargement modèle Coqui: {e}")
+            raise
+
+    def speak(self, text):
+        """Synthétise et joue le texte avec Coqui-TTS (100% local)."""
+        print("🔊 Synthèse vocale Coqui en cours...")
+        
+        try:
+            # Créer un fichier temporaire
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
+                temp_path = tmp_file.name
+            
+            # Synthèse avec Coqui-TTS (local)
+            self.tts.tts_to_file(text=text, file_path=temp_path)
+            
+            try:
+                # Lire et jouer l'audio
+                audio_data, sample_rate = sf.read(temp_path)
+                sd.play(audio_data, sample_rate)
+                sd.wait()  # Attendre la fin de la lecture
+                
+            finally:
+                # Nettoyer le fichier temporaire
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                    
+        except Exception as e:
+            print(f"❌ Erreur synthèse Coqui: {e}")
+            
+        print("🔊 Fin de la synthèse.")
+
+    def test_synthesis(self):
+        """Test rapide de synthèse."""
+        test_text = "Bonjour, je suis LUXA, votre assistant vocal local et confidentiel."
+        print(f"🧪 Test de synthèse: '{test_text}'")
+        self.speak(test_text) 

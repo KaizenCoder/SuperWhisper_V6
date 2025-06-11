@@ -1,0 +1,67 @@
+{
+  "start_time": "2025-06-11T20:06:22.287845",
+  "gpu_config": {
+    "CUDA_VISIBLE_DEVICES": "1",
+    "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+    "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:1024"
+  },
+  "tests": [
+    {
+      "test_name": "Memory Leak V4 Integration",
+      "success": true,
+      "timestamp": "2025-06-11T20:06:22.454892",
+      "details": {
+        "gpu_memory_allocated_gb": 0.0,
+        "gpu_memory_reserved_gb": 0.0,
+        "cleanup_successful": true,
+        "context_manager": "Fonctionnel"
+      }
+    },
+    {
+      "test_name": "TTS Handlers Integration",
+      "success": false,
+      "timestamp": "2025-06-11T20:06:22.573082",
+      "details": {
+        "error": "TTSHandlerCoqui.__init__() missing 1 required positional argument: 'config'",
+        "error_type": "TypeError"
+      }
+    },
+    {
+      "test_name": "Orchestrator Integration",
+      "success": true,
+      "timestamp": "2025-06-11T20:06:22.588087",
+      "details": {
+        "initialization": "Succès",
+        "gpu_awareness": "RTX 3090 configurée",
+        "fallback_ready": "Système prêt"
+      }
+    },
+    {
+      "test_name": "Benchmark Integration",
+      "success": false,
+      "timestamp": "2025-06-11T20:06:23.244011",
+      "details": {
+        "error": "cannot import name 'BenchmarkSTTRealistic' from 'benchmarks.benchmark_stt_realistic' (C:\\Dev\\SuperWhisper_V6\\benchmarks\\benchmark_stt_realistic.py)",
+        "error_type": "ImportError"
+      }
+    },
+    {
+      "test_name": "Full System Integration",
+      "success": true,
+      "timestamp": "2025-06-11T20:06:23.313803",
+      "details": {
+        "memory_manager": "Initialisé",
+        "peak_memory_gb": 0.015625,
+        "final_memory_gb": 0.0,
+        "cleanup_success": true
+      }
+    }
+  ],
+  "end_time": "2025-06-11T20:06:23.313803",
+  "summary": {
+    "total_tests": 5,
+    "successful_tests": 3,
+    "failed_tests": 2,
+    "success_rate": 60.0
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "start_time": "2025-06-11T20:09:50.811257",
+  "gpu_info": {
+    "name": "NVIDIA GeForce RTX 3090",
+    "memory_gb": 23.99951171875,
+    "CUDA_VISIBLE_DEVICES": "1",
+    "CUDA_DEVICE_ORDER": "PCI_BUS_ID"
+  },
+  "benchmarks": [
+    {
+      "benchmark_name": "Memory Performance RTX 3090",
+      "timestamp": "2025-06-11T20:09:50.980551",
+      "metrics": {
+        "avg_allocation_time_ms": 3.802424998866627,
+        "avg_liberation_time_ms": 2.691974998015212,
+        "max_memory_used_gb": 0.2384185791015625,
+        "memory_efficiency": "Excellente"
+      }
+    },
+    {
+      "benchmark_name": "Compute Performance RTX 3090",
+      "timestamp": "2025-06-11T20:09:51.130628",
+      "metrics": {
+        "avg_matmul_time_ms": 10.106366671000918,
+        "estimated_gflops": 20666.79105243736,
+        "performance_tier": "Excellent"
+      }
+    },
+    {
+      "benchmark_name": "STT Performance RTX 3090",
+      "timestamp": "2025-06-11T20:09:51.784179",
+      "metrics": {
+        "error": "cannot import name 'benchmark_performance' from 'benchmarks.benchmark_stt_realistic' (C:\\Dev\\SuperWhisper_V6\\benchmarks\\benchmark_stt_realistic.py)",
+        "benchmark_status": "Partial - Module unavailable"
+      }
+    },
+    {
+      "benchmark_name": "RTX 3090 vs RTX 5060 Ti Comparison",
+      "timestamp": "2025-06-11T20:09:51.825692",
+      "metrics": {
+        "rtx3090_memory_gb": 23.99951171875,
+        "rtx5060ti_memory_gb": 16.0,
+        "rtx3090_compute_time_s": 0.005624299999908544,
+        "rtx5060ti_simulated_time_s": 0.009373833333180908,
+        "rtx3090_advantage_ratio": 1.666666666666667,
+        "memory_advantage_gb": 7.99951171875,
+        "recommended_gpu": "RTX 3090",
+        "justification": "24GB VRAM + 40% performance supérieure"
+      }
+    },
+    {
+      "benchmark_name": "Memory Leak V4 Performance",
+      "timestamp": "2025-06-11T20:09:52.009631",
+      "metrics": {
+        "avg_cleanup_time_s": 0.0018890200008172542,
+        "avg_allocation_size_gb": 0.03559856414794922,
+        "cleanup_efficiency": "Excellent",
+        "memory_leak_detected": "Non"
+      }
+    }
+  ],
+  "end_time": "2025-06-11T20:09:52.010629",
+  "total_duration_s": 1.199372
+}

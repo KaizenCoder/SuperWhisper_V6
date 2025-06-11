@@ -1,0 +1,76 @@
+project:
+  name: "SuperWhisper_V6"
+  description: "Assistant vocal intelligent avec pipeline STT → LLM → TTS 100% local"
+  version: "1.0.0"
+  type: "python-ai-application"
+
+settings:
+  default_priority: "high"
+  default_subtasks: 5
+  complexity_threshold: 6
+  auto_expand: true
+  research_mode: true
+
+constraints:
+  luxa_compliance: true  # Zéro réseau obligatoire
+  local_only: true
+  gpu_optimized: true
+  python_version: "3.12"
+  platform: "windows"
+
+modules:
+  stt:
+    status: "completed"
+    framework: "transformers"
+    model: "Whisper-large-v3"
+    performance_target: "<2s"
+    
+  llm:
+    status: "completed"  
+    framework: "llama-cpp-python"
+    model: "Llama-3-8B-Instruct Q5_K_M"
+    performance_target: "<1s"
+    
+  tts:
+    status: "completed"
+    framework: "Piper CLI"
+    model: "fr_FR-siwis-medium.onnx"
+    performance_target: "<1s"
+    
+  orchestrator:
+    status: "in_progress"
+    progress: 80
+    priority: "critical"
+
+hardware:
+  gpu_primary: "RTX 3090 24GB"
+  gpu_secondary: "RTX 4060 Ti 16GB"
+  vram_limit: "20GB"
+
+testing:
+  unit_tests_required: true
+  integration_tests_required: true
+  performance_validation: true
+  luxa_compliance_check: true
+
+documentation:
+  development_journal: "docs/2025-06-10_journal_developpement_MVP_P0.md"
+  transmission_bundle: "Transmission_Coordinateur_20250610_1805.zip"
+  configuration: "Config/mvp_settings.yaml"
+
+next_milestones:
+  - name: "Pipeline Integration Complete"
+    priority: "critical"
+    target: "Test STT → LLM → TTS end-to-end"
+    
+  - name: "Performance Optimization"
+    priority: "high"
+    target: "Measure real-world latency <5s total"
+    
+  - name: "Error Handling"
+    priority: "medium"
+    target: "Robust fallbacks and error recovery"
+    
+  - name: "User Documentation"
+    priority: "medium"
+    target: "Basic user guide MVP" 

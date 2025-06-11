@@ -1,0 +1,380 @@
+{
+  "files_checked": 608,
+  "critical_violations": 38,
+  "warnings": 9,
+  "status": "ÉCHEC",
+  "violations": [
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\memory_leak_v4.py",
+      "line": 86,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "else:  # Windows - Cleanup des fichiers .lock fantômes"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\solution_memory_leak_gpu_v3_stable.py",
+      "line": 40,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "self.lock = threading.Lock()  # Un seul lock simple"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\solution_memory_leak_gpu_v3_stable.py",
+      "line": 35,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "\"\"\"Gestionnaire simplifié des fuites mémoire GPU RTX 3090 [V3 STABLE]\"\"\""
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\solution_memory_leak_gpu_v3_stable.py",
+      "line": 51,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "raise RuntimeError(f\"🚫 GPU ({gpu_memory:.1f}GB) trop petite - RTX 3090 requise\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_cuda_debug.py",
+      "line": 40,
+      "pattern": "\\.cuda\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] .cuda(0) - RTX 5060 INTERDITE",
+      "code": ".cuda(0)",
+      "context": "print(f\"   GPU visible {i}: {gpu_name} ({gpu_memory:.1f}GB)\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_cuda_debug.py",
+      "line": 42,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "# Test allocation sur device 0 visible"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_gpu_final_verification.py",
+      "line": 36,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "if torch.cuda.is_available():"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_gpu_final_verification.py",
+      "line": 37,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "gpu_name = torch.cuda.get_device_name(0)"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_gpu_verification.py",
+      "line": 18,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "print(f\"GPU visible 0: {torch.cuda.get_device_name(0)}\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_gpu_verification.py",
+      "line": 19,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "print(f\"Mémoire: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_rtx3090_access.py",
+      "line": 21,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "print(f\"GPU 0 (après masquage): {torch.cuda.get_device_name(0)}\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_rtx3090_access.py",
+      "line": 22,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "props = torch.cuda.get_device_properties(0)"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_rtx3090_detection.py",
+      "line": 22,
+      "pattern": "device\\s*=\\s*[\"\\']cuda:0[\"\\']",
+      "description": "[FICHIER TEST] CUDA:0 (RTX 5060) explicite - INTERDIT",
+      "code": "device=\"cuda:0\"",
+      "context": "print(f\"✅ PyTorch version: {torch.__version__}\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_validation_decouverte.py",
+      "line": 20,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "del os.environ['CUDA_VISIBLE_DEVICES']"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_validation_decouverte.py",
+      "line": 22,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "if torch.cuda.is_available():"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_validation_mvp_settings.py",
+      "line": 14,
+      "pattern": "torch\\.device\\s*\\(\\s*[\"\\']cuda:0[\"\\']\\s*\\)",
+      "description": "[FICHIER TEST] torch.device('cuda:0') - RTX 5060 INTERDITE",
+      "code": "torch.device('cuda:0')",
+      "context": "print(\"=\"*40)"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_validation_stt_manager_robust.py",
+      "line": 16,
+      "pattern": "torch\\.device\\s*\\(\\s*[\"\\']cuda:0[\"\\']\\s*\\)",
+      "description": "[FICHIER TEST] torch.device('cuda:0') - RTX 5060 INTERDITE",
+      "code": "torch.device('cuda:0')",
+      "context": "print(\"🔍 VALIDATION - STT/stt_manager_robust.py\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_validation_tts_performance.py",
+      "line": 21,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "with open(script_path, 'r', encoding='utf-8') as f:"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\test_validation_tts_performance.py",
+      "line": 21,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "with open(script_path, 'r', encoding='utf-8') as f:"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\validate_gpu_config.py",
+      "line": 105,
+      "pattern": "device\\s*=\\s*[\"\\']cuda:0[\"\\']",
+      "description": "CUDA:0 (RTX 5060) explicite - INTERDIT",
+      "code": "device=\"cuda:0\"",
+      "context": "self._validate_powershell_file(ps_file)"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\validate_gpu_config.py",
+      "line": 108,
+      "pattern": "device\\s*=\\s*[\"\\']cuda:0[\"\\']",
+      "description": "CUDA:0 (RTX 5060) explicite - INTERDIT",
+      "code": "device=\"cuda:0\"",
+      "context": "config_files = list(self.project_root.rglob(\"*.yaml\")) + list(self.project_root.rglob(\"*.yml\")) + list(self.project_root.rglob(\"*.json\"))"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\validate_gpu_config.py",
+      "line": 109,
+      "pattern": "device\\s*=\\s*[\"\\']cuda:0[\"\\']",
+      "description": "CUDA:0 (RTX 5060) explicite - INTERDIT",
+      "code": "device=\"cuda:0\"",
+      "context": "config_files = [f for f in config_files if not any(excluded in f.parts for excluded in excluded_dirs)]"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\validate_gpu_config.py",
+      "line": 110,
+      "pattern": "device\\s*=\\s*[\"\\']cuda:0[\"\\']",
+      "description": "CUDA:0 (RTX 5060) explicite - INTERDIT",
+      "code": "device=\"cuda:0\"",
+      "context": "print(f\"📁 Fichiers de configuration trouvés: {len(config_files)}\")"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\DEPRECATED\\solution_memory_leak_gpu_DEPRECATED.py",
+      "line": 37,
+      "pattern": "get_device_name\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_name(0) - référence RTX 5060",
+      "code": "get_device_name(0)",
+      "context": "def _validate_gpu(self):"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\DEPRECATED\\solution_memory_leak_gpu_DEPRECATED.py",
+      "line": 29,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "\"\"\"Gestionnaire automatique des fuites mémoire GPU RTX 3090\"\"\""
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\DEPRECATED\\solution_memory_leak_gpu_v2_corrected_DEPRECATED.py",
+      "line": 37,
+      "pattern": "device\\s*=\\s*[\"\\']cuda:0[\"\\']",
+      "description": "CUDA:0 (RTX 5060) explicite - INTERDIT",
+      "code": "device = \"cuda:0\"",
+      "context": "# Sémaphore inter-processus pour queue GPU exclusive (correction O3)"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\LLM\\llm_manager_enhanced.py",
+      "line": 69,
+      "pattern": "main_gpu\\s*=\\s*0",
+      "description": "main_gpu = 0 - configuration LLM interdite",
+      "code": "main_gpu=0",
+      "context": "Manager LLM avancé avec:"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\STT\\stt_manager_robust.py",
+      "line": 82,
+      "pattern": "selected_gpu\\s*=\\s*0",
+      "description": "selected_gpu = 0 - RTX 5060 INTERDITE",
+      "code": "selected_gpu = 0",
+      "context": "gpu_name = torch.cuda.get_device_name(0)"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\utils\\gpu_manager.py",
+      "line": 72,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "if is_pytest_running():"
+    },
+    {
+      "file": "C:\\Dev\\SuperWhisper_V6\\docs\\gpu-correction\\tests\\gpu_correction_test_base.py",
+      "line": 45,
+      "pattern": "get_device_properties\\s*\\(\\s*0\\s*\\)",
+      "description": "[FICHIER TEST] get_device_properties(0) - référence RTX 5060",
+      "code": "get_device_properties(0)",
+      "context": "cuda_order = os.environ.get('CUDA_DEVICE_ORDER', '')"
+    },
+    {
+      "file": "docs\\Transmission_coordinateur\\Transmission_coordinateur_20250610_1744\\mvp_settings.yaml",
+      "line": 10,
+      "type": "CRITIQUE",
+      "description": "gpu_device_index: 0 dans config - RTX 5060 INTERDITE",
+      "code": "gpu_device_index: 0"
+    },
+    {
+      "file": "docs\\Transmission_coordinateur\\Transmission_coordinateur_20250610_1744\\mvp_settings.yaml",
+      "line": 6,
+      "type": "CRITIQUE",
+      "description": "gpu_device: cuda:0 dans config - RTX 5060 INTERDITE",
+      "code": "gpu_device: \"cuda:0\""
+    },
+    {
+      "file": "docs\\phase_1\\validation_gpu_report.json",
+      "line": 251,
+      "type": "CRITIQUE",
+      "description": "gpu_device_index: 0 dans config - RTX 5060 INTERDITE",
+      "code": "gpu_device_index: 0"
+    },
+    {
+      "file": "docs\\phase_1\\validation_gpu_report.json",
+      "line": 252,
+      "type": "CRITIQUE",
+      "description": "gpu_device_index: 0 dans config - RTX 5060 INTERDITE",
+      "code": "gpu_device_index: 0"
+    },
+    {
+      "file": "docs\\phase_1\\validation_gpu_report.json",
+      "line": 258,
+      "type": "CRITIQUE",
+      "description": "gpu_device_index: 0 dans config - RTX 5060 INTERDITE",
+      "code": "gpu_device_index: 0"
+    },
+    {
+      "file": "docs\\phase_1\\validation_gpu_report.json",
+      "line": 259,
+      "type": "CRITIQUE",
+      "description": "gpu_device_index: 0 dans config - RTX 5060 INTERDITE",
+      "code": "gpu_device_index: 0"
+    },
+    {
+      "file": "STT/stt_manager_robust.py",
+      "line": 5796,
+      "type": "CRITIQUE",
+      "description": "selected_gpu = 0 trouvé - RTX 5060 interdite",
+      "code": "selected_gpu = 0"
+    },
+    {
+      "file": "test_rtx3090_detection.py",
+      "line": 2133,
+      "type": "CRITIQUE",
+      "description": "Fichier test critique utilise device=\"cuda:0\"",
+      "code": "device=\"cuda:0\""
+    }
+  ],
+  "warnings_list": [
+    {
+      "file": "build_piper_312.ps1",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Script PowerShell sans configuration CUDA_VISIBLE_DEVICES",
+      "code": "Ajouter $env:CUDA_VISIBLE_DEVICES = \"1\""
+    },
+    {
+      "file": "Test-PiperVoice.ps1",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Script PowerShell sans configuration CUDA_VISIBLE_DEVICES",
+      "code": "Ajouter $env:CUDA_VISIBLE_DEVICES = \"1\""
+    },
+    {
+      "file": "validate_piper.ps1",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Script PowerShell sans configuration CUDA_VISIBLE_DEVICES",
+      "code": "Ajouter $env:CUDA_VISIBLE_DEVICES = \"1\""
+    },
+    {
+      "file": "docs\\gpu-correction\\backup_script.ps1",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Script PowerShell sans configuration CUDA_VISIBLE_DEVICES",
+      "code": "Ajouter $env:CUDA_VISIBLE_DEVICES = \"1\""
+    },
+    {
+      "file": "luxa\\venv\\Scripts\\Activate.ps1",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Script PowerShell sans configuration CUDA_VISIBLE_DEVICES",
+      "code": "Ajouter $env:CUDA_VISIBLE_DEVICES = \"1\""
+    },
+    {
+      "file": "venv_piper312\\Scripts\\Activate.ps1",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Script PowerShell sans configuration CUDA_VISIBLE_DEVICES",
+      "code": "Ajouter $env:CUDA_VISIBLE_DEVICES = \"1\""
+    },
+    {
+      "file": "docs\\Transmission_coordinateur\\Transmission_coordinateur_20250610_1744\\mvp_settings.yaml",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Fichier config avec gpu_device_index mais pas fixé à 1",
+      "code": "Vérifier gpu_device_index: 1"
+    },
+    {
+      "file": "docs\\gpu-correction\\reports\\gpu_config_analysis.json",
+      "line": 1,
+      "type": "AVERTISSEMENT",
+      "description": "Fichier config avec gpu_device_index mais pas fixé à 1",
+      "code": "Vérifier gpu_device_index: 1"
+    },
+    {
+      "file": "LLM/llm_manager_enhanced.py",
+      "line": 1,
+      "type": "RECOMMANDATION",
+      "description": "LLM Manager sans protection explicite contre gpu_device_index=0",
+      "code": "Ajouter validation gpu_device_index != 0"
+    }
+  ],
+  "critical_files_found": {
+    "gpu_manager": true,
+    "stt_manager": true,
+    "llm_manager": true,
+    "tests/test_stt_handler.py": true,
+    "tests/test_llm_handler.py": true,
+    "tests/test_enhanced_llm_manager.py": true,
+    "test_tts_rtx3090_performance.py": true,
+    "test_rtx3090_detection.py": true
+  },
+  "validation_timestamp": "2025-06-11T19:31:53.118866"
+}

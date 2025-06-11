@@ -1,0 +1,709 @@
+[
+  {
+    "file": "benchmarks/benchmark_stt_realistic.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      ""
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        ""
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "LLM/llm_manager_enhanced.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "LUXA_TTS/tts_handler_coqui.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      ""
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        ""
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "Orchestrator/fallback_manager.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "",
+      ""
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        ""
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "STT/vad_manager_optimized.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "1"
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        "1"
+      ],
+      [
+        "set_device",
+        "1"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant",
+      "Utilisation device_cuda avec device 1 (attendu: 0 après mapping)",
+      "Utilisation set_device avec device 1 (attendu: 0 après mapping)"
+    ]
+  },
+  {
+    "file": "STT/stt_manager_robust.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "STT/vad_manager.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0"
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        "0"
+      ],
+      [
+        "set_device",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "TTS/tts_handler_piper_espeak.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "TTS/tts_handler_piper_fixed.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "TTS/tts_handler_piper_french.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "utils/gpu_manager.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "0"
+    ],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "tests/test_double_check_corrections.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "device_configurations": [
+      [
+        "set_device",
+        "1"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant",
+      "Utilisation set_device avec device 1 (attendu: 0 après mapping)"
+    ]
+  },
+  {
+    "file": "tests/test_double_check_validation_simple.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "1",
+      "0",
+      "1"
+    ],
+    "device_configurations": [
+      [
+        "gpu_device_index",
+        "1"
+      ],
+      [
+        "gpu_device_index",
+        "1"
+      ],
+      [
+        "gpu_device_index",
+        "1"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)"
+    ]
+  },
+  {
+    "file": "test_cuda_debug.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_cuda.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_espeak_french.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_french_voice.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_gpu_correct.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [
+      "",
+      ""
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        ""
+      ]
+    ],
+    "potential_issues": []
+  },
+  {
+    "file": "test_piper_native.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_tts_fixed.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_tts_long_feedback.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_upmc_model.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "test_validation_decouverte.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "1"
+    ],
+    "device_configurations": [
+      [
+        "torch_device",
+        "0"
+      ],
+      [
+        "torch_device",
+        "1"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_DEVICE_ORDER manquant",
+      "Utilisation torch_device avec device 1 (attendu: 0 après mapping)"
+    ]
+  },
+  {
+    "file": "TTS/tts_handler_piper_rtx3090.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": []
+  },
+  {
+    "file": "tests/test_llm_handler.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "tests/test_stt_handler.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_correction_validation_1.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "1",
+      "0"
+    ],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_correction_validation_2.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "1",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_correction_validation_3.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [],
+    "device_configurations": [
+      [
+        "gpu_device_index",
+        "0"
+      ],
+      [
+        "gpu_device_index",
+        "0"
+      ],
+      [
+        "gpu_device_index",
+        "1"
+      ],
+      [
+        "gpu_device_index",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')",
+      "CUDA_DEVICE_ORDER manquant",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)"
+    ]
+  },
+  {
+    "file": "test_correction_validation_4.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "1",
+      "0"
+    ],
+    "device_configurations": [
+      [
+        "set_device",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_rtx3090_detection.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [
+      "0"
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')"
+    ]
+  },
+  {
+    "file": "test_tts_rtx3090_performance.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')"
+    ]
+  },
+  {
+    "file": "test_validation_globale_finale.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "0",
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "0",
+      "0",
+      "1"
+    ],
+    "device_configurations": [
+      [
+        "set_device",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES='0' (attendu: '1')",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_validation_mvp_settings.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "0"
+    ],
+    "device_configurations": [
+      [
+        "torch_device",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_validation_rtx3090_detection.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "0",
+      "1"
+    ],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_validation_stt_manager_robust.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [
+      "",
+      "0",
+      ""
+    ],
+    "device_configurations": [
+      [
+        "torch_device",
+        "0"
+      ]
+    ],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "test_validation_tts_performance.py",
+    "has_cuda_visible_devices": false,
+    "cuda_visible_devices_value": null,
+    "has_cuda_device_order": false,
+    "cuda_device_order_value": null,
+    "cuda_usages": [],
+    "device_configurations": [],
+    "potential_issues": [
+      "CUDA_VISIBLE_DEVICES manquant",
+      "CUDA_DEVICE_ORDER manquant"
+    ]
+  },
+  {
+    "file": "validate_gpu_config.py",
+    "has_cuda_visible_devices": true,
+    "cuda_visible_devices_value": "1",
+    "has_cuda_device_order": true,
+    "cuda_device_order_value": "PCI_BUS_ID",
+    "cuda_usages": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "1",
+      "1",
+      "1",
+      "1"
+    ],
+    "device_configurations": [
+      [
+        "device_cuda",
+        "0"
+      ],
+      [
+        "device_cuda",
+        "0"
+      ],
+      [
+        "device_cuda",
+        "0"
+      ],
+      [
+        "device_cuda",
+        "0"
+      ],
+      [
+        "device_cuda",
+        "1"
+      ],
+      [
+        "torch_device",
+        "0"
+      ],
+      [
+        "torch_device",
+        "1"
+      ],
+      [
+        "gpu_device_index",
+        "0"
+      ],
+      [
+        "gpu_device_index",
+        "1"
+      ],
+      [
+        "gpu_device_index",
+        "1"
+      ],
+      [
+        "gpu_device_index",
+        "0"
+      ],
+      [
+        "gpu_device_index",
+        "0"
+      ],
+      [
+        "gpu_device_index",
+        "1"
+      ]
+    ],
+    "potential_issues": [
+      "Utilisation device_cuda avec device 1 (attendu: 0 après mapping)",
+      "Utilisation torch_device avec device 1 (attendu: 0 après mapping)",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)",
+      "Utilisation gpu_device_index avec device 1 (attendu: 0 après mapping)"
+    ]
+  }
+]

@@ -1,0 +1,498 @@
+#!/usr/bin/env python3
+"""
+VAD Optimized Manager - Luxa v1.1 Enhanced
+===========================================
+
+Gestionnaire VAD avancé avec context management, fallbacks intelligents et optimisations temps réel.
+Extension du OptimizedVADManager existant avec nouvelles fonctionnalités pour la Tâche 4.
+"""
+
+import numpy as np
+import time
+import torch
+import asyncio
+import logging
+from typing import Optional, Tuple, Dict, List, Any
+from collections import deque
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
+# Import du VAD Manager existant comme base
+try:
+    from .vad_manager import OptimizedVADManager
+except ImportError:
+    # Import direct pour test standalone
+    from vad_manager import OptimizedVADManager
+
+@dataclass
+class SpeechSegment:
+    """Représente un segment de parole détecté"""
+    start_time: float
+    end_time: float
+    probability: float
+    chunk_count: int
+    energy_level: float
+
+@dataclass
+class ConversationContext:
+    """Contexte conversationnel pour optimiser la détection"""
+    speaker_patterns: Dict[str, float]  # Patterns de parole du locuteur
+    silence_patterns: List[float]       # Durées de silence typiques
+    energy_baseline: float              # Niveau d'énergie de base
+    last_speech_time: Optional[float]   # Timestamp dernière parole
+    conversation_duration: float        # Durée totale conversation
+
+class VADOptimizedManager(OptimizedVADManager):
+    """
+    VAD Manager optimisé avec context management et fallbacks avancés
+    
+    Nouvelles fonctionnalités par rapport à OptimizedVADManager:
+    - Context management conversationnel
+    - Cache intelligent des segments récurrents
+    - Adaptation dynamique des seuils
+    - Historique des performances
+    - Optimisations GPU avancées
+    """
+    
+    def __init__(self, 
+                 chunk_ms: int = 32,   # Adapté pour Silero (512 samples @ 16kHz)
+                 latency_threshold_ms: float = 15,  # Seuil plus strict
+                 context_window_size: int = 50,     # Fenêtre de contexte
+                 adaptive_thresholds: bool = True,  # Seuils adaptatifs
+                 enable_caching: bool = True):      # Cache intelligent
+        
+        # Initialiser la classe parente
+        super().__init__(chunk_ms, latency_threshold_ms)
+        
+        # Configuration avancée
+        self.context_window_size = context_window_size
+        self.adaptive_thresholds = adaptive_thresholds
+        self.enable_caching = enable_caching
+        
+        # Context Management
+        self.conversation_context = ConversationContext(
+            speaker_patterns={},
+            silence_patterns=[],
+            energy_baseline=0.0,
+            last_speech_time=None,
+            conversation_duration=0.0
+        )
+        
+        # Historique et cache
+        self.detection_history = deque(maxlen=context_window_size)
+        self.energy_history = deque(maxlen=context_window_size)
+        self.segment_cache = {}  # Cache des segments fréquents
+        
+        # Seuils adaptatifs
+        self.current_speech_threshold = 0.5
+        self.current_energy_threshold = 0.001
+        self.threshold_adaptation_rate = 0.01
+        
+        # Métriques avancées
+        self.advanced_metrics = {
+            "context_hits": 0,
+            "cache_hits": 0,
+            "threshold_adaptations": 0,
+            "false_positives": 0,
+            "false_negatives": 0
+        }
+        
+        # Thread pool pour traitement asynchrone
+        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.lock = threading.Lock()
+        
+        logging.info(f"🚀 VAD Optimized Manager initialisé:")
+        logging.info(f"   Fenêtre contexte: {context_window_size} chunks")
+        logging.info(f"   Seuils adaptatifs: {adaptive_thresholds}")
+        logging.info(f"   Cache intelligent: {enable_caching}")
+        logging.info(f"   🎮 GPU CONFIG: RTX 3090 (CUDA:1) UNIQUEMENT - RTX 5060 (CUDA:0) INTERDITE")
+
+    async def initialize_optimized(self):
+        """Initialisation optimisée avec pré-chargement"""
+        # Initialiser la base
+        await super().initialize()
+        
+        # Optimisations spécifiques
+        if self.backend == "silero" and torch.cuda.is_available():
+            await self._optimize_gpu_memory()
+        
+        # Pré-charger le cache avec patterns communs
+        if self.enable_caching:
+            await self._preload_common_patterns()
+        
+        logging.info("✅ VAD Optimized Manager initialisé avec succès")
+
+    async def _optimize_gpu_memory(self):
+        """Optimisations GPU spécifiques - RTX 3090 UNIQUEMENT"""
+        try:
+            # CRITIQUE: Forcer RTX 3090 (CUDA:1) - NE PAS UTILISER RTX 5060 (CUDA:0)
+            target_device = 'cuda:1'  # RTX 3090 24GB VRAM
+            
+            # Vérifier que la RTX 3090 est disponible
+            if torch.cuda.device_count() < 2:
+                logging.warning("⚠️ RTX 3090 (CUDA:1) non trouvée - fallback CPU")
+                return
+                
+            # Forcer l'utilisation de la RTX 3090
+            torch.cuda.set_device(1)  # RTX 3090
+            
+            # Préallocation mémoire GPU sur RTX 3090
+            if hasattr(self.vad_model, 'to'):
+                self.vad_model = self.vad_model.to(target_device).half()  # FP16 pour économiser VRAM
+            
+            # Warmup optimisé sur RTX 3090
+            dummy_tensor = torch.randn(self.chunk_samples, dtype=torch.float16, device=target_device)
+            with torch.no_grad():
+                for _ in range(10):
+                    _ = self.vad_model(dummy_tensor, 16000)
+            
+            torch.cuda.empty_cache()
+            logging.info(f"🔧 Optimisations GPU appliquées sur RTX 3090 ({target_device})")
+            
+        except Exception as e:
+            logging.warning(f"⚠️ Optimisations GPU RTX 3090 échouées: {e}")
+
+    async def _preload_common_patterns(self):
+        """Pré-charger des patterns audio communs dans le cache"""
+        try:
+            # Skip si backend n'est pas fonctionnel
+            if self.backend == "none":
+                logging.info("📦 Cache désactivé (backend pass-through)")
+                return
+                
+            # Générer des patterns de test pour initialiser le cache
+            common_patterns = [
+                np.zeros(self.chunk_samples, dtype=np.float32),  # Silence
+                np.random.randn(self.chunk_samples).astype(np.float32) * 0.1,  # Bruit faible
+                np.random.randn(self.chunk_samples).astype(np.float32) * 0.5,  # Signal fort
+            ]
+            
+            for i, pattern in enumerate(common_patterns):
+                pattern_hash = hash(pattern.tobytes())
+                result = await self._detect_speech_base(pattern)
+                self.segment_cache[pattern_hash] = {
+                    'result': result,
+                    'timestamp': time.time(),
+                    'usage_count': 0
+                }
+            
+            logging.info(f"📦 Cache initialisé avec {len(common_patterns)} patterns")
+            
+        except Exception as e:
+            logging.warning(f"⚠️ Échec initialisation cache: {e}")
+
+    async def detect_speech_optimized(self, audio_chunk: np.ndarray) -> Dict[str, Any]:
+        """
+        Détection de parole optimisée avec context management
+        
+        Returns:
+            Dict contenant:
+            - is_speech: bool
+            - probability: float
+            - energy_level: float
+            - context_confidence: float
+            - processing_time_ms: float
+            - source: str (cache/context/direct)
+        """
+        start_time = time.perf_counter()
+        
+        # Vérifier le cache d'abord
+        if self.enable_caching:
+            cache_result = await self._check_cache(audio_chunk)
+            if cache_result:
+                cache_result['processing_time_ms'] = (time.perf_counter() - start_time) * 1000
+                cache_result['source'] = 'cache'
+                self.advanced_metrics['cache_hits'] += 1
+                return cache_result
+        
+        # Calculer l'énergie du chunk
+        energy_level = float(np.mean(audio_chunk ** 2))
+        
+        # Détection de base
+        detection_result = await self._detect_with_context(audio_chunk, energy_level)
+        
+        # Mise à jour de l'historique et du contexte
+        await self._update_context(detection_result, energy_level)
+        
+        # Adaptation des seuils si activée
+        if self.adaptive_thresholds:
+            await self._adapt_thresholds(detection_result, energy_level)
+        
+        # Résultat final
+        result = {
+            'is_speech': detection_result['is_speech'],
+            'probability': detection_result['probability'],
+            'energy_level': energy_level,
+            'context_confidence': detection_result.get('context_confidence', 0.5),
+            'processing_time_ms': (time.perf_counter() - start_time) * 1000,
+            'source': detection_result.get('source', 'direct')
+        }
+        
+        # Mise à jour du cache si pertinent
+        if self.enable_caching and result['context_confidence'] > 0.8:
+            await self._update_cache(audio_chunk, result)
+        
+        return result
+
+    async def _check_cache(self, audio_chunk: np.ndarray) -> Optional[Dict[str, Any]]:
+        """Vérifier si le chunk est dans le cache"""
+        try:
+            chunk_hash = hash(audio_chunk.tobytes())
+            
+            if chunk_hash in self.segment_cache:
+                cached_entry = self.segment_cache[chunk_hash]
+                
+                # Vérifier la fraîcheur du cache (expire après 5 minutes)
+                if time.time() - cached_entry['timestamp'] < 300:
+                    cached_entry['usage_count'] += 1
+                    return cached_entry['result'].copy()
+                else:
+                    # Expirer l'entrée
+                    del self.segment_cache[chunk_hash]
+            
+            return None
+            
+        except Exception as e:
+            logging.warning(f"⚠️ Erreur vérification cache: {e}")
+            return None
+
+    async def _detect_with_context(self, audio_chunk: np.ndarray, energy_level: float) -> Dict[str, Any]:
+        """Détection avec prise en compte du contexte"""
+        
+        # Détection de base
+        base_result = await self._detect_speech_base(audio_chunk)
+        
+        # Ajustement basé sur le contexte
+        context_confidence = 0.5
+        
+        if len(self.detection_history) > 0:
+            # Analyser les patterns récents
+            recent_detections = list(self.detection_history)[-10:]
+            recent_speech_ratio = sum(recent_detections) / len(recent_detections)
+            
+            # Ajuster selon les patterns récents
+            if recent_speech_ratio > 0.7:  # Conversation active
+                context_confidence = 0.8
+                if energy_level > self.conversation_context.energy_baseline * 0.5:
+                    base_result['probability'] = min(1.0, base_result['probability'] * 1.2)
+            elif recent_speech_ratio < 0.1:  # Période de silence
+                context_confidence = 0.7
+                if energy_level < self.conversation_context.energy_baseline * 0.8:
+                    base_result['probability'] = max(0.0, base_result['probability'] * 0.8)
+        
+        # Mise à jour de la confiance basée sur l'énergie
+        if abs(energy_level - self.conversation_context.energy_baseline) < 0.0001:
+            context_confidence += 0.1
+        
+        base_result['context_confidence'] = context_confidence
+        base_result['source'] = 'context' if context_confidence > 0.6 else 'direct'
+        
+        if context_confidence > 0.6:
+            self.advanced_metrics['context_hits'] += 1
+        
+        return base_result
+
+    async def _detect_speech_base(self, audio_chunk: np.ndarray) -> Dict[str, Any]:
+        """Détection de base (utilise la logique parente)"""
+        
+        # Redimensionner si nécessaire
+        if len(audio_chunk) != self.chunk_samples:
+            if len(audio_chunk) < self.chunk_samples:
+                audio_chunk = np.pad(audio_chunk, (0, self.chunk_samples - len(audio_chunk)))
+            else:
+                audio_chunk = audio_chunk[:self.chunk_samples]
+        
+        # Utiliser la méthode de détection de la classe parente
+        is_speech = self.is_speech(audio_chunk)
+        probability = self.get_speech_probability(audio_chunk)
+        
+        return {
+            'is_speech': is_speech,
+            'probability': probability
+        }
+
+    async def _update_context(self, detection_result: Dict[str, Any], energy_level: float):
+        """Mettre à jour le contexte conversationnel"""
+        with self.lock:
+            # Historique des détections
+            self.detection_history.append(detection_result['is_speech'])
+            self.energy_history.append(energy_level)
+            
+            # Mise à jour baseline énergie (moyenne mobile)
+            if len(self.energy_history) > 0:
+                self.conversation_context.energy_baseline = float(np.mean(self.energy_history))
+            
+            # Mise à jour timestamp dernière parole
+            if detection_result['is_speech']:
+                self.conversation_context.last_speech_time = time.time()
+
+    async def _adapt_thresholds(self, detection_result: Dict[str, Any], energy_level: float):
+        """Adapter dynamiquement les seuils de détection"""
+        
+        if len(self.detection_history) < 10:
+            return  # Pas assez d'historique
+        
+        recent_detections = list(self.detection_history)[-10:]
+        false_positive_rate = 0.0
+        
+        # Estimation simple des faux positifs (énergie très faible mais détecté comme parole)
+        for i, detection in enumerate(recent_detections):
+            if detection and list(self.energy_history)[-10:][i] < 0.0001:
+                false_positive_rate += 0.1
+        
+        # Ajuster les seuils
+        if false_positive_rate > 0.3:  # Trop de faux positifs
+            self.current_speech_threshold = min(0.8, self.current_speech_threshold + self.threshold_adaptation_rate)
+            self.current_energy_threshold = min(0.01, self.current_energy_threshold + self.threshold_adaptation_rate)
+            self.advanced_metrics['threshold_adaptations'] += 1
+            
+        elif false_positive_rate < 0.1:  # Peut-être trop strict
+            self.current_speech_threshold = max(0.3, self.current_speech_threshold - self.threshold_adaptation_rate)
+            self.current_energy_threshold = max(0.0001, self.current_energy_threshold - self.threshold_adaptation_rate)
+            self.advanced_metrics['threshold_adaptations'] += 1
+
+    async def _update_cache(self, audio_chunk: np.ndarray, result: Dict[str, Any]):
+        """Mettre à jour le cache avec un nouveau résultat fiable"""
+        try:
+            # Limiter la taille du cache
+            if len(self.segment_cache) > 100:
+                # Supprimer les entrées les moins utilisées
+                sorted_cache = sorted(
+                    self.segment_cache.items(),
+                    key=lambda x: x[1]['usage_count']
+                )
+                for key, _ in sorted_cache[:20]:  # Supprimer 20 entrées
+                    del self.segment_cache[key]
+            
+            chunk_hash = hash(audio_chunk.tobytes())
+            self.segment_cache[chunk_hash] = {
+                'result': result.copy(),
+                'timestamp': time.time(),
+                'usage_count': 1
+            }
+            
+        except Exception as e:
+            logging.warning(f"⚠️ Erreur mise à jour cache: {e}")
+
+    def get_conversation_insights(self) -> Dict[str, Any]:
+        """Obtenir des insights sur la conversation en cours"""
+        
+        if len(self.detection_history) == 0:
+            return {"status": "no_data"}
+        
+        recent_history = list(self.detection_history)
+        speech_ratio = sum(recent_history) / len(recent_history)
+        
+        # Calculer la durée des segments de parole
+        speech_segments = []
+        current_segment_start = None
+        
+        for i, is_speech in enumerate(recent_history):
+            if is_speech and current_segment_start is None:
+                current_segment_start = i
+            elif not is_speech and current_segment_start is not None:
+                speech_segments.append(i - current_segment_start)
+                current_segment_start = None
+        
+        avg_speech_duration = np.mean(speech_segments) * self.chunk_ms if speech_segments else 0
+        
+        return {
+            "speech_ratio": speech_ratio,
+            "avg_speech_duration_ms": avg_speech_duration,
+            "energy_baseline": self.conversation_context.energy_baseline,
+            "last_speech_time": self.conversation_context.last_speech_time,
+            "cache_efficiency": self.advanced_metrics['cache_hits'] / max(1, len(recent_history)),
+            "context_usage": self.advanced_metrics['context_hits'] / max(1, len(recent_history)),
+            "threshold_adaptations": self.advanced_metrics['threshold_adaptations'],
+            "backend": self.backend
+        }
+
+    def reset_conversation_context(self):
+        """Réinitialiser le contexte pour une nouvelle conversation"""
+        with self.lock:
+            self.detection_history.clear()
+            self.energy_history.clear()
+            self.conversation_context = ConversationContext(
+                speaker_patterns={},
+                silence_patterns=[],
+                energy_baseline=0.0,
+                last_speech_time=None,
+                conversation_duration=0.0
+            )
+            
+            # Réinitialiser les métriques
+            self.advanced_metrics = {
+                "context_hits": 0,
+                "cache_hits": 0,
+                "threshold_adaptations": 0,
+                "false_positives": 0,
+                "false_negatives": 0
+            }
+            
+        logging.info("🔄 Contexte conversationnel réinitialisé")
+
+    async def cleanup(self):
+        """Nettoyage des ressources"""
+        if hasattr(self, 'executor'):
+            self.executor.shutdown(wait=True)
+        
+        # Vider le cache
+        self.segment_cache.clear()
+        
+        logging.info("🧹 Ressources VAD Optimized Manager nettoyées")
+
+
+# Test du VAD Optimized Manager
+async def test_vad_optimized_manager():
+    """Test complet du VAD Optimized Manager"""
+    print("🧪 TEST VAD OPTIMIZED MANAGER")
+    print("="*40)
+    
+    vad = VADOptimizedManager(
+        chunk_ms=32,  # Compatible Silero
+        latency_threshold_ms=15,
+        context_window_size=50,
+        adaptive_thresholds=True,
+        enable_caching=True
+    )
+    
+    await vad.initialize_optimized()
+    
+    # Test avec séquence de chunks simulés
+    print("\n🎯 Test séquence de détection...")
+    
+    test_chunks = [
+        np.zeros(vad.chunk_samples, dtype=np.float32),  # Silence
+        np.random.randn(vad.chunk_samples).astype(np.float32) * 0.1,  # Bruit faible
+        np.random.randn(vad.chunk_samples).astype(np.float32) * 0.5,  # Parole forte
+        np.random.randn(vad.chunk_samples).astype(np.float32) * 0.3,  # Parole modérée
+        np.zeros(vad.chunk_samples, dtype=np.float32),  # Silence
+        np.random.randn(vad.chunk_samples).astype(np.float32) * 0.4,  # Parole
+    ]
+    
+    results = []
+    for i, chunk in enumerate(test_chunks):
+        result = await vad.detect_speech_optimized(chunk)
+        results.append(result)
+        
+        print(f"Chunk {i+1}: {result['is_speech']} "
+              f"(prob: {result['probability']:.3f}, "
+              f"energy: {result.get('energy_level', 0.0):.6f}, "
+              f"source: {result['source']}, "
+              f"time: {result['processing_time_ms']:.2f}ms)")
+    
+    # Insights conversationnels
+    print("\n📊 Insights conversationnels:")
+    insights = vad.get_conversation_insights()
+    for key, value in insights.items():
+        print(f"   {key}: {value}")
+    
+    # Nettoyage
+    await vad.cleanup()
+    print("\n✅ Test VAD Optimized Manager terminé")
+
+
+if __name__ == "__main__":
+    asyncio.run(test_vad_optimized_manager()) 

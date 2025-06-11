@@ -1,0 +1,626 @@
+[
+  {
+    "timestamp": "2025-06-11T18:15:59.631010",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.07352018356323242,
+      "memory_diff_gb": 0.0079345703125,
+      "reserved_diff_gb": 0.01953125,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0,
+        "reserved_gb": 0.0,
+        "max_allocated_gb": 0.0,
+        "max_reserved_gb": 0.0,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.99951171875,
+        "utilization_pct": 0.0,
+        "potential_fragmentation_gb": 0.0,
+        "fragmentation_pct": 0.0,
+        "reserved_vs_allocated_ratio": 0
+      },
+      "stats_after": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.631010",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.0079345703125,
+      "diff_gb": 0.0079345703125,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.661009",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.02899932861328125,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      },
+      "stats_after": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.661009",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.0079345703125,
+      "diff_gb": 0.0079345703125,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.691011",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.029000282287597656,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      },
+      "stats_after": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.692015",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.0079345703125,
+      "diff_gb": 0.0079345703125,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.720522",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.02850651741027832,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      },
+      "stats_after": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.721521",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.0079345703125,
+      "diff_gb": 0.0079345703125,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.747303",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.025000810623168945,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      },
+      "stats_after": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.748309",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.0079345703125,
+      "diff_gb": 0.0079345703125,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.748309",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.0079345703125,
+      "diff_gb": 0.0079345703125,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.778315",
+    "event_type": "test_complete",
+    "test_name": "stress_test_0",
+    "data": {
+      "duration_s": 0.02700638771057129,
+      "memory_diff_gb": 0.0018634796142578125,
+      "reserved_diff_gb": 0.00390625,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.0079345703125,
+        "reserved_gb": 0.01953125,
+        "max_allocated_gb": 0.0079345703125,
+        "max_reserved_gb": 0.01953125,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97998046875,
+        "utilization_pct": 0.0813818640515961,
+        "potential_fragmentation_gb": 0.0115966796875,
+        "fragmentation_pct": 0.04832048178063519,
+        "reserved_vs_allocated_ratio": 2.4615384615384617
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.806321",
+    "event_type": "test_complete",
+    "test_name": "stress_test_1",
+    "data": {
+      "duration_s": 0.027005434036254883,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.831354",
+    "event_type": "test_complete",
+    "test_name": "stress_test_2",
+    "data": {
+      "duration_s": 0.025033235549926758,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.859354",
+    "event_type": "test_complete",
+    "test_name": "stress_test_3",
+    "data": {
+      "duration_s": 0.026005029678344727,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.883354",
+    "event_type": "test_complete",
+    "test_name": "stress_test_4",
+    "data": {
+      "duration_s": 0.023007631301879883,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.913584",
+    "event_type": "test_complete",
+    "test_name": "stress_test_5",
+    "data": {
+      "duration_s": 0.030230045318603516,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.941584",
+    "event_type": "test_complete",
+    "test_name": "stress_test_6",
+    "data": {
+      "duration_s": 0.02599787712097168,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:15:59.972584",
+    "event_type": "test_complete",
+    "test_name": "stress_test_7",
+    "data": {
+      "duration_s": 0.031000137329101562,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:16:00.002596",
+    "event_type": "test_complete",
+    "test_name": "stress_test_8",
+    "data": {
+      "duration_s": 0.030011415481567383,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:16:00.035103",
+    "event_type": "test_complete",
+    "test_name": "stress_test_9",
+    "data": {
+      "duration_s": 0.030511856079101562,
+      "memory_diff_gb": 0.0,
+      "reserved_diff_gb": 0.0,
+      "fragmentation_gb": 0.013639450073242188,
+      "fragmentation_pct": 0.05683219822587536,
+      "stats_before": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      },
+      "stats_after": {
+        "allocated_gb": 0.009798049926757812,
+        "reserved_gb": 0.0234375,
+        "max_allocated_gb": 0.009798049926757812,
+        "max_reserved_gb": 0.0234375,
+        "total_gb": 23.99951171875,
+        "free_gb": 23.97607421875,
+        "utilization_pct": 0.09765823686191531,
+        "potential_fragmentation_gb": 0.013639450073242188,
+        "fragmentation_pct": 0.05683219822587536,
+        "reserved_vs_allocated_ratio": 2.392057621179677
+      }
+    }
+  },
+  {
+    "timestamp": "2025-06-11T18:16:00.036095",
+    "event_type": "memory_leak_validation",
+    "test_name": "global",
+    "data": {
+      "initial_gb": 0.0,
+      "current_gb": 0.009798049926757812,
+      "diff_gb": 0.009798049926757812,
+      "threshold_gb": 0.1,
+      "passed": true
+    }
+  }
+]

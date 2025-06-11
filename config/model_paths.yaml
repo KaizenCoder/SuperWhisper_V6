@@ -1,0 +1,63 @@
+# Configuration des chemins de modèles - SuperWhisper V6
+# 🚨 RTX 3090 via CUDA_VISIBLE_DEVICES='1' - Device 0 visible = RTX 3090
+
+# =============================================================================
+# MODÈLES LLM - Stockage principal
+# =============================================================================
+llm_models:
+  base_directory: "D:/modeles_llm"
+  
+  # Modèles recommandés par catégorie
+  chat_models:
+    hermes_7b: "D:/modeles_llm/NousResearch/Nous-Hermes-2-Mistral-7B-DPO-GGUF/Nous-Hermes-2-Mistral-7B-DPO.Q4_K_S.gguf"
+    hermes_8x7b: "D:/modeles_llm/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO-GGUF"
+    deepseek_coder: "D:/modeles_llm/DeepSeek-Coder-V2-Lite-Instruct-GGUF"
+    qwen_32b: "D:/modeles_llm/Qwen2.5-Coder-32B-GGUF"
+  
+  coding_models:
+    deepseek_lite: "D:/modeles_llm/DeepSeek-Coder-V2-Lite-Instruct-GGUF"
+    codegemma: "D:/modeles_llm/codegemma-1.1-7b-it-GGUF"
+    wizard_coder: "D:/modeles_llm/WizardCoder-Python-7B-V1.0-GGUF"
+
+# =============================================================================
+# MODÈLES IA GÉNÉRAUX - HuggingFace Hub
+# =============================================================================
+ai_models:
+  base_directory: "D:/modeles_ia"
+  huggingface_cache: "D:/modeles_ia/hub"
+  download_directory: "D:/modeles_ia/huggingface"
+
+# =============================================================================
+# MODÈLES TTS - Voix françaises
+# =============================================================================
+tts_models:
+  base_directory: "D:/TTS_Voices"
+  
+  piper_voices:
+    base_path: "D:/TTS_Voices/piper"
+    french_voices:
+      siwis: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+      upmc: "D:/TTS_Voices/piper/fr_FR-upmc-medium.onnx"
+      mls: "D:/TTS_Voices/piper/fr_FR-mls_1840-medium.onnx"
+  
+  azure_voices:
+    base_path: "D:/TTS_Voices/azure"
+  
+  aws_polly:
+    base_path: "D:/TTS_Voices/polly"
+
+# =============================================================================
+# CONFIGURATION GPU RTX 3090
+# =============================================================================
+gpu_config:
+  primary_device: "cuda:0"  # RTX 3090 après CUDA_VISIBLE_DEVICES='1'
+  memory_optimization: true
+  precision: "float16"
+  
+# =============================================================================
+# CONFIGURATION ENVIRONNEMENT
+# =============================================================================
+environment:
+  cuda_visible_devices: "1"  # RTX 3090 exclusivement
+  cuda_device_order: "PCI_BUS_ID"  # Force l'ordre physique
+  pytorch_cuda_alloc_conf: "max_split_size_mb:1024"

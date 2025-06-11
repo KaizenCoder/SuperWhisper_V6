@@ -1,0 +1,19 @@
+# Config/mvp_settings.yaml
+# Configuration minimale pour le MVP P0
+# 🚨 RTX 3090 via CUDA_VISIBLE_DEVICES='1' - Device 0 visible = RTX 3090
+
+stt:
+  model_name: "openai/whisper-base" # Modèle plus léger pour les tests
+  gpu_device: "cuda:0" # RTX 3090 (cuda:0 après CUDA_VISIBLE_DEVICES='1')
+
+llm:
+  model_path: "D:/modeles_llm/NousResearch/Nous-Hermes-2-Mistral-7B-DPO-GGUF/Nous-Hermes-2-Mistral-7B-DPO.Q4_K_S.gguf" # Modèle existant 7B
+  gpu_device_index: 0 # RTX 3090 (cuda:0 après CUDA_VISIBLE_DEVICES='1')
+  n_gpu_layers: -1 # Décharger toutes les couches sur le GPU RTX 3090
+
+tts:
+  # Configuration pour Piper-TTS local (100% offline, conforme LUXA)
+  model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+  use_gpu: true
+  sample_rate: 22050
+  voices_directory: "D:/TTS_Voices/piper"

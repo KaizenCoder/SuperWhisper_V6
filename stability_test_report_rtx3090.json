@@ -1,0 +1,416 @@
+{
+  "start_time": "2025-06-11T20:11:22.323147",
+  "test_config": {
+    "original_duration_min": 30,
+    "actual_duration_min": 2.0,
+    "accelerated_mode": true,
+    "CUDA_VISIBLE_DEVICES": "1"
+  },
+  "stability_metrics": {
+    "memory_snapshots": [
+      {
+        "timestamp": "2025-06-11T20:11:26.678534",
+        "elapsed_seconds": 4.355387,
+        "data": {
+          "cycle": 10,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:30.981779",
+        "elapsed_seconds": 8.658632,
+        "data": {
+          "cycle": 20,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:35.297749",
+        "elapsed_seconds": 12.974602,
+        "data": {
+          "cycle": 30,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:39.608007",
+        "elapsed_seconds": 17.28486,
+        "data": {
+          "cycle": 40,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:43.899398",
+        "elapsed_seconds": 21.576251,
+        "data": {
+          "cycle": 50,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:48.215419",
+        "elapsed_seconds": 25.892272,
+        "data": {
+          "cycle": 60,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:52.529509",
+        "elapsed_seconds": 30.206362,
+        "data": {
+          "cycle": 70,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:56.825748",
+        "elapsed_seconds": 34.502601,
+        "data": {
+          "cycle": 80,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:01.159955",
+        "elapsed_seconds": 38.836808,
+        "data": {
+          "cycle": 90,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:05.468788",
+        "elapsed_seconds": 43.145641,
+        "data": {
+          "cycle": 100,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:09.760226",
+        "elapsed_seconds": 47.437079,
+        "data": {
+          "cycle": 110,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:14.066722",
+        "elapsed_seconds": 51.743575,
+        "data": {
+          "cycle": 120,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:18.361785",
+        "elapsed_seconds": 56.038638,
+        "data": {
+          "cycle": 130,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:22.678585",
+        "elapsed_seconds": 60.355438,
+        "data": {
+          "cycle": 140,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:27.014618",
+        "elapsed_seconds": 64.691471,
+        "data": {
+          "cycle": 150,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:31.330402",
+        "elapsed_seconds": 69.007255,
+        "data": {
+          "cycle": 160,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:35.645119",
+        "elapsed_seconds": 73.321972,
+        "data": {
+          "cycle": 170,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:39.968741",
+        "elapsed_seconds": 77.645594,
+        "data": {
+          "cycle": 180,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:44.310151",
+        "elapsed_seconds": 81.987004,
+        "data": {
+          "cycle": 190,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:48.615319",
+        "elapsed_seconds": 86.292172,
+        "data": {
+          "cycle": 200,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:52.944923",
+        "elapsed_seconds": 90.622783,
+        "data": {
+          "cycle": 210,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:57.261896",
+        "elapsed_seconds": 94.938749,
+        "data": {
+          "cycle": 220,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:01.598929",
+        "elapsed_seconds": 99.275782,
+        "data": {
+          "cycle": 230,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:05.909674",
+        "elapsed_seconds": 103.586527,
+        "data": {
+          "cycle": 240,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:10.220814",
+        "elapsed_seconds": 107.897667,
+        "data": {
+          "cycle": 250,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:14.536266",
+        "elapsed_seconds": 112.213119,
+        "data": {
+          "cycle": 260,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:18.843075",
+        "elapsed_seconds": 116.519928,
+        "data": {
+          "cycle": 270,
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125,
+          "fragmentation_gb": 0
+        }
+      }
+    ],
+    "performance_snapshots": [
+      {
+        "timestamp": "2025-06-11T20:11:22.466698",
+        "elapsed_seconds": 0.143551,
+        "data": {
+          "elapsed_seconds": 0.035532,
+          "matmul_time_ms": 35.625000004074536,
+          "estimated_gflops": 449.12280696617637
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:32.479790",
+        "elapsed_seconds": 10.156643,
+        "data": {
+          "elapsed_seconds": 10.049623,
+          "matmul_time_ms": 12.345900002401322,
+          "estimated_gflops": 1295.9768017631718
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:42.493345",
+        "elapsed_seconds": 20.170198,
+        "data": {
+          "elapsed_seconds": 20.063178,
+          "matmul_time_ms": 12.454299998353235,
+          "estimated_gflops": 1284.6968518596464
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:11:52.506362",
+        "elapsed_seconds": 30.183215,
+        "data": {
+          "elapsed_seconds": 30.076195,
+          "matmul_time_ms": 12.38690000900533,
+          "estimated_gflops": 1291.6871847167515
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:02.519861",
+        "elapsed_seconds": 40.196714,
+        "data": {
+          "elapsed_seconds": 40.089694,
+          "matmul_time_ms": 12.15210001100786,
+          "estimated_gflops": 1316.6448585435076
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:12.532571",
+        "elapsed_seconds": 50.209424,
+        "data": {
+          "elapsed_seconds": 50.102404,
+          "matmul_time_ms": 12.268299993593246,
+          "estimated_gflops": 1304.1741731417983
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:22.546943",
+        "elapsed_seconds": 60.223796,
+        "data": {
+          "elapsed_seconds": 60.116776,
+          "matmul_time_ms": 12.38040000316687,
+          "estimated_gflops": 1292.3653513543381
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:32.561457",
+        "elapsed_seconds": 70.23831,
+        "data": {
+          "elapsed_seconds": 70.13129,
+          "matmul_time_ms": 13.992699998198077,
+          "estimated_gflops": 1143.4533722627095
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:42.605133",
+        "elapsed_seconds": 80.281986,
+        "data": {
+          "elapsed_seconds": 80.174966,
+          "matmul_time_ms": 13.856899997335859,
+          "estimated_gflops": 1154.6594117786933
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:12:52.618007",
+        "elapsed_seconds": 90.29486,
+        "data": {
+          "elapsed_seconds": 90.18784,
+          "matmul_time_ms": 12.176499993074685,
+          "estimated_gflops": 1314.0064886543678
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:02.630534",
+        "elapsed_seconds": 100.307387,
+        "data": {
+          "elapsed_seconds": 100.200367,
+          "matmul_time_ms": 12.126800007536076,
+          "estimated_gflops": 1319.3917595785338
+        }
+      },
+      {
+        "timestamp": "2025-06-11T20:13:12.643728",
+        "elapsed_seconds": 110.320581,
+        "data": {
+          "elapsed_seconds": 110.213561,
+          "matmul_time_ms": 12.362100009340793,
+          "estimated_gflops": 1294.278479215539
+        }
+      }
+    ],
+    "error_count": 0,
+    "warnings_count": 0
+  },
+  "end_time": "2025-06-11T20:13:22.808426",
+  "test_summary": {
+    "cycles_completed": 279,
+    "total_errors": 0,
+    "total_warnings": 0,
+    "memory_snapshots_count": 27,
+    "performance_snapshots_count": 12
+  },
+  "memory_analysis": {
+    "min_memory_gb": 0.0079345703125,
+    "max_memory_gb": 0.0079345703125,
+    "avg_memory_gb": 0.0079345703125,
+    "memory_stable": true
+  },
+  "performance_analysis": {
+    "min_gflops": 449.12280696617637,
+    "max_gflops": 1319.3917595785338,
+    "avg_gflops": 1205.0381283196027,
+    "performance_stable": false
+  },
+  "stability_score": 85
+}

@@ -1,0 +1,230 @@
+# TTS/tts_handler_piper_french.py
+import os
+import json
+import numpy as np
+import sounddevice as sd
+import soundfile as sf
+import onnxruntime
+
+# Configuration RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+class TTSHandlerPiperFrench:
+    def __init__(self, config):
+        self.config = config
+        
+        # Chemins modèle
+        self.model_path = config.get('model_path', 'D:\\TTS_Voices\\piper\\fr_FR-siwis-medium.onnx')
+        self.config_path = config.get('config_path', 'D:\\TTS_Voices\\piper\\fr_FR-siwis-medium.onnx.json')
+        self.use_gpu = config.get('use_gpu', True)
+        self.sample_rate = config.get('sample_rate', 22050)
+        
+        # Charger la configuration du modèle
+        self._load_model_config()
+        
+        # Charger le modèle ONNX
+        self._load_model()
+        
+    def _load_model_config(self):
+        """Charger la configuration JSON du modèle Piper"""
+        print(f"📄 Chargement config française: {self.config_path}")
+        
+        with open(self.config_path, 'r', encoding='utf-8') as f:
+            self.model_config = json.load(f)
+            
+        # Extraire les paramètres
+        audio_config = self.model_config.get('audio', {})
+        self.sample_rate = audio_config.get('sample_rate', 22050)
+        
+        inference_config = self.model_config.get('inference', {})
+        self.noise_scale = inference_config.get('noise_scale', 0.667)
+        self.length_scale = inference_config.get('length_scale', 1.0)
+        self.noise_w = inference_config.get('noise_w', 0.8)
+        
+        # Mapping phonème → ID
+        self.phoneme_id_map = self.model_config.get('phoneme_id_map', {})
+        
+        print(f"✅ Config française chargée: {len(self.phoneme_id_map)} phonèmes")
+        print(f"   Sample rate: {self.sample_rate}Hz")
+        print(f"   Paramètres: noise={self.noise_scale}, length={self.length_scale}, noise_w={self.noise_w}")
+        
+    def _load_model(self):
+        """Charger le modèle ONNX avec RTX 3090"""
+        print(f"🔄 Chargement modèle français RTX 3090: {self.model_path}")
+        
+        # Ajout des DLLs CUDA au PATH
+        torch_lib_path = os.path.join(os.getcwd(), 'venv_piper312', 'Lib', 'site-packages', 'torch', 'lib')
+        if os.path.exists(torch_lib_path):
+            current_path = os.environ.get('PATH', '')
+            if torch_lib_path not in current_path:
+                os.environ['PATH'] = current_path + os.pathsep + torch_lib_path
+        
+        # Providers optimisés RTX 3090
+        providers = []
+        if self.use_gpu:
+            providers.append(('CUDAExecutionProvider', {
+                'device_id': 0,
+                'arena_extend_strategy': 'kNextPowerOfTwo',
+                'gpu_mem_limit': 8 * 1024 * 1024 * 1024,  # 8GB
+                'cudnn_conv_algo_search': 'EXHAUSTIVE',
+                'do_copy_in_default_stream': True,
+            }))
+        providers.append('CPUExecutionProvider')
+        
+        # Créer session ONNX
+        self.session = onnxruntime.InferenceSession(self.model_path, providers=providers)
+        
+        # Vérifier providers
+        current_providers = self.session.get_providers()
+        print(f"🚀 Providers: {current_providers}")
+        
+        if 'CUDAExecutionProvider' in current_providers:
+            print("✅ RTX 3090 CUDA activé")
+        else:
+            print("⚠️ Fallback CPU")
+            
+        # Métadonnées modèle
+        self.model_inputs = [inp.name for inp in self.session.get_inputs()]
+        self.model_outputs = [out.name for out in self.session.get_outputs()]
+        
+    def text_to_phonemes_french(self, text):
+        """Conversion texte → phonèmes français IPA corrects"""
+        
+        # Mapping français précis basé sur la prononciation française réelle
+        french_phoneme_mapping = {
+            # Voyelles françaises
+            'a': 'a',      # chat
+            'e': 'ə',      # petit (schwa)
+            'é': 'e',      # été  
+            'è': 'ɛ',      # père
+            'ê': 'ɛ',      # être
+            'i': 'i',      # si
+            'o': 'ɔ',      # mot (ouvert)
+            'ô': 'o',      # côte (fermé)
+            'u': 'y',      # tu (français /y/)
+            'ou': 'u',     # tout
+            'eu': 'ø',     # peu
+            'eur': 'œ',    # peur
+            
+            # Consonnes françaises
+            'b': 'b',      'p': 'p',      'm': 'm',
+            'd': 'd',      't': 't',      'n': 'n',
+            'g': 'ɡ',      'k': 'k',      'ŋ': 'ŋ',
+            'f': 'f',      'v': 'v',
+            's': 's',      'z': 'z',      
+            'ʃ': 'ʃ',      'ʒ': 'ʒ',      # ch, j
+            'l': 'l',      'r': 'ʁ',      # r français
+            'j': 'j',      'w': 'w',      'ɥ': 'ɥ',
+            
+            # Consonnes spéciales
+            'ch': 'ʃ',     'j': 'ʒ',      'gn': 'ɲ',
+            'll': 'j',     'qu': 'k',     'ph': 'f',
+            'th': 't',     'tion': 'sjɔ̃',
+            
+            # Nasales françaises  
+            'an': 'ɑ̃',     'en': 'ɑ̃',     'on': 'ɔ̃',     'in': 'ɛ̃',     'un': 'œ̃',
+            
+            # Ponctuation et espaces
+            ' ': ' ',      '.': '.',      '!': '!',      '?': '?',      ',': ',',
+            ':': ':',      ';': ';',      '-': '-',      "'": "'",
+        }
+        
+        phoneme_ids = []
+        
+        # Marqueur début
+        if "^" in self.phoneme_id_map:
+            phoneme_ids.extend(self.phoneme_id_map["^"])
+            
+        # Conversion avec règles françaises
+        text = text.lower()
+        i = 0
+        while i < len(text):
+            found = False
+            
+            # Chercher correspondances longues d'abord (digraphes, etc.)
+            for length in [4, 3, 2, 1]:
+                if i + length <= len(text):
+                    substring = text[i:i+length]
+                    if substring in french_phoneme_mapping:
+                        phoneme = french_phoneme_mapping[substring]
+                        if phoneme in self.phoneme_id_map:
+                            phoneme_ids.extend(self.phoneme_id_map[phoneme])
+                        i += length
+                        found = True
+                        break
+            
+            # Si rien trouvé, utiliser espace
+            if not found:
+                if ' ' in self.phoneme_id_map:
+                    phoneme_ids.extend(self.phoneme_id_map[' '])
+                i += 1
+                
+        # Marqueur fin
+        if "$" in self.phoneme_id_map:
+            phoneme_ids.extend(self.phoneme_id_map["$"])
+            
+        return phoneme_ids
+        
+    def synthesize(self, text):
+        """Synthèse vocale française RTX 3090"""
+        print(f"🇫🇷 Synthèse vocale FRANÇAISE (RTX 3090)")
+        print(f"   Texte: '{text}'")
+        
+        try:
+            # 1. Conversion texte → phonèmes français
+            phoneme_ids = self.text_to_phonemes_french(text)
+            print(f"   📝 Phonèmes français: {len(phoneme_ids)} IDs - {phoneme_ids[:10]}...")
+            
+            # 2. Préparation inputs ONNX
+            input_ids = np.array([phoneme_ids], dtype=np.int64)
+            input_lengths = np.array([len(phoneme_ids)], dtype=np.int64)
+            scales = np.array([self.noise_scale, self.length_scale, self.noise_w], dtype=np.float32)
+            
+            # 3. Inférence RTX 3090
+            onnx_inputs = {
+                'input': input_ids,
+                'input_lengths': input_lengths,
+                'scales': scales
+            }
+            
+            outputs = self.session.run(None, onnx_inputs)
+            audio_data = outputs[0]
+            
+            # 4. Post-processing
+            audio_data = np.squeeze(audio_data)
+            
+            print(f"   🎵 Audio français généré: {audio_data.shape} échantillons")
+            print(f"   🔍 Range audio: [{audio_data.min():.3f}, {audio_data.max():.3f}]")
+            
+            # Vérifier qualité audio
+            amplitude = max(abs(audio_data.min()), abs(audio_data.max()))
+            if amplitude > 0.1:
+                print(f"   ✅ Audio français valide (amplitude: {amplitude:.3f})")
+            else:
+                print(f"   ⚠️ Audio français faible (amplitude: {amplitude:.3f})")
+            
+            # Conversion pour lecture
+            audio_int16 = (audio_data * 32767).clip(-32767, 32767).astype(np.int16)
+            
+            return audio_int16
+            
+        except Exception as e:
+            print(f"❌ Erreur synthèse française: {e}")
+            import traceback
+            traceback.print_exc()
+            return np.array([], dtype=np.int16)
+    
+    def speak(self, text):
+        """Synthèse et lecture audio français RTX 3090"""
+        audio_data = self.synthesize(text)
+        
+        if len(audio_data) > 0:
+            print(f"   🔊 Lecture audio français...")
+            sd.play(audio_data, samplerate=self.sample_rate)
+            sd.wait()
+            print(f"   ✅ Lecture française terminée")
+        else:
+            print(f"   ❌ Pas d'audio français à lire")
+            
+        return audio_data 

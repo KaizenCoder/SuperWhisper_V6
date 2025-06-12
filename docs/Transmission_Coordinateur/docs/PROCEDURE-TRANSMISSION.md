@@ -70,6 +70,7 @@ Procédure standardisée pour la transmission de documentation technique complè
 - [ ] Modifications d'architecture documentées
 - [ ] Décisions techniques justifiées
 - [ ] Tests de validation exécutés et documentés
+- [ ] **ON_BOARDING_ia.md mis à jour** (état actuel du projet pour prochaine IA)
 
 ### ✅ **3. Livrables Techniques**
 - [ ] Fonctionnalités implémentées et testées
@@ -129,7 +130,18 @@ Procédure standardisée pour la transmission de documentation technique complè
 - Apprentissages techniques
 - Métriques de session
 
-### 📋 **7. PROCEDURE-TRANSMISSION.md** (ce fichier)
+### 🤖 **7. ON_BOARDING_ia.md** (OBLIGATOIRE)
+**Objectif** : Onboarding pour prochaine IA reprenant le projet  
+**Contenu requis** :
+- État actuel complet du projet
+- Documents prioritaires à consulter (pattern Transmission*.md)
+- Architecture technique et performance
+- Configuration GPU RTX 3090 critique
+- Prochaines étapes identifiées
+**Localisation** : `docs/ON_BOARDING_ia.md`
+**Mise à jour** : OBLIGATOIRE à chaque transmission
+
+### 📋 **8. PROCEDURE-TRANSMISSION.md** (ce fichier)
 **Objectif** : Procédure de transmission  
 **Contenu requis** :
 - Processus standardisé
@@ -170,11 +182,12 @@ Procédure standardisée pour la transmission de documentation technique complè
 ## 🎯 CRITÈRES D'ACCEPTATION
 
 ### ✅ **Critères Techniques**
-- Bundle contient les 7 documents obligatoires
+- Bundle contient les 8 documents obligatoires (dont ON_BOARDING_ia.md)
 - Taille totale > 50KB (indicateur de complétude)
 - Timestamp correct dans tous les fichiers
 - Liens internes fonctionnels
 - Format Markdown respecté
+- ON_BOARDING_ia.md utilise pattern générique "Transmission*.md"
 
 ### ✅ **Critères Fonctionnels**  
 - Objectifs de session clairement définis

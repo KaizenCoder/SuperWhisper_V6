@@ -1,1066 +1,1137 @@
-# 📅 PLAN DE DÉVELOPPEMENT - CONSOLIDATION TTS PHASE 2 ENTERPRISE
+# 📋 PLAN DE DÉVELOPPEMENT - PHASE 4 STT SUPERWHISPER V6
 
-**Date :** 2025-06-12  
-**Version :** v2.0 Enterprise  
-**Durée Totale :** 5.5 jours  
-**Équipe :** SuperWhisper V6 Core Team  
-
----
-
-## 🎯 **VUE D'ENSEMBLE STRATÉGIQUE**
-
-### **Philosophie de Développement :**
-- **Validation Continue :** Checkpoints bloquants à chaque phase
-- **Préservation des Acquis :** Architecture fonctionnelle maintenue
-- **Approche Enterprise :** Robustesse + monitoring + performance
-
-### **Architecture Cible :**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 UnifiedTTSManager                           │
-├─────────────────┬─────────────────┬─────────────────────────┤
-│ PiperNativeHandler │ PiperCliHandler │ SapiFrenchHandler │ SilentEmergencyHandler │
-│   <120ms GPU    │   <1000ms CPU   │   <2000ms SAPI    │     <5ms Silence       │
-└─────────────────┴─────────────────┴─────────────────────────┘
-         │                 │                 │                 │
-         ▼                 ▼                 ▼                 ▼
-┌─────────────────┬─────────────────┬─────────────────────────┐
-│ Circuit Breakers│   TTSCache      │   Prometheus Metrics    │
-│ 3 échecs/30s    │   100MB LRU     │   Temps réel           │
-└─────────────────┴─────────────────┴─────────────────────────┘
-```
+**Version :** 4.1 VALIDATIONS HUMAINES  
+**Date :** 12 juin 2025  
+**Configuration :** RTX 3090 Unique (24GB VRAM)  
+**Durée estimée :** 3 jours + validations humaines  
+**Objectif :** Pipeline voix-à-voix avec validation humaine continue  
 
 ---
 
-## 📋 **PHASE 0 : PRÉPARATION (0.5 JOUR)**
+## 🎯 CONTEXTE ET OBJECTIFS
 
-### **🕒 Timing :** J0 - 09h00 → 13h00 (4h)
+### **État Actuel SuperWhisper V6**
+- ✅ **Phase 3 TTS** : Terminée avec succès exceptionnel (29.5ms latence cache)
+- ✅ **Configuration GPU** : RTX 3090 exclusive validée (24GB VRAM)
+- ✅ **Architecture** : UnifiedTTSManager opérationnel avec 4 backends
+- ✅ **Performance** : Dépasse tous objectifs (+340% amélioration)
 
-#### **0.1 - Initialisation Git (1h) :**
-```bash
-# Création branche feature
-git checkout -b feature/tts-enterprise-consolidation
+### **Mission Phase 4**
+Intégrer module STT avec **Prism_Whisper2** sur RTX 3090 unique pour compléter le pipeline **voix-à-voix** (STT → LLM → TTS) avec performance < 730ms.
 
-# Tag de sauvegarde
-git tag pre-tts-enterprise-consolidation
-git push origin pre-tts-enterprise-consolidation
-
-# Validation état initial
-git status
-git log --oneline -5
+### **Configuration GPU Réelle**
 ```
+Hardware Dual-GPU :
+├── Bus PCI 0 : RTX 5060 Ti (16GB) ❌ INTERDITE
+└── Bus PCI 1 : RTX 3090 (24GB) ✅ SEULE AUTORISÉE
 
-#### **0.2 - Archivage Handlers Obsolètes (2h) :**
-```bash
-# Création répertoire archive
-mkdir -p TTS/legacy_handlers_20250612
-
-# Documentation rollback
-cat > TTS/legacy_handlers_20250612/README_ROLLBACK.md << 'EOF'
-# Archive Handlers TTS - 12 juin 2025
-
-## Contexte
-Consolidation 15→4 handlers suite Phase 2 Enterprise.
-Handlers archivés car non-fonctionnels/redondants.
-
-## Handlers Archivés (13 fichiers)
-- tts_handler_piper_native.py (défaillant)
-- tts_handler_piper_rtx3090.py (défaillant)
-- tts_handler_piper_simple.py (non testé)
-- tts_handler_piper_french.py (non testé)
-- tts_handler_piper_original.py (legacy)
-- tts_handler_piper_direct.py (legacy)
-- tts_handler_piper_espeak.py (legacy)
-- tts_handler_piper_fixed.py (legacy)
-- tts_handler_piper_cli.py (legacy)
-- tts_handler_piper.py (legacy)
-- tts_handler_coqui.py (alternatif)
-- tts_handler_mvp.py (basique)
-- tts_handler_fallback.py (interface manquante)
-
-## Rollback Complet
-```bash
-# Restauration handlers
-mv TTS/legacy_handlers_20250612/*.py TTS/
-rm -rf TTS/legacy_handlers_20250612/
-
-# Restauration Git
-git checkout pre-tts-enterprise-consolidation
-git branch -D feature/tts-enterprise-consolidation
+Mapping Software :
+CUDA_VISIBLE_DEVICES='1' → cuda:0 = RTX 3090 (24GB)
 ```
-
-## Rollback Partiel
-```bash
-# Restauration handler spécifique
-cp TTS/legacy_handlers_20250612/tts_handler_X.py TTS/
-```
-EOF
-
-# Migration handlers obsolètes
-mv TTS/tts_handler_piper_native.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_rtx3090.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_simple.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_french.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_original.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_direct.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_espeak.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_fixed.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper_cli.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_piper.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_coqui.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_mvp.py TTS/legacy_handlers_20250612/
-mv TTS/tts_handler_fallback.py TTS/legacy_handlers_20250612/
-```
-
-#### **0.3 - Script Rollback Automatisé (1h) :**
-```bash
-# Création script rollback
-cat > scripts/rollback_tts_enterprise.sh << 'EOF'
-#!/bin/bash
-# Script de rollback automatisé TTS Enterprise
-
-echo "🔄 Rollback TTS Enterprise en cours..."
-
-# Vérification tag existe
-if ! git tag -l | grep -q "pre-tts-enterprise-consolidation"; then
-    echo "❌ Tag de sauvegarde introuvable"
-    exit 1
-fi
-
-# Sauvegarde état actuel
-git stash push -m "Rollback TTS Enterprise $(date)"
-
-# Restauration tag
-git checkout pre-tts-enterprise-consolidation
-
-# Nettoyage branche feature
-git branch -D feature/tts-enterprise-consolidation 2>/dev/null || true
-
-# Restauration handlers archivés
-if [ -d "TTS/legacy_handlers_20250612" ]; then
-    mv TTS/legacy_handlers_20250612/*.py TTS/ 2>/dev/null || true
-    rm -rf TTS/legacy_handlers_20250612/
-fi
-
-# Nettoyage fichiers nouveaux
-rm -f config/tts.yaml
-rm -f TTS/tts_manager_unified.py
-rm -rf TTS/handlers/
-rm -rf TTS/components/
-rm -f tests/test_unified_tts_manager.py
-
-echo "✅ Rollback TTS Enterprise terminé"
-echo "📋 État restauré au tag pre-tts-enterprise-consolidation"
-EOF
-
-chmod +x scripts/rollback_tts_enterprise.sh
-```
-
-### **✅ Livrables Phase 0 :**
-- [x] Branche feature créée
-- [x] Tag sauvegarde posé
-- [x] 13 handlers archivés
-- [x] Documentation rollback
-- [x] Script rollback automatisé
 
 ---
 
-## 📋 **PHASE 1 : RÉPARATION PIPERNATIVEHANDLER (2 JOURS)**
+## 🚨 PRÉREQUIS CRITIQUES - VALIDATION HUMAINE
 
-### **🕒 Timing :** J1-J2 - 09h00 → 17h00 (16h)
+### **📋 Protocole Validation Audio Obligatoire**
+**RÈGLE ABSOLUE** : Les tests audio au microphone DOIVENT inclure une validation humaine par écoute manuelle.
 
-#### **1.1 - Diagnostic Handler Défaillant (J1 - 4h) :**
-
-##### **Analyse Erreurs Existantes :**
-```python
-# Examen tts_handler_piper_native.py archivé
-# Identification causes échec :
-# - Dépendances manquantes ?
-# - Chemin modèle incorrect ?
-# - Configuration GPU défaillante ?
-# - Interface API obsolète ?
+#### **🔄 Cycle de Développement Audio**
+```
+1. ⚡ IMPLÉMENTATION STT
+   ↓
+2. 🧪 TESTS AUTOMATISÉS (métriques, performance)
+   ↓
+3. 🎧 TESTS AUDIO MICROPHONE
+   ↓
+4. 👂 VALIDATION HUMAINE AUDIO (OBLIGATOIRE)
+   ↓
+5. 📝 DOCUMENTATION (journal + suivi)
+   ↓
+6. ✅ PASSAGE ÉTAPE SUIVANTE
 ```
 
-##### **Validation Environnement :**
+#### **📚 Documentation Continue Obligatoire**
+
+##### **📝 Journal de Développement**
+- **Fichier :** `docs/journal_developpement.md`
+- **Règle :** ❌ INTERDICTION suppression, ✅ MODIFICATION uniquement
+- **Mise à jour :** **OBLIGATOIRE** avant chaque commit
+- **Contenu :** Décisions, problèmes, solutions, validations
+
+##### **📊 Suivi Phase 4 STT**
+- **Fichier :** `docs/suivi_stt_phase4.md` (créer automatiquement jour 1)
+- **Template :** Basé sur `docs/suivi_consolidation_tts_phase2.md`
+- **Mise à jour :** Temps réel avec chaque avancement
+- **Contenu :** Progression, validations humaines, métriques
+
+#### **⚠️ Responsabilités Développeur**
+- **AVANT** chaque étape : Mise à jour documentation
+- **PENDANT** chaque étape : Tests avec validation humaine planifiée
+- **APRÈS** chaque étape : Documentation résultats et décisions
+
+---
+
+## 📅 PLANNING DÉTAILLÉ - 3 JOURS
+
+### **🚀 JOUR 1 - POC PRISM_WHISPER2 RTX 3090**
+
+#### **📝 DÉBUT JOUR 1 - Documentation Obligatoire (30 min)**
 ```bash
-# Test dépendances
-python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
-python -c "import torch; print(f'GPU: {torch.cuda.get_device_name(0)}')"
+# ÉTAPE 0.1 - Création Suivi Phase 4 STT (OBLIGATOIRE)
+cp docs/suivi_consolidation_tts_phase2.md docs/suivi_stt_phase4.md
+# Adapter template pour Phase 4 STT
+# Documenter objectifs jour 1
 
-# Test modèles disponibles sur D:\
-Get-ChildItem "D:\TTS_Voices\piper" -Name
-# ✅ Confirmer : fr_FR-siwis-medium.onnx (63MB) + .json
-
-# Test piper-python
-pip list | grep piper
+# ÉTAPE 0.2 - Mise à jour Journal Développement (OBLIGATOIRE)  
+# Ajouter entrée session développement jour 1
+# Documenter plan et objectifs
 ```
 
-##### **Benchmark Baseline :**
-```python
-# Test handler CLI actuel (référence)
-python test_tts_handler.py  # Validation <1000ms
+#### **Matin (3.5h) - Setup et Validation**
+```bash
+# ÉTAPE 1.1 - Validation Configuration RTX 3090 (30 min)
+python test_gpu_correct.py
+python test_validation_rtx3090_detection.py
+nvidia-smi  # Confirmer RTX 3090 disponible
+
+# ÉTAPE 1.2 - Installation Prism_Whisper2 (30 min)
+pip install prism-whisper2
+pip install prometheus-client
+pip install asyncio-throttle
+
+# ÉTAPE 1.3 - Validation Dual-GPU (30 min)
+python scripts/validate_dual_gpu_rtx3090.py
 ```
 
-#### **1.2 - Implémentation PiperNativeHandler (J1-J2 - 8h) :**
+#### **ÉTAPE 1.4 - Backend PrismSTTBackend (2.5h)**
+**Créer :** `STT/backends/prism_stt_backend.py`
 
-##### **Structure Handler GPU :**
 ```python
-# TTS/handlers/piper_native.py
 #!/usr/bin/env python3
 """
-PiperNativeHandler - GPU RTX 3090 <120ms
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+Backend Prism STT SuperWhisper V6 - RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (cuda:0) OBLIGATOIRE
 """
 
 import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+# Configuration GPU RTX 3090 - OBLIGATOIRE AVANT IMPORT
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
 
+import torch
 import time
 import asyncio
-from typing import Optional
-import torch
 import numpy as np
+from typing import Dict, Any
+import prism_whisper2
 
-# Import piper-python (à installer)
-# from piper import PiperVoice
+def validate_rtx3090_mandatory():
+    """Validation RTX 3090 selon standards SuperWhisper V6"""
+    # [Code validation complète selon standards]
+    pass
 
-class PiperNativeHandler:
-    def __init__(self, config: dict):
-        self.config = config
-        self._validate_rtx3090_configuration()
-        self._initialize_piper_voice()
+class PrismSTTBackend:
+    def __init__(self, model_size: str = "large-v2"):
+        validate_rtx3090_mandatory()
         
-    def _validate_rtx3090_configuration(self):
-        """Validation obligatoire RTX 3090"""
-        if not torch.cuda.is_available():
-            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+        self.device = "cuda:0"  # RTX 3090 après mapping
+        self.model_size = model_size
         
-        device_name = torch.cuda.get_device_name(0)
-        if "3090" not in device_name:
-            raise RuntimeError(f"🚫 GPU invalide: {device_name} - RTX 3090 requise")
+        # Charger modèle en float16 sur RTX 3090
+        self.model = prism_whisper2.load_model(
+            model_size,
+            device=self.device,
+            compute_type="float16"
+        )
         
-        # Allocation VRAM limitée (10% max)
-        torch.cuda.set_per_process_memory_fraction(0.1, 0)
+        # Métriques
+        self.total_requests = 0
+        self.total_errors = 0
+        self.total_latency = 0.0
         
-        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
-        print(f"✅ RTX 3090 validée: {device_name} ({gpu_memory:.1f}GB)")
+    async def transcribe(self, audio: np.ndarray) -> Dict[str, Any]:
+        """Transcription asynchrone RTF < 1.0"""
+        start_time = time.time()
+        self.total_requests += 1
         
-    def _initialize_piper_voice(self):
-        """Initialisation voix Piper native"""
-        model_path = self.config['model_path']
-        # self.voice = PiperVoice.load(model_path, use_cuda=True)
-        print(f"✅ PiperNativeHandler initialisé: {model_path}")
-        
-    async def synthesize(self, text: str, voice: Optional[str] = None, 
-                        speed: Optional[float] = None) -> bytes:
-        """Synthèse TTS GPU <120ms"""
-        start_time = time.perf_counter()
-        
-        # Synthèse via piper-python GPU
-        # audio_bytes = await asyncio.to_thread(self.voice.synthesize, text)
-        
-        # SIMULATION pour développement
-        await asyncio.sleep(0.08)  # Simule 80ms
-        audio_bytes = b"fake_gpu_audio_data"
-        
-        latency_ms = (time.perf_counter() - start_time) * 1000
-        
-        if latency_ms > 120:
-            raise RuntimeError(f"Performance dégradée: {latency_ms:.0f}ms > 120ms")
+        try:
+            # Transcription sur RTX 3090
+            result = await self.model.transcribe_async(audio)
             
-        print(f"✅ PiperNative synthèse: {latency_ms:.0f}ms")
-        return audio_bytes
+            # Métriques performance
+            duration = time.time() - start_time
+            audio_duration = len(audio) / 16000
+            rtf = duration / audio_duration
+            
+            self.total_latency += duration
+            
+            return {
+                "text": result.text,
+                "confidence": result.confidence,
+                "latency_ms": duration * 1000,
+                "rtf": rtf,
+                "model_size": self.model_size
+            }
+            
+        except Exception as e:
+            self.total_errors += 1
+            raise Exception(f"Erreur Prism STT: {e}")
 ```
 
-#### **1.3 - Tests Performance <120ms (J2 - 4h) :**
+#### **Après-midi (3.5h) - Tests PoC + Validation Audio**
 
-##### **Benchmarks Validation :**
+#### **ÉTAPE 1.5 - Tests PoC (1.5h)**
+**Créer :** `tests/test_prism_poc.py`
+
 ```python
-# tests/test_piper_native_performance.py
+#!/usr/bin/env python3
+"""Tests PoC Prism STT - RTX 3090"""
+
+import os
+# Configuration GPU RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
 import pytest
+import numpy as np
 import asyncio
-import time
-from TTS.handlers.piper_native import PiperNativeHandler
+from STT.backends.prism_stt_backend import PrismSTTBackend
+
+def generate_test_audio(duration: float = 5.0, sample_rate: int = 16000):
+    """Génère audio test (silence + bip)"""
+    samples = int(duration * sample_rate)
+    audio = np.random.normal(0, 0.1, samples).astype(np.float32)
+    
+    # Ajouter bip à 1kHz
+    t = np.linspace(0, duration, samples)
+    beep = 0.3 * np.sin(2 * np.pi * 1000 * t)
+    audio[samples//2:samples//2+sample_rate//4] += beep[:sample_rate//4]
+    
+    return audio
 
 @pytest.mark.asyncio
-async def test_piper_native_latency():
-    """Test latence <120ms obligatoire"""
-    config = {
-        'model_path': 'models/TTS/fr_FR-siwis-medium.onnx',
-        'device': 'cuda:0',
-        'target_latency_ms': 120
-    }
+async def test_prism_large_rtx3090():
+    """Test PoC Prism large-v2 sur RTX 3090"""
     
-    handler = PiperNativeHandler(config)
+    # Backend large-v2
+    backend = PrismSTTBackend(model_size="large-v2")
     
-    # Test 10 synthèses
-    latencies = []
-    for i in range(10):
-        start = time.perf_counter()
-        await handler.synthesize(f"Test synthèse numéro {i+1}")
-        latency_ms = (time.perf_counter() - start) * 1000
-        latencies.append(latency_ms)
+    # Audio test 5 secondes
+    audio = generate_test_audio(duration=5.0)
     
-    # Validation P95 <120ms
-    p95_latency = sorted(latencies)[int(0.95 * len(latencies))]
-    assert p95_latency < 120, f"P95 latence {p95_latency:.0f}ms > 120ms"
+    # Transcription
+    result = await backend.transcribe(audio)
     
-    print(f"✅ P95 latence: {p95_latency:.0f}ms")
-    print(f"📊 Latences: {[f'{l:.0f}ms' for l in latencies]}")
+    # Validations RTX 3090
+    assert result["rtf"] < 1.0, f"RTF {result['rtf']:.2f} > 1.0"
+    assert result["latency_ms"] < 400, f"Latence {result['latency_ms']:.0f}ms > 400ms"
+    assert result["confidence"] > 0.3, f"Confiance {result['confidence']:.2f} trop faible"
+    
+    print(f"✅ Prism Large RTX 3090:")
+    print(f"   RTF: {result['rtf']:.2f}")
+    print(f"   Latence: {result['latency_ms']:.0f}ms")
+    print(f"   Confiance: {result['confidence']:.2f}")
 
-@pytest.mark.asyncio 
-async def test_gpu_memory_usage():
-    """Test utilisation VRAM ≤10%"""
-    import torch
+@pytest.mark.asyncio
+async def test_prism_tiny_rtx3090():
+    """Test PoC Prism tiny sur RTX 3090"""
     
-    # Mesure VRAM avant
-    torch.cuda.empty_cache()
-    memory_before = torch.cuda.memory_allocated(0)
+    backend = PrismSTTBackend(model_size="tiny")
+    audio = generate_test_audio(duration=3.0)
     
-    # Synthèse
-    handler = PiperNativeHandler(config)
-    await handler.synthesize("Test utilisation mémoire GPU")
+    result = await backend.transcribe(audio)
     
-    # Mesure VRAM après
-    memory_after = torch.cuda.memory_allocated(0)
-    memory_used_mb = (memory_after - memory_before) / 1024**2
+    # Tiny doit être plus rapide
+    assert result["rtf"] < 0.5, f"RTF tiny {result['rtf']:.2f} > 0.5"
+    assert result["latency_ms"] < 200, f"Latence tiny {result['latency_ms']:.0f}ms > 200ms"
     
-    # Validation ≤10% de 24GB = 2.4GB
-    assert memory_used_mb <= 2400, f"VRAM utilisée {memory_used_mb:.0f}MB > 2400MB"
-    
-    print(f"✅ VRAM utilisée: {memory_used_mb:.0f}MB")
+    print(f"✅ Prism Tiny RTX 3090:")
+    print(f"   RTF: {result['rtf']:.2f}")
+    print(f"   Latence: {result['latency_ms']:.0f}ms")
+
+if __name__ == "__main__":
+    asyncio.run(test_prism_large_rtx3090())
+    asyncio.run(test_prism_tiny_rtx3090())
 ```
 
-### **🚨 Checkpoint 1 - PiperNativeHandler :**
-- [ ] Handler GPU fonctionnel sans erreur
-- [ ] Latence P95 <120ms validée
-- [ ] VRAM ≤10% RTX 3090 confirmée
-- [ ] Tests automatisés passants
-- [ ] **TEST RÉEL OBLIGATOIRE :** `python test_tts_real.py` → Audio généré audible
-- [ ] **VALIDATION MANUELLE :** Qualité voix française acceptable
-- [ ] **MODÈLES D:\ VALIDÉS :** fr_FR-siwis-medium.onnx (63MB) utilisé
+#### **ÉTAPE 1.6 - 🎧 VALIDATION HUMAINE AUDIO OBLIGATOIRE (1h)**
+**RÈGLE ABSOLUE** : Tests microphone avec écoute manuelle obligatoire
 
-**❌ STOP si échec → Fallback architecture actuelle**
-
-### **✅ Livrables Phase 1 :**
-- [x] PiperNativeHandler fonctionnel
-- [x] Tests performance <120ms
-- [x] Validation VRAM ≤10%
-- [x] Benchmarks automatisés
-
----
-
-## 📋 **PHASE 2 : UNIFIEDTTSMANAGER COMPLET (2 JOURS)**
-
-### **🕒 Timing :** J3-J4 - 09h00 → 17h00 (16h)
-
-#### **2.1 - Configuration YAML Centralisée (J3 - 2h) :**
-
-```yaml
-# config/tts.yaml
-# Configuration unifiée TTS SuperWhisper V6
-
-# ===================================================================
-# SECTION PRINCIPALE
-# ===================================================================
-enable_piper_native: true
-
-# ===================================================================
-# CONFIGURATION BACKENDS
-# ===================================================================
-backends:
-  # Priorité 1: Performance optimale GPU
-  piper_native:
-    enabled: true
-    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
-    model_config_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx.json"
-    device: "cuda:0"  # Pointera RTX 3090 après CUDA_VISIBLE_DEVICES
-    speaker_id: 0
-    target_latency_ms: 120
-
-  # Priorité 2: Fallback robuste CPU
-  piper_cli:
-    enabled: true
-    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
-    executable_path: "piper/piper.exe"
-    speaker_id: 0
-    target_latency_ms: 1000
-
-  # Priorité 3: Fallback système Windows
-  sapi_french:
-    enabled: true
-    voice_name: "Microsoft Hortense Desktop"
-    rate: 0
-    volume: 100
-    target_latency_ms: 2000
-
-  # Priorité 4: Sécurité ultime
-  silent_emergency:
-    enabled: true
-    log_level: "CRITICAL"
-    alert_webhook: null
-    target_latency_ms: 5
-
-# ===================================================================
-# COMPOSANTS ROBUSTESSE
-# ===================================================================
-cache:
-  enabled: true
-  max_size_mb: 100
-  ttl_seconds: 3600
-  eviction_policy: "LRU"
-
-circuit_breaker:
-  failure_threshold: 3
-  reset_timeout_seconds: 30
-
-monitoring:
-  prometheus_enabled: true
-  prometheus_port: 9090
-  log_performance_metrics: true
-  alert_on_fallback: true
-
-# ===================================================================
-# PARAMÈTRES AVANCÉS
-# ===================================================================
-advanced:
-  gpu_memory_fraction: 0.1
-  async_workers: 2
-  max_text_length: 1000
-  sanitize_text: true
-
-# ===================================================================
-# FEATURE FLAGS
-# ===================================================================
-feature_flags:
-  use_unified_tts: true
-  enable_legacy_mode: false
-```
-
-#### **2.2 - Composants Robustesse (J3 - 6h) :**
-
-##### **Circuit Breaker :**
-```python
-# TTS/components/circuit_breaker.py
-import time
-import logging
-from enum import Enum
-
-class CircuitState(Enum):
-    CLOSED = "closed"
-    OPEN = "open"
-    HALF_OPEN = "half_open"
-
-class CircuitBreaker:
-    """Isolation handlers défaillants"""
-    
-    def __init__(self, failure_threshold: int = 3, reset_timeout: float = 30):
-        self.failure_threshold = failure_threshold
-        self.reset_timeout = reset_timeout
-        self.failure_count = 0
-        self.last_failure_time = 0
-        self.state = CircuitState.CLOSED
-        
-    def is_open(self) -> bool:
-        """Vérifie si circuit ouvert"""
-        if self.state == CircuitState.OPEN:
-            if time.time() - self.last_failure_time > self.reset_timeout:
-                self.state = CircuitState.HALF_OPEN
-                logging.info("Circuit breaker passage en semi-ouvert")
-                return False
-            return True
-        return False
-        
-    def record_success(self):
-        """Enregistre succès"""
-        self.failure_count = 0
-        if self.state == CircuitState.HALF_OPEN:
-            self.state = CircuitState.CLOSED
-            logging.info("Circuit breaker refermé")
-            
-    def record_failure(self):
-        """Enregistre échec"""
-        self.failure_count += 1
-        if self.failure_count >= self.failure_threshold:
-            if self.state != CircuitState.OPEN:
-                self.state = CircuitState.OPEN
-                self.last_failure_time = time.time()
-                logging.warning(f"Circuit breaker ouvert pour {self.reset_timeout}s")
-```
-
-##### **Cache LRU :**
-```python
-# TTS/components/cache.py
-import hashlib
-import time
-from typing import Dict, Optional, Any
-from collections import OrderedDict
-
-class TTSCache:
-    """Cache LRU pour synthèses fréquentes"""
-    
-    def __init__(self, max_size_mb: int = 100, ttl_seconds: int = 3600):
-        self.max_size = max_size_mb * 1024 * 1024  # Conversion MB
-        self.ttl = ttl_seconds
-        self.cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
-        self.current_size = 0
-        
-    def generate_key(self, text: str, config: Dict) -> str:
-        """Génère clé cache"""
-        key_str = f"{text}_{config.get('voice', 'default')}_{config.get('speed', 1.0)}"
-        return hashlib.sha256(key_str.encode()).hexdigest()
-        
-    async def get(self, key: str) -> Optional[bytes]:
-        """Récupère du cache"""
-        if key in self.cache:
-            entry = self.cache[key]
-            # Vérification TTL
-            if time.time() - entry['timestamp'] < self.ttl:
-                # Déplacement en fin (LRU)
-                self.cache.move_to_end(key)
-                return entry['audio_data']
-            else:
-                # Expiration TTL
-                self._remove_entry(key)
-        return None
-        
-    async def set(self, key: str, audio_data: bytes):
-        """Stocke en cache"""
-        size = len(audio_data)
-        
-        # Éviction si nécessaire
-        while self.current_size + size > self.max_size and self.cache:
-            self._evict_lru()
-            
-        # Stockage
-        if self.current_size + size <= self.max_size:
-            self.cache[key] = {
-                'audio_data': audio_data,
-                'timestamp': time.time(),
-                'size': size
-            }
-            self.current_size += size
-            
-    def _evict_lru(self):
-        """Éviction LRU"""
-        if self.cache:
-            key, entry = self.cache.popitem(last=False)
-            self.current_size -= entry['size']
-            
-    def _remove_entry(self, key: str):
-        """Supprime entrée"""
-        if key in self.cache:
-            entry = self.cache.pop(key)
-            self.current_size -= entry['size']
-```
-
-#### **2.3 - UnifiedTTSManager Principal (J4 - 8h) :**
+**Créer :** `scripts/demo_stt_microphone_validation.py`
 
 ```python
-# TTS/tts_manager_unified.py
 #!/usr/bin/env python3
 """
-UnifiedTTSManager - Gestionnaire TTS Enterprise
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+Démonstration STT avec microphone - VALIDATION HUMAINE OBLIGATOIRE
+🚨 CONFIGURATION GPU: RTX 3090 (cuda:0) OBLIGATOIRE
 """
 
 import os
-import sys
+# Configuration GPU RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
+import pyaudio
+import numpy as np
+import time
+import asyncio
+import json
+from STT.backends.prism_stt_backend import PrismSTTBackend
+
+async def validation_humaine_audio_microphone():
+    """
+    🎧 VALIDATION HUMAINE AUDIO OBLIGATOIRE
+    Tests microphone avec écoute manuelle par utilisateur humain
+    """
+    
+    print("🎧 VALIDATION HUMAINE AUDIO - TESTS MICROPHONE")
+    print("=" * 60)
+    print("🚨 RÈGLE ABSOLUE : Validation par écoute humaine obligatoire")
+    print()
+    
+    # Initialiser backend STT
+    backend = PrismSTTBackend(model_size="large-v2")
+    
+    # Configuration audio
+    CHUNK = 1024
+    FORMAT = pyaudio.paFloat32
+    CHANNELS = 1
+    RATE = 16000
+    
+    audio = pyaudio.PyAudio()
+    
+    tests_validation = [
+        {
+            "nom": "Test Phrase Courte",
+            "duree": 3,
+            "instruction": "Dites une phrase courte (ex: 'Bonjour comment allez-vous')"
+        },
+        {
+            "nom": "Test Phrase Longue", 
+            "duree": 8,
+            "instruction": "Dites une phrase longue avec détails"
+        },
+        {
+            "nom": "Test Conditions Variables",
+            "duree": 5,
+            "instruction": "Parlez avec bruit ambiant ou distance variable"
+        }
+    ]
+    
+    resultats_validation = []
+    
+    for i, test in enumerate(tests_validation, 1):
+        print(f"\n🎯 TEST {i}/3 : {test['nom']}")
+        print(f"📝 Instruction : {test['instruction']}")
+        print(f"⏱️ Durée : {test['duree']} secondes")
+        
+        input("🎤 Appuyez sur Entrée quand vous êtes prêt à parler...")
+        
+        # Enregistrement
+        stream = audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK
+        )
+        
+        print(f"🔴 ENREGISTREMENT... ({test['duree']}s)")
+        
+        frames = []
+        for _ in range(0, int(RATE / CHUNK * test['duree'])):
+            data = stream.read(CHUNK)
+            frames.append(np.frombuffer(data, dtype=np.float32))
+        
+        stream.stop_stream()
+        stream.close()
+        
+        # Transcription
+        audio_data = np.concatenate(frames)
+        start_time = time.time()
+        
+        try:
+            result = await backend.transcribe(audio_data)
+            latence = time.time() - start_time
+            
+            print(f"✅ Transcription terminée en {latence*1000:.0f}ms")
+            print(f"📝 Texte transcrit : '{result['text']}'")
+            print(f"📊 Confiance : {result['confidence']:.2f}")
+            print(f"⚡ RTF : {result['rtf']:.2f}")
+            
+            # 🎧 VALIDATION HUMAINE OBLIGATOIRE
+            print("\n" + "="*50)
+            print("🎧 VALIDATION HUMAINE AUDIO OBLIGATOIRE")
+            print("="*50)
+            
+            print("👂 Écoutez attentivement et évaluez :")
+            print(f"   Texte transcrit : '{result['text']}'")
+            print()
+            
+            # Validation par utilisateur humain
+            while True:
+                precision = input("🎯 Précision transcription (excellent/bon/acceptable/insuffisant) : ").lower()
+                if precision in ['excellent', 'bon', 'acceptable', 'insuffisant']:
+                    break
+                print("❌ Réponse invalide. Utilisez : excellent/bon/acceptable/insuffisant")
+            
+            while True:
+                latence_percue = input("⏱️ Latence perçue (imperceptible/acceptable/gênante) : ").lower()
+                if latence_percue in ['imperceptible', 'acceptable', 'gênante']:
+                    break
+                print("❌ Réponse invalide. Utilisez : imperceptible/acceptable/gênante")
+            
+            commentaires = input("💬 Commentaires détaillés (optionnel) : ")
+            
+            # Validation finale
+            while True:
+                validation = input("🎯 Validation finale (validé/à_corriger/validé_avec_réserves) : ").lower()
+                if validation in ['validé', 'à_corriger', 'validé_avec_réserves']:
+                    break
+                print("❌ Réponse invalide. Utilisez : validé/à_corriger/validé_avec_réserves")
+            
+            # Enregistrer résultat validation
+            resultats_validation.append({
+                "test": test['nom'],
+                "texte_transcrit": result['text'],
+                "latence_ms": latence * 1000,
+                "rtf": result['rtf'],
+                "confiance": result['confidence'],
+                "precision_humaine": precision,
+                "latence_percue": latence_percue,
+                "commentaires": commentaires,
+                "validation_finale": validation,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            print(f"✅ Validation {validation.upper()} enregistrée")
+            
+        except Exception as e:
+            print(f"❌ Erreur transcription : {e}")
+            resultats_validation.append({
+                "test": test['nom'],
+                "erreur": str(e),
+                "validation_finale": "échec",
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            })
+    
+    audio.terminate()
+    
+    # Rapport final validation humaine
+    print("\n" + "="*60)
+    print("📊 RAPPORT VALIDATION HUMAINE AUDIO - JOUR 1")
+    print("="*60)
+    
+    for result in resultats_validation:
+        print(f"\n🎯 {result['test']} :")
+        if 'erreur' not in result:
+            print(f"   📝 Transcription : '{result['texte_transcrit']}'")
+            print(f"   ⏱️ Latence : {result['latence_ms']:.0f}ms")
+            print(f"   🎯 Précision humaine : {result['precision_humaine']}")
+            print(f"   ⏱️ Latence perçue : {result['latence_percue']}")
+            print(f"   ✅ Validation : {result['validation_finale']}")
+            if result['commentaires']:
+                print(f"   💬 Commentaires : {result['commentaires']}")
+        else:
+            print(f"   ❌ Erreur : {result['erreur']}")
+    
+    # Sauvegarder rapport
+    os.makedirs('test_output', exist_ok=True)
+    with open('test_output/validation_humaine_jour1.json', 'w', encoding='utf-8') as f:
+        json.dump(resultats_validation, f, indent=2, ensure_ascii=False)
+    
+    print(f"\n💾 Rapport sauvegardé : test_output/validation_humaine_jour1.json")
+    print("\n🎊 VALIDATION HUMAINE AUDIO JOUR 1 TERMINÉE")
+
+if __name__ == "__main__":
+    asyncio.run(validation_humaine_audio_microphone())
+```
+
+#### **ÉTAPE 1.7 - Documentation Obligatoire (30 min)**
+```bash
+# Mise à jour journal développement (OBLIGATOIRE)
+# Ajouter entrée session jour 1 avec :
+# - Objectifs atteints
+# - Résultats validation humaine audio
+# - Décisions techniques prises
+# - Problèmes rencontrés et solutions
+
+# Mise à jour suivi STT Phase 4 (OBLIGATOIRE)
+# Mettre à jour docs/suivi_stt_phase4.md avec :
+# - Progression jour 1
+# - Résultats validations humaines
+# - Métriques performance mesurées
+# - Prochaines étapes jour 2
+```
+
+#### **ÉTAPE 1.8 - Validation Performance (30 min)**
+```bash
+# Tests performance RTX 3090
+python tests/test_prism_poc.py
+
+# Validation standards GPU
+python test_gpu_correct.py
+python test_validation_rtx3090_detection.py
+
+# Benchmark RTX 3090
+python test_benchmark_performance_rtx3090.py
+```
+
+#### **ÉTAPE 1.7 - Documentation Jour 1 (1h)**
+```bash
+# Créer rapport journalier
+echo "# JOUR 1 - PoC Prism RTX 3090" > docs/rapport_jour1.md
+# Ajouter métriques, screenshots, résultats tests
+```
+
+**🎯 Livrable Jour 1 :** Backend PrismSTTBackend opérationnel RTX 3090 + Tests PoC validés
+
+---
+
+### **🚀 JOUR 2 - UNIFIEDSTTMANAGER RTX 3090**
+
+#### **Matin (4h) - Architecture Manager**
+
+#### **ÉTAPE 2.1 - UnifiedSTTManager (3h)**
+**Créer :** `STT/unified_stt_manager.py`
+
+```python
+#!/usr/bin/env python3
+"""
+UnifiedSTTManager SuperWhisper V6 - RTX 3090 Unique
+🚨 CONFIGURATION GPU: RTX 3090 (cuda:0) OBLIGATOIRE
+"""
+
+import os
+# Configuration GPU RTX 3090 OBLIGATOIRE
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
 
 import asyncio
 import time
-import logging
-import yaml
-from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, Optional, List
-from pathlib import Path
+import hashlib
+import numpy as np
+from typing import Dict, Any, Optional
+from contextlib import asynccontextmanager
 
-from TTS.handlers.piper_native import PiperNativeHandler
-from TTS.handlers.piper_cli import PiperCliHandler  
-from TTS.handlers.sapi_french import SapiFrenchHandler
-from TTS.handlers.silent_emergency import SilentEmergencyHandler
-from TTS.components.circuit_breaker import CircuitBreaker
-from TTS.components.cache import TTSCache
+from STT.backends.prism_stt_backend import PrismSTTBackend
+from STT.cache_manager import STTCache
+from STT.circuit_breaker import CircuitBreaker
+from STT.metrics import PrometheusSTTMetrics
 
-class TTSBackendType(Enum):
-    PIPER_NATIVE = "piper_native"
-    PIPER_CLI = "piper_cli"
-    SAPI_FRENCH = "sapi_french"
-    SILENT_EMERGENCY = "silent_emergency"
-    CACHE = "cache"
-
-@dataclass
-class TTSResult:
-    success: bool
-    backend_used: str
-    latency_ms: float
-    audio_data: Optional[bytes] = None
-    error: Optional[str] = None
-
-class UnifiedTTSManager:
-    """Gestionnaire TTS Enterprise avec fallback 4 niveaux"""
+class UnifiedSTTManager:
+    """Manager STT unifié RTX 3090 - SuperWhisper V6"""
     
-    def __init__(self, config_path: str = "config/tts.yaml"):
-        self.config = self._load_config(config_path)
-        self._validate_rtx3090_configuration()
+    def __init__(self):
+        validate_rtx3090_mandatory()
         
-        # Initialisation composants
-        self.cache = TTSCache(
-            max_size_mb=self.config['cache']['max_size_mb'],
-            ttl_seconds=self.config['cache']['ttl_seconds']
-        )
+        # Backends avec fallback intelligent  
+        self.backends = {
+            'prism_large': PrismSTTBackend(model_size='large-v2'),
+            'prism_tiny': PrismSTTBackend(model_size='tiny'),
+            'offline': OfflineSTTBackend()  # CPU fallback
+        }
         
-        cb_config = self.config['circuit_breaker']
+        # Fallback chain optimisé RTX 3090
+        self.fallback_chain = ['prism_large', 'prism_tiny', 'offline']
+        
+        # Cache LRU (cohérent avec TTS Phase 3)
+        self.cache = STTCache(max_size=200*1024*1024)  # 200MB
+        
+        # Circuit breakers par backend
         self.circuit_breakers = {
-            backend: CircuitBreaker(
-                failure_threshold=cb_config['failure_threshold'],
-                reset_timeout=cb_config['reset_timeout_seconds']
-            )
-            for backend in TTSBackendType
+            name: CircuitBreaker(failure_threshold=3, recovery_timeout=30)
+            for name in self.backends.keys()
         }
         
-        self.handlers: Dict[TTSBackendType, Any] = {}
-        self._initialize_handlers()
+        # Métriques Prometheus
+        self.metrics = PrometheusSTTMetrics()
         
-        logging.info("✅ UnifiedTTSManager initialisé")
+        print("✅ UnifiedSTTManager RTX 3090 initialisé")
+    
+    def _generate_cache_key(self, audio: np.ndarray) -> str:
+        """Génère clé cache pour audio"""
+        audio_hash = hashlib.md5(audio.tobytes()).hexdigest()
+        return f"stt_{audio_hash}_{len(audio)}"
+    
+    @asynccontextmanager
+    async def _memory_management_context(self):
+        """Context manager gestion mémoire RTX 3090"""
+        try:
+            # Cleanup avant traitement STT
+            torch.cuda.empty_cache()
+            yield
+        finally:
+            # Cleanup après traitement
+            torch.cuda.empty_cache()
+    
+    async def transcribe(self, audio: np.ndarray) -> Dict[str, Any]:
+        """Transcription avec fallback automatique"""
         
-    def _load_config(self, config_path: str) -> dict:
-        """Charge configuration YAML"""
-        with open(config_path, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
-            
-    def _validate_rtx3090_configuration(self):
-        """Validation GPU RTX 3090 obligatoire"""
-        import torch
+        # Vérifier cache
+        cache_key = self._generate_cache_key(audio)
+        if cached_result := self.cache.get(cache_key):
+            self.metrics.cache_hits.inc()
+            return cached_result
         
-        if not torch.cuda.is_available():
-            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
-            
-        device_name = torch.cuda.get_device_name(0)
-        if "3090" not in device_name:
-            raise RuntimeError(f"🚫 GPU invalide: {device_name} - RTX 3090 requise")
-            
-        # Allocation VRAM limitée
-        gpu_mem_fraction = self.config['advanced']['gpu_memory_fraction']
-        torch.cuda.set_per_process_memory_fraction(gpu_mem_fraction, 0)
+        # Timeout dynamique (5s par minute d'audio)
+        audio_duration = len(audio) / 16000
+        timeout = max(5.0, audio_duration * 5)
         
-        logging.info(f"✅ RTX 3090 validée: {device_name}")
-        
-    def _initialize_handlers(self):
-        """Initialise handlers selon configuration"""
-        handler_map = {
-            TTSBackendType.PIPER_NATIVE: PiperNativeHandler,
-            TTSBackendType.PIPER_CLI: PiperCliHandler,
-            TTSBackendType.SAPI_FRENCH: SapiFrenchHandler,
-            TTSBackendType.SILENT_EMERGENCY: SilentEmergencyHandler
-        }
-        
-        for backend_type, handler_class in handler_map.items():
-            backend_name = backend_type.value
-            backend_config = self.config['backends'].get(backend_name, {})
-            
-            if backend_config.get('enabled', False):
+        async with self._memory_management_context():
+            # Tentative backends avec fallback
+            for backend_name in self.fallback_chain:
+                if self.circuit_breakers[backend_name].is_open():
+                    continue
+                
                 try:
-                    # Vérification feature flag pour piper_native
-                    if (backend_type == TTSBackendType.PIPER_NATIVE and 
-                        not self.config.get('enable_piper_native', True)):
-                        continue
-                        
-                    self.handlers[backend_type] = handler_class(backend_config)
-                    logging.info(f"✅ Handler {backend_name} initialisé")
+                    backend = self.backends[backend_name]
                     
-                except Exception as e:
-                    logging.error(f"❌ Échec initialisation {backend_name}: {e}")
-                    
-    async def synthesize(self, text: str, voice: Optional[str] = None,
-                        speed: Optional[float] = None, 
-                        reuse_cache: bool = True) -> TTSResult:
-        """
-        Synthèse TTS unifiée avec fallback automatique
-        
-        Args:
-            text: Texte à synthétiser
-            voice: Voix optionnelle
-            speed: Vitesse optionnelle
-            reuse_cache: Utiliser cache si disponible
-            
-        Returns:
-            TTSResult avec succès, backend utilisé, latence et audio
-        """
-        start_time_total = time.perf_counter()
-        
-        # 1. Validation input
-        max_len = self.config['advanced']['max_text_length']
-        if not text or len(text) > max_len:
-            return TTSResult(
-                success=False, 
-                backend_used="none", 
-                latency_ms=0,
-                error=f"Texte invalide (vide ou > {max_len} chars)"
-            )
-            
-        # 2. Vérification cache
-        cache_key = self.cache.generate_key(text, {'voice': voice, 'speed': speed})
-        if reuse_cache and (cached_audio := await self.cache.get(cache_key)):
-            latency_ms = (time.perf_counter() - start_time_total) * 1000
-            return TTSResult(
-                success=True,
-                backend_used=TTSBackendType.CACHE.value,
-                latency_ms=latency_ms,
-                audio_data=cached_audio
-            )
-            
-        # 3. Fallback hiérarchique
-        backend_priority = {
-            TTSBackendType.PIPER_NATIVE: 1,
-            TTSBackendType.PIPER_CLI: 2,
-            TTSBackendType.SAPI_FRENCH: 3,
-            TTSBackendType.SILENT_EMERGENCY: 4
-        }
-        
-        sorted_backends = sorted(
-            self.handlers.keys(), 
-            key=lambda x: backend_priority[x]
-        )
-        
-        for backend_type in sorted_backends:
-            # Vérification circuit breaker
-            if self.circuit_breakers[backend_type].is_open():
-                logging.warning(f"Circuit breaker ouvert: {backend_type.value}")
-                continue
-                
-            try:
-                start_time_handler = time.perf_counter()
-                handler = self.handlers[backend_type]
-                
-                # Synthèse
-                audio_data = await handler.synthesize(text, voice, speed)
-                latency_ms = (time.perf_counter() - start_time_handler) * 1000
-                
-                # Succès
-                self.circuit_breakers[backend_type].record_success()
-                await self.cache.set(cache_key, audio_data)
-                
-                # Validation performance
-                target_latency = self.config['backends'][backend_type.value]['target_latency_ms']
-                if latency_ms > target_latency:
-                    logging.warning(
-                        f"Performance dégradée: {backend_type.value} "
-                        f"{latency_ms:.0f}ms > {target_latency}ms"
+                    result = await asyncio.wait_for(
+                        backend.transcribe(audio),
+                        timeout=timeout
                     )
                     
-                return TTSResult(
-                    success=True,
-                    backend_used=backend_type.value,
-                    latency_ms=latency_ms,
-                    audio_data=audio_data
-                )
-                
-            except Exception as e:
-                logging.error(f"Échec {backend_type.value}: {e}")
-                self.circuit_breakers[backend_type].record_failure()
-                continue
-                
-        # Tous handlers échoué
-        return TTSResult(
-            success=False,
-            backend_used="none",
-            latency_ms=0,
-            error="Tous backends TTS échoué"
-        )
+                    # Succès - mise en cache
+                    self.cache.put(cache_key, result)
+                    self.metrics.transcriptions_success.labels(backend=backend_name).inc()
+                    
+                    return result
+                    
+                except Exception as e:
+                    self.circuit_breakers[backend_name].record_failure()
+                    self.metrics.transcriptions_failed.labels(backend=backend_name).inc()
+                    print(f"⚠️ Backend {backend_name} échec: {e}")
+                    continue
+        
+        self.metrics.total_failures.inc()
+        raise Exception("Tous les backends STT ont échoué")
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """Retourne métriques système"""
+        return {
+            "cache_size": self.cache.current_size,
+            "cache_hits": self.cache.hits,
+            "cache_misses": self.cache.misses,
+            "backends_status": {
+                name: "open" if cb.is_open() else "closed"
+                for name, cb in self.circuit_breakers.items()
+            }
+        }
 ```
 
-### **🚨 Checkpoint 2 - UnifiedTTSManager :**
-- [ ] 4 handlers intégrés et fonctionnels
-- [ ] Fallback automatique testé
-- [ ] Configuration YAML opérationnelle
-- [ ] Tests unitaires 100% passants
-- [ ] **TEST FALLBACK RÉEL :** `python test_fallback_real.py` → 4 niveaux validés
-- [ ] **ÉCOUTE COMPARATIVE :** Audio de chaque backend (piper_native vs piper_cli vs sapi)
-- [ ] **BENCHMARK PERFORMANCE :** `python test_performance_real.py` → P95 <120ms confirmé
+#### **ÉTAPE 2.2 - Cache STT (1h)**
+**Créer :** `STT/cache_manager.py`
 
-### **✅ Livrables Phase 2 :**
-- [x] Configuration YAML centralisée
-- [x] Circuit Breakers + Cache LRU
-- [x] UnifiedTTSManager complet
-- [x] Tests unitaires + intégration
+```python
+class STTCache:
+    """Cache LRU pour STT - Cohérent avec TTS Phase 3"""
+    
+    def __init__(self, max_size: int = 200*1024*1024):
+        self.max_size = max_size
+        self.cache = {}
+        self.access_order = []
+        self.current_size = 0
+        self.hits = 0
+        self.misses = 0
+    
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        if key in self.cache:
+            self.hits += 1
+            self._update_access(key)
+            return self.cache[key]
+        
+        self.misses += 1
+        return None
+    
+    def put(self, key: str, value: Dict[str, Any]):
+        # Estimation taille
+        estimated_size = len(str(value).encode('utf-8'))
+        
+        # Éviction si nécessaire
+        while (self.current_size + estimated_size > self.max_size 
+               and self.access_order):
+            self._evict_lru()
+        
+        self.cache[key] = value
+        self.current_size += estimated_size
+        self._update_access(key)
+```
+
+#### **Après-midi (4h) - Tests et Optimisation**
+
+#### **ÉTAPE 2.3 - Tests UnifiedSTTManager (2h)**
+**Créer :** `tests/test_unified_stt_manager.py`
+
+```python
+@pytest.mark.asyncio
+async def test_stt_manager_fallback():
+    """Test fallback chain STT"""
+    manager = UnifiedSTTManager()
+    
+    # Audio test
+    audio = generate_test_audio(duration=3.0)
+    
+    # Test transcription normale
+    result = await manager.transcribe(audio)
+    assert result is not None
+    assert "text" in result
+    assert result["latency_ms"] < 500  # RTX 3090
+    
+    # Test cache
+    result2 = await manager.transcribe(audio)  # Cache hit
+    assert manager.cache.hits > 0
+
+@pytest.mark.asyncio  
+async def test_stt_manager_stress():
+    """Test stress 10 requêtes parallèles"""
+    manager = UnifiedSTTManager()
+    
+    # 10 audios différents
+    audios = [generate_test_audio(duration=2.0) for _ in range(10)]
+    
+    # Traitement parallèle
+    tasks = [manager.transcribe(audio) for audio in audios]
+    results = await asyncio.gather(*tasks)
+    
+    # Validation
+    assert len(results) == 10
+    for result in results:
+        assert result["rtf"] < 1.5  # Performance RTX 3090
+```
+
+#### **ÉTAPE 2.4 - Circuit Breakers et Métriques (1h)**
+**Créer :** `STT/circuit_breaker.py` et `STT/metrics.py`
+
+#### **ÉTAPE 2.5 - Optimisation Mémoire RTX 3090 (1h)**
+```python
+class RTX3090MemoryManager:
+    """Gestionnaire mémoire optimisé RTX 3090"""
+    
+    def __init__(self):
+        self.total_vram = 24  # GB
+        self.reserved_stt = 8   # GB pour modèles STT
+        self.reserved_tts = 4   # GB pour TTS existant  
+        self.available = 12     # GB disponible
+        
+    def monitor_memory_usage(self):
+        """Monitoring utilisation VRAM"""
+        allocated = torch.cuda.memory_allocated(0) / 1024**3
+        reserved = torch.cuda.memory_reserved(0) / 1024**3
+        
+        return {
+            "allocated_gb": allocated,
+            "reserved_gb": reserved,
+            "free_gb": self.total_vram - reserved
+        }
+```
+
+**🎯 Livrable Jour 2 :** UnifiedSTTManager complet + Tests validés + Cache LRU + Circuit breakers
 
 ---
 
-## 📋 **PHASE 3 : DÉPLOIEMENT & VALIDATION (1 JOUR)**
+### **🚀 JOUR 3 - PIPELINE COMPLET STT→LLM→TTS**
 
-### **🕒 Timing :** J5 - 09h00 → 17h00 (8h)
+#### **Matin (4h) - Intégration Pipeline**
 
-#### **3.1 - Tests Validation Complète (4h) :**
+#### **ÉTAPE 3.1 - Pipeline Voice-to-Voice RTX 3090 (2h)**
+**Modifier :** `run_assistant.py`
 
-##### **Tests Programmatiques :**
 ```python
-# tests/test_unified_tts_manager.py
-import pytest
+#!/usr/bin/env python3
+"""
+Pipeline Voice-to-Voice SuperWhisper V6 - RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (cuda:0) OBLIGATOIRE
+"""
+
+import os
+# Configuration GPU RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
 import asyncio
-from unittest.mock import patch, MagicMock
-from TTS.tts_manager_unified import UnifiedTTSManager, TTSResult
+import time
+import numpy as np
+from typing import Dict, Any
 
-@pytest.mark.asyncio
-async def test_fallback_automatique():
-    """Test fallback automatique complet"""
-    manager = UnifiedTTSManager("config/tts.yaml")
+from STT.unified_stt_manager import UnifiedSTTManager
+from TTS.tts_manager import UnifiedTTSManager  # Existant Phase 3
+from LLM.llm_manager import LLMManager  # À créer ou adapter
+
+class VoiceToVoicePipeline:
+    """Pipeline voix-à-voix complet RTX 3090"""
     
-    # Simulation panne PiperNative
-    with patch.object(manager.handlers[TTSBackendType.PIPER_NATIVE], 
-                     'synthesize', side_effect=Exception("GPU failed")):
-        result = await manager.synthesize("Test fallback")
+    def __init__(self):
+        validate_rtx3090_mandatory()
         
-        # Doit utiliser PiperCLI
-        assert result.success == True
-        assert result.backend_used == "piper_cli"
-        assert result.latency_ms < 1000
+        # Managers (STT nouveau + TTS existant)
+        self.stt_manager = UnifiedSTTManager()
+        self.tts_manager = UnifiedTTSManager()  # Phase 3
+        self.llm_manager = LLMManager()
+        
+        print("✅ Pipeline Voice-to-Voice RTX 3090 initialisé")
+    
+    async def process_voice_to_voice(self, audio_buffer: np.ndarray) -> bytes:
+        """Pipeline complet voix-à-voix < 730ms"""
+        
+        start_total = time.time()
+        
+        try:
+            # ÉTAPE 1: STT sur RTX 3090 (< 400ms)
+            start_stt = time.time()
+            stt_result = await self.stt_manager.transcribe(audio_buffer)
+            stt_latency = (time.time() - start_stt) * 1000
+            
+            # ÉTAPE 2: LLM (< 300ms)
+            start_llm = time.time()
+            llm_response = await self.llm_manager.generate_response(
+                stt_result["text"]
+            )
+            llm_latency = (time.time() - start_llm) * 1000
+            
+            # ÉTAPE 3: TTS sur RTX 3090 (29.5ms existant)
+            start_tts = time.time()
+            audio_output = await self.tts_manager.synthesize(llm_response)
+            tts_latency = (time.time() - start_tts) * 1000
+            
+            # Métriques pipeline
+            total_latency = (time.time() - start_total) * 1000
+            
+            print(f"✅ Pipeline RTX 3090:")
+            print(f"   STT: {stt_latency:.0f}ms")
+            print(f"   LLM: {llm_latency:.0f}ms") 
+            print(f"   TTS: {tts_latency:.0f}ms")
+            print(f"   TOTAL: {total_latency:.0f}ms")
+            
+            # Validation performance < 730ms
+            if total_latency > 730:
+                print(f"⚠️ Pipeline lent: {total_latency:.0f}ms > 730ms")
+            
+            return audio_output
+            
+        except Exception as e:
+            print(f"❌ Erreur pipeline: {e}")
+            raise
 
-@pytest.mark.asyncio
-async def test_circuit_breaker():
-    """Test circuit breaker isolation"""
-    manager = UnifiedTTSManager("config/tts.yaml")
+# Point d'entrée principal
+async def main():
+    """Demo pipeline voice-to-voice"""
     
-    # 3 échecs consécutifs
-    for i in range(3):
-        with patch.object(manager.handlers[TTSBackendType.PIPER_NATIVE],
-                         'synthesize', side_effect=Exception("Fail")):
-            await manager.synthesize(f"Test échec {i+1}")
+    pipeline = VoiceToVoicePipeline()
     
-    # Circuit breaker doit être ouvert
-    assert manager.circuit_breakers[TTSBackendType.PIPER_NATIVE].is_open()
+    # Audio test
+    test_audio = generate_test_audio(duration=5.0)
+    
+    # Traitement
+    result_audio = await pipeline.process_voice_to_voice(test_audio)
+    
+    print(f"✅ Pipeline terminé: {len(result_audio)} bytes audio")
 
-@pytest.mark.asyncio
-async def test_cache_performance():
-    """Test performance cache"""
-    manager = UnifiedTTSManager("config/tts.yaml")
-    
-    # Premier appel (mise en cache)
-    result1 = await manager.synthesize("Test cache")
-    
-    # Deuxième appel (depuis cache)
-    result2 = await manager.synthesize("Test cache")
-    
-    assert result2.backend_used == "cache"
-    assert result2.latency_ms < 5  # <5ms depuis cache
-
-@pytest.mark.asyncio
-async def test_performance_regression():
-    """Test absence régression performance"""
-    manager = UnifiedTTSManager("config/tts.yaml")
-    
-    # Benchmark 10 synthèses
-    latencies = []
-    for i in range(10):
-        result = await manager.synthesize(f"Test performance {i}")
-        latencies.append(result.latency_ms)
-    
-    # P95 doit respecter targets
-    p95_latency = sorted(latencies)[int(0.95 * len(latencies))]
-    assert p95_latency < 120  # Target PiperNative
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-##### **🎧 Tests Réels Pratiques OBLIGATOIRES :**
-```bash
-# 1. VALIDATION MODÈLES DISPONIBLES
-Get-ChildItem "D:\TTS_Voices\piper" -Name
-# ✅ Confirmer : fr_FR-siwis-medium.onnx (63MB) + .json
+#### **ÉTAPE 3.2 - Configuration STT (1h)**
+**Créer :** `config/stt.yaml`
 
-# 2. TEST FONCTIONNEL RÉEL
-python test_tts_real.py
-# ✅ Génère 4 fichiers audio dans test_output/
-# ✅ Écouter manuellement chaque fichier
-# ✅ Valider qualité voix française
-
-# 3. TEST FALLBACK RÉEL  
-python test_fallback_real.py
-# ✅ Valide 4 niveaux fallback avec audio généré
-# ✅ Confirmer basculement automatique
-
-# 4. BENCHMARK PERFORMANCE RÉEL
-python test_performance_real.py
-# ✅ 10 mesures par cas (court/moyen/long)
-# ✅ Validation P95 <120ms pour piper_native
-# ✅ Statistiques détaillées
-
-# 5. ÉCOUTE VALIDATION MANUELLE
-start test_output\test_1_piper_native.wav
-start test_output\test_2_piper_cli.wav
-start test_output\test_3_sapi_french.wav
-# ✅ Confirmer audio audible et compréhensible
+```yaml
+# Configuration STT SuperWhisper V6 - RTX 3090
+stt:
+  # Backends configuration
+  backends:
+    prism_large:
+      model_size: "large-v2"
+      device: "cuda:0"  # RTX 3090
+      compute_type: "float16"
+      enabled: true
+      priority: 1
+      
+    prism_tiny:
+      model_size: "tiny"
+      device: "cuda:0"  # RTX 3090  
+      compute_type: "float16"
+      enabled: true
+      priority: 2
+      
+    offline:
+      enabled: true
+      priority: 3
+  
+  # Cache configuration
+  cache:
+    max_size_mb: 200
+    ttl_hours: 2
+    
+  # Performance targets RTX 3090
+  performance:
+    max_latency_ms: 400
+    target_rtf: 1.0
+    
+  # Circuit breaker
+  circuit_breaker:
+    failure_threshold: 3
+    recovery_timeout_s: 30
 ```
 
-##### **🚨 Critères d'Acceptation Pratiques :**
-- ✅ **Audio généré audible** : 4 fichiers test écoutés
-- ✅ **Qualité voix française** : Compréhensible et naturelle
-- ✅ **Performance mesurée** : <120ms P95 confirmé
-- ✅ **Fallback fonctionnel** : 4 niveaux testés avec audio
-- ✅ **Aucune régression** : Comparaison avant/après
-
-#### **3.2 - Intégration run_assistant.py (2h) :**
+#### **ÉTAPE 3.3 - LLM Manager Adaptation (1h)**
+**Créer/Adapter :** `LLM/llm_manager.py`
 
 ```python
-# Modification run_assistant.py
-from TTS.tts_manager_unified import UnifiedTTSManager
-
-# Remplacement handler TTS
-# OLD: from TTS.tts_handler import TTSHandler
-# NEW: tts_manager = UnifiedTTSManager("config/tts.yaml")
-
-async def process_tts(text: str):
-    """Traitement TTS unifié"""
-    result = await tts_manager.synthesize(text)
+class LLMManager:
+    """Manager LLM pour pipeline RTX 3090"""
     
-    if result.success:
-        # Lecture audio
-        play_audio(result.audio_data)
+    def __init__(self):
+        # LLM sur CPU ou RTX 3090 selon mémoire disponible
+        self.device = "cpu"  # Ou cuda:0 si mémoire
         
-        # Métriques
-        print(f"✅ TTS: {result.backend_used} ({result.latency_ms:.0f}ms)")
-    else:
-        print(f"❌ TTS échec: {result.error}")
+    async def generate_response(self, text: str) -> str:
+        """Génération réponse LLM"""
+        # Simulation ou vraie implémentation
+        await asyncio.sleep(0.1)  # 100ms simulation
+        return f"Réponse à: {text}"
 ```
 
-#### **3.3 - Feature Flags & Monitoring (2h) :**
+#### **Après-midi (4h) - Tests et Validation**
+
+#### **ÉTAPE 3.4 - Tests Pipeline Complet (2h)**
+**Créer :** `tests/test_pipeline_integration.py`
 
 ```python
-# Feature flag activation progressive
-if config['feature_flags']['use_unified_tts']:
-    tts_manager = UnifiedTTSManager("config/tts.yaml")
-else:
-    # Fallback ancien système
-    tts_manager = LegacyTTSHandler()
+@pytest.mark.asyncio
+async def test_pipeline_voice_to_voice_rtx3090():
+    """Test pipeline complet STT→LLM→TTS RTX 3090"""
+    
+    pipeline = VoiceToVoicePipeline()
+    
+    # Audio test 5 secondes
+    audio_input = generate_test_audio(duration=5.0)
+    
+    # Pipeline complet
+    start_time = time.time()
+    audio_output = await pipeline.process_voice_to_voice(audio_input)
+    total_time = (time.time() - start_time) * 1000
+    
+    # Validations
+    assert audio_output is not None
+    assert len(audio_output) > 0
+    assert total_time < 730, f"Pipeline {total_time:.0f}ms > 730ms"
+    
+    print(f"✅ Pipeline RTX 3090: {total_time:.0f}ms")
 
-# Métriques Prometheus basiques
-from prometheus_client import Counter, Histogram
-
-tts_requests_total = Counter('tts_requests_total', 'Total TTS requests', ['backend', 'status'])
-tts_duration_seconds = Histogram('tts_duration_seconds', 'TTS latency', ['backend'])
-
-# Export métriques
-def record_tts_metrics(result: TTSResult):
-    status = 'success' if result.success else 'error'
-    tts_requests_total.labels(backend=result.backend_used, status=status).inc()
-    tts_duration_seconds.labels(backend=result.backend_used).observe(result.latency_ms / 1000)
+@pytest.mark.asyncio
+async def test_pipeline_stress_rtx3090():
+    """Test stress pipeline 5 requêtes parallèles"""
+    
+    pipeline = VoiceToVoicePipeline()
+    
+    # 5 audios test
+    audios = [generate_test_audio(duration=3.0) for _ in range(5)]
+    
+    # Traitement parallèle
+    start_time = time.time()
+    tasks = [pipeline.process_voice_to_voice(audio) for audio in audios]
+    results = await asyncio.gather(*tasks)
+    total_time = (time.time() - start_time) * 1000
+    
+    # Validations
+    assert len(results) == 5
+    assert all(result is not None for result in results)
+    print(f"✅ Stress test RTX 3090: {total_time:.0f}ms pour 5 requêtes")
 ```
 
-### **🚨 Checkpoint 3 - Déploiement :**
-- [ ] Feature flag activation réussie
-- [ ] Métriques Prometheus fonctionnelles
-- [ ] Performance ≥ baseline
-- [ ] Archivage sécurisé + rollback testé
+#### **ÉTAPE 3.5 - Tests Conditions Réelles (1h)**
+**Créer :** `scripts/demo_pipeline_live.py`
 
-### **✅ Livrables Phase 3 :**
-- [x] Tests validation 100% passants
-- [x] Intégration run_assistant.py
-- [x] Feature flags opérationnels
-- [x] Monitoring Prometheus basique
+```python
+#!/usr/bin/env python3
+"""Demo pipeline avec micro réel"""
 
----
+import pyaudio
+import numpy as np
+from run_assistant import VoiceToVoicePipeline
 
-## 🎖️ **CRITÈRES D'ACCEPTATION FINALE**
+def record_audio(duration: float = 5.0, sample_rate: int = 16000):
+    """Enregistrement micro réel"""
+    audio = pyaudio.PyAudio()
+    
+    stream = audio.open(
+        format=pyaudio.paFloat32,
+        channels=1,
+        rate=sample_rate,
+        input=True,
+        frames_per_buffer=1024
+    )
+    
+    print(f"🎤 Enregistrement {duration}s...")
+    
+    frames = []
+    for _ in range(int(sample_rate * duration / 1024)):
+        data = stream.read(1024)
+        frames.append(np.frombuffer(data, dtype=np.float32))
+    
+    stream.close()
+    audio.terminate()
+    
+    return np.concatenate(frames)
 
-### **✅ Performance :**
-- [ ] Latence PiperNative <120ms (P95)
-- [ ] Latence PiperCLI <1000ms
-- [ ] Latence SAPI <2000ms
-- [ ] Cache hit <5ms
+async def demo_live_pipeline():
+    """Demo live avec micro"""
+    
+    pipeline = VoiceToVoicePipeline()
+    
+    print("🎯 Demo Pipeline Live RTX 3090")
+    print("Parlez dans le micro...")
+    
+    # Enregistrement
+    audio = record_audio(duration=5.0)
+    
+    # Pipeline
+    result = await pipeline.process_voice_to_voice(audio)
+    
+    # Lecture résultat
+    # [Code lecture audio via haut-parleurs]
+    
+    print("✅ Demo terminé")
 
-### **✅ Robustesse :**
-- [ ] Disponibilité 99.9% (fallback)
-- [ ] Circuit breakers fonctionnels
-- [ ] Recovery automatique
-- [ ] Monitoring temps réel
-
-### **✅ Qualité Code :**
-- [ ] Type hints 100%
-- [ ] Docstrings complètes
-- [ ] Tests coverage >90%
-- [ ] Configuration externalisée
-
-### **✅ Validation Pratique :**
-- [ ] **Tests réels exécutés** : test_tts_real.py, test_fallback_real.py, test_performance_real.py
-- [ ] **Audio généré audible** : 4 fichiers test écoutés et validés
-- [ ] **Qualité voix française** : Compréhensible et acceptable
-- [ ] **Performance mesurée** : <120ms P95 pour piper_native confirmé
-- [ ] **Fallback testé** : 4 niveaux validés avec audio généré
-- [ ] **Modèles D:\ validés** : fr_FR-siwis-medium.onnx (63MB) utilisé
-
-### **✅ Déploiement :**
-- [ ] Feature flags opérationnels
-- [ ] Rollback script testé
-- [ ] Documentation complète
-- [ ] Métriques exportées
-
----
-
-## 📊 **MÉTRIQUES DE SUCCÈS**
-
-### **🎯 KPIs Post-Déploiement :**
-
-#### **Performance :**
-- **Latence moyenne** : <120ms (vs <1000ms)
-- **P95 latence** : <150ms
-- **Cache hit rate** : >80%
-- **Throughput** : >10 synthèses/s
-
-#### **Robustesse :**
-- **Uptime** : >99.9%
-- **MTBF** : >168h
-- **MTTR** : <5s
-- **Fallback rate** : <1%
-
-#### **Maintenance :**
-- **Complexité code** : -87% fichiers
-- **Time to fix** : -50%
-- **Deployment time** : <5min
-- **Rollback time** : <2min
-
----
-
-## 🚀 **COMMANDES DE DÉMARRAGE**
-
-```bash
-# Phase 0 - Préparation
-git checkout -b feature/tts-enterprise-consolidation
-git tag pre-tts-enterprise-consolidation
-./scripts/rollback_tts_enterprise.sh --test
-
-# Phase 1 - PiperNativeHandler
-python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0)}')"
-Get-ChildItem "D:\TTS_Voices\piper" -Name
-pytest tests/test_piper_native_performance.py -v
-
-# Phase 2 - UnifiedTTSManager
-pytest tests/test_unified_tts_manager.py -v
-python -m TTS.tts_manager_unified --test
-
-# Phase 3 - Tests Réels Pratiques
-python test_tts_real.py
-python test_fallback_real.py  
-python test_performance_real.py
-start test_output\test_1_piper_native.wav
-
-# Phase 3 - Déploiement
-pytest tests/ -v --cov=TTS --cov-report=html
-python run_assistant.py --feature-flag=unified_tts
-
-echo "🚀 Phase 2 Enterprise - Consolidation TTS terminée !"
+if __name__ == "__main__":
+    asyncio.run(demo_live_pipeline())
 ```
 
-**🎯 Prêt pour implémentation architecture enterprise UnifiedTTSManager !** 
+#### **ÉTAPE 3.6 - Monitoring et Métriques (1h)**
+**Créer :** `monitoring/stt_dashboard.py`
+
+```python
+#!/usr/bin/env python3
+"""Dashboard monitoring STT temps réel"""
+
+from prometheus_client import start_http_server, Histogram, Counter, Gauge
+import time
+
+# Métriques Prometheus STT
+stt_latency = Histogram('stt_latency_seconds', 'Latence STT')
+stt_requests = Counter('stt_requests_total', 'Requêtes STT')
+stt_rtf = Gauge('stt_rtf', 'Real-Time Factor STT')
+pipeline_latency = Histogram('pipeline_latency_seconds', 'Latence pipeline E2E')
+
+def start_metrics_server():
+    """Démarre serveur métriques Prometheus"""
+    start_http_server(8000)
+    print("✅ Métriques Prometheus: http://localhost:8000/metrics")
+
+if __name__ == "__main__":
+    start_metrics_server()
+    
+    # Garder serveur actif
+    while True:
+        time.sleep(1)
+```
+
+**🎯 Livrable Jour 3 :** Pipeline voice-to-voice complet < 730ms + Tests validés + Monitoring
+
+---
+
+## 📊 CRITÈRES DE SUCCÈS PHASE 4
+
+### ✅ **Performance RTX 3090 (Obligatoire)**
+- [x] **STT Latence** : < 400ms pour 5s audio (Prism large-v2)
+- [x] **STT RTF** : < 1.0 (temps réel)
+- [x] **Pipeline Total** : < 730ms (STT + LLM + TTS)
+- [x] **Cache Hit Rate** : > 30% (cohérent TTS 93.1%)
+- [x] **Stabilité** : > 99% (comme TTS 100%)
+
+### ✅ **Tests Validation (Obligatoire)**
+- [x] **test_prism_poc.py** : PoC Prism RTX 3090 validé
+- [x] **test_unified_stt_manager.py** : Manager coverage ≥ 90%
+- [x] **test_pipeline_integration.py** : Pipeline E2E validé
+- [x] **Tests stress** : 5 requêtes parallèles réussies
+- [x] **Demo live** : Micro réel + haut-parleurs fonctionnels
+
+### ✅ **Standards GPU (Obligatoire)**
+- [x] **Configuration RTX 3090** : Tous fichiers conformes
+- [x] **Validation `validate_rtx3090_mandatory()`** : Systématique
+- [x] **Tests GPU** : `test_gpu_correct.py` validé
+- [x] **Pas d'utilisation RTX 5060 Ti** : 0% risque
+
+### ✅ **Architecture (Obligatoire)**
+- [x] **Cohérence avec TTS** : Pattern similaire Phase 3
+- [x] **Fallback intelligent** : prism_large → prism_tiny → offline
+- [x] **Cache LRU** : 200MB cohérent avec TTS
+- [x] **Circuit breakers** : Protection robuste
+- [x] **Métriques Prometheus** : Monitoring professionnel
+
+---
+
+## 🚀 LIVRABLES FINAUX
+
+### **Code Principal**
+```
+STT/
+├── backends/
+│   ├── prism_stt_backend.py      # Backend Prism RTX 3090
+│   └── offline_stt_backend.py    # Fallback CPU
+├── unified_stt_manager.py        # Manager unifié
+├── cache_manager.py              # Cache LRU STT
+├── circuit_breaker.py            # Protection robustesse
+└── metrics.py                    # Métriques Prometheus
+```
+
+### **Tests**
+```
+tests/
+├── test_prism_poc.py             # PoC validation RTX 3090
+├── test_unified_stt_manager.py   # Tests manager complet
+├── test_pipeline_integration.py  # Pipeline STT→LLM→TTS
+└── test_stt_stress.py           # Tests charge
+```
+
+### **Configuration et Scripts**
+```
+config/
+└── stt.yaml                      # Configuration STT
+
+scripts/
+├── demo_pipeline_live.py         # Demo micro réel
+└── validate_dual_gpu_rtx3090.py  # Validation GPU
+
+monitoring/
+└── stt_dashboard.py              # Dashboard métriques
+```
+
+### **Documentation**
+```
+docs/
+├── rapport_jour1.md              # PoC validation
+├── rapport_jour2.md              # Manager et tests
+├── rapport_jour3.md              # Pipeline et démo
+└── phase4_stt_complete.md        # Documentation finale
+```
+
+---
+
+## 🎯 MÉTRIQUES SUCCÈS FINALES
+
+### **Performance Atteinte (Cible)**
+- **STT Prism Large** : < 400ms RTX 3090 ✅
+- **Pipeline E2E** : < 730ms total ✅
+- **Cache Hit Rate** : > 30% ✅
+- **Tests Coverage** : > 90% ✅
+- **Stabilité** : > 99% ✅
+
+### **Validation Standards**
+- **Configuration GPU** : 100% conforme ✅
+- **Tests GPU** : Validés ✅
+- **Architecture** : Cohérente Phase 3 ✅
+- **Documentation** : Complète ✅
+
+---
+
+**🎯 AVEC CE PLAN, LIVREZ UN PIPELINE VOICE-TO-VOICE PROFESSIONNEL !**  
+**🚀 RTX 3090 OPTIMISÉ + PERFORMANCE RECORD + STANDARDS SUPERWHISPER V6**
+
+---
+
+*Plan créé le 12/06/2025 - Phase 4 STT SuperWhisper V6*  
+*Configuration : RTX 3090 Unique (24GB VRAM) - 3 jours* 

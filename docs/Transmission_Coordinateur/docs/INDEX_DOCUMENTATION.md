@@ -15,6 +15,7 @@ Index complet de toute la documentation du projet SuperWhisper V6, incluant le s
 ### **📋 Procédures et Guides**
 | Fichier | Description | Taille | Priorité |
 |---------|-------------|--------|----------|
+| 🤖 **[ON_BOARDING_ia.md](../../ON_BOARDING_ia.md)** | Onboarding IA - Briefing complet projet | ~8KB | 🔴 **CRITIQUE IA** |
 | 📋 **[PROCEDURE-TRANSMISSION.md](PROCEDURE-TRANSMISSION.md)** | Procédure transmission coordinateur | ~7KB | 🟡 Recommandé |
 | 📋 **[guide_documentation.md](guide_documentation.md)** | Guide utilisation système complet | ~15KB | 🟡 Recommandé |
 | 🛠️ **[GUIDE_OUTIL_BUNDLE.md](GUIDE_OUTIL_BUNDLE.md)** | Guide outil automatisé | ~11KB | 🟡 Recommandé |
@@ -154,6 +155,7 @@ python scripts/doc-check.py --update
 1. **Générer** : `.\scripts\superwhisper_workflow_simple.ps1 -Action delivery`
 2. **Transmettre** : [docs/CODE-SOURCE.md](CODE-SOURCE.md) (~232KB)
 3. **Procédure** : [docs/PROCEDURE-TRANSMISSION.md](PROCEDURE-TRANSMISSION.md)
+4. **Onboarding IA** : [docs/ON_BOARDING_ia.md](../../ON_BOARDING_ia.md) (OBLIGATOIRE mise à jour)
 
 ### **📚 COMPRENDRE LE SYSTÈME**
 1. **Vue d'ensemble** : [docs/README.md](README.md)
@@ -177,6 +179,7 @@ python scripts/doc-check.py --update
 ### **📋 Avant Transmission Coordinateur**
 - [ ] **CODE-SOURCE.md généré** et validé (>200KB)
 - [ ] **Procédure transmission** suivie ([PROCEDURE-TRANSMISSION.md](PROCEDURE-TRANSMISSION.md))
+- [ ] **ON_BOARDING_ia.md mis à jour** avec état actuel ([docs/ON_BOARDING_ia.md](../../ON_BOARDING_ia.md))
 - [ ] **Métriques vérifiées** (374 fichiers, ~232KB)
 - [ ] **Git status propre** (commits à jour)
 - [ ] **Validation système** passée

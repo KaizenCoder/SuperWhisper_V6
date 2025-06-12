@@ -178,6 +178,8 @@ python monitor_phase3.py
 - **Débit Traitement** : 174.9 chars/seconde
 - **Stabilité** : 100% (zéro crash sur 58 tests)
 
+> **🤖 Pour IA/Développeurs** : Consultez [docs/ON_BOARDING_ia.md](docs/ON_BOARDING_ia.md) pour un briefing technique complet
+
 ### **🧪 Résultats Tests**
 - **Tests Pytest** : 8/9 réussis (88.9%)
 - **Tests Stress** : 20 itérations sans dégradation

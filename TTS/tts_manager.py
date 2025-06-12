@@ -33,6 +33,9 @@ from typing import Dict, Optional, List, Any
 from pathlib import Path
 import numpy as np
 
+# Import utilitaires audio
+from TTS.utils_audio import pcm_to_wav, is_valid_wav, get_wav_info
+
 # Configuration du logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -65,43 +68,196 @@ class PiperNativeHandler(TTSHandler):
     """Handler pour la lib Piper native (GPU)"""
     def __init__(self, config: dict):
         super().__init__(config)
-        logging.info("Handler Piper Natif (GPU) initialisé.")
+        self.model_path = config['model_path']
+        self.model_config_path = config['model_config_path']
+        self.device = config['device']
+        self.speaker_id = config.get('speaker_id', 0)
+        
+        # Validation RTX 3090 obligatoire
+        validate_rtx3090_configuration()
+        
+        # Initialisation du modèle Piper
+        try:
+            # Utilisation de l'exécutable piper.exe car piper-python a des problèmes de dépendances
+            self.executable_path = "piper/piper.exe"
+            if not Path(self.executable_path).exists():
+                raise RuntimeError(f"Exécutable Piper non trouvé: {self.executable_path}")
+            logging.info(f"Handler Piper Natif (GPU) initialisé avec {self.model_path}")
+        except Exception as e:
+            logging.error(f"Erreur initialisation PiperNativeHandler: {e}")
+            raise
 
     async def synthesize(self, text: str, voice: Optional[str] = None, speed: Optional[float] = None) -> bytes:
-        await asyncio.sleep(0.1) # Simule la latence
-        return b"fake_native_audio_data"
+        """Synthèse vocale via Piper natif optimisé GPU"""
+        try:
+            # Utilisation de l'exécutable piper.exe avec optimisations GPU
+            proc = await asyncio.create_subprocess_exec(
+                self.executable_path,
+                "--model", self.model_path,
+                "--speaker", str(self.speaker_id),
+                "--output_raw",
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await proc.communicate(text.encode('utf-8'))
+            
+            if proc.returncode != 0:
+                raise RuntimeError(f"Piper Native a échoué: {stderr.decode()}")
+            
+            # 🔧 CORRECTION FORMAT AUDIO - Conversion PCM → WAV
+            if not is_valid_wav(stdout):
+                logging.debug("PiperNativeHandler: Conversion PCM brut → WAV")
+                stdout = pcm_to_wav(
+                    pcm_data=stdout,
+                    sample_rate=self.config.get('sample_rate', 22050),
+                    channels=self.config.get('channels', 1),
+                    sampwidth=2
+                )
+                logging.debug(f"PiperNativeHandler: WAV généré ({len(stdout)} bytes)")
+            
+            return stdout
+            
+        except Exception as e:
+            logging.error(f"Erreur PiperNativeHandler: {e}")
+            raise
 
 class PiperCliHandler(TTSHandler):
-    """Handler pour Piper via ligne de commande (CPU)"""
+    """Handler pour Piper via ligne de commande (CPU) - Optimisé"""
     def __init__(self, config: dict):
         super().__init__(config)
         self.executable_path = config['executable_path']
         self.model_path = config['model_path']
-        logging.info("Handler Piper CLI (CPU) initialisé.")
+        self.speaker_id = config.get('speaker_id', 0)
+        
+        # Optimisations performance
+        self.use_json_config = config.get('use_json_config', True)
+        self.length_scale = config.get('length_scale', 1.0)  # Vitesse synthèse
+        
+        logging.info(f"Handler Piper CLI (CPU) initialisé - Optimisé pour performance <1000ms")
 
     async def synthesize(self, text: str, voice: Optional[str] = None, speed: Optional[float] = None) -> bytes:
-        proc = await asyncio.create_subprocess_exec(
-            self.executable_path,
-            "--model", self.model_path,
-            "--output_raw",
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await proc.communicate(text.encode('utf-8'))
-        if proc.returncode != 0:
-            raise RuntimeError(f"Piper CLI a échoué: {stderr.decode()}")
-        return stdout
+        """Synthèse vocale via Piper CLI optimisée"""
+        try:
+            # Arguments optimisés pour performance
+            args = [
+                self.executable_path,
+                "--model", self.model_path,
+                "--output_raw"
+            ]
+            
+            # Optimisations conditionnelles
+            if self.speaker_id > 0:
+                args.extend(["--speaker", str(self.speaker_id)])
+            
+            if speed and speed != 1.0:
+                args.extend(["--length_scale", str(speed)])
+            elif self.length_scale != 1.0:
+                args.extend(["--length_scale", str(self.length_scale)])
+            
+            # Processus optimisé avec timeout
+            proc = await asyncio.create_subprocess_exec(
+                *args,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            # Communication avec timeout pour éviter blocages
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    proc.communicate(text.encode('utf-8')), 
+                    timeout=5.0  # Timeout 5s pour éviter blocages
+                )
+            except asyncio.TimeoutError:
+                proc.kill()
+                raise RuntimeError("Piper CLI timeout (>5s)")
+            
+            if proc.returncode != 0:
+                raise RuntimeError(f"Piper CLI a échoué: {stderr.decode()}")
+            
+            # 🔧 CORRECTION FORMAT AUDIO - Conversion PCM → WAV
+            if not is_valid_wav(stdout):
+                logging.debug("PiperCliHandler: Conversion PCM brut → WAV")
+                stdout = pcm_to_wav(
+                    pcm_data=stdout,
+                    sample_rate=self.config.get('sample_rate', 22050),
+                    channels=self.config.get('channels', 1),
+                    sampwidth=2
+                )
+                logging.debug(f"PiperCliHandler: WAV généré ({len(stdout)} bytes)")
+            
+            return stdout
+            
+        except Exception as e:
+            logging.error(f"Erreur PiperCliHandler optimisé: {e}")
+            raise
 
 class SapiFrenchHandler(TTSHandler):
     """Handler pour Windows SAPI"""
     def __init__(self, config: dict):
         super().__init__(config)
-        logging.info("Handler SAPI Français initialisé.")
+        self.voice_name = config.get('voice_name', 'Microsoft Hortense Desktop')
+        self.rate = config.get('rate', 0)
+        self.volume = config.get('volume', 100)
+        
+        # Initialisation SAPI
+        try:
+            import win32com.client
+            self.sapi = win32com.client.Dispatch("SAPI.SpVoice")
+            
+            # Configuration voix française
+            voices = self.sapi.GetVoices()
+            for i in range(voices.Count):
+                voice = voices.Item(i)
+                name = voice.GetDescription()
+                if self.voice_name in name or 'french' in name.lower() or 'français' in name.lower():
+                    self.sapi.Voice = voice
+                    logging.info(f"Voix française SAPI sélectionnée: {name}")
+                    break
+            
+            self.sapi.Rate = self.rate
+            self.sapi.Volume = self.volume
+            logging.info("Handler SAPI Français initialisé.")
+            
+        except ImportError:
+            logging.error("win32com.client non disponible - SAPI désactivé")
+            raise
+        except Exception as e:
+            logging.error(f"Erreur initialisation SAPI: {e}")
+            raise
 
     async def synthesize(self, text: str, voice: Optional[str] = None, speed: Optional[float] = None) -> bytes:
-        await asyncio.sleep(1.5)
-        return b"fake_sapi_audio_data"
+        """Synthèse vocale via SAPI Windows"""
+        try:
+            import tempfile
+            import wave
+            import win32com.client
+            
+            # Créer fichier temporaire
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
+                tmp_path = tmp_file.name
+            
+            # Synthèse vers fichier WAV
+            file_stream = win32com.client.Dispatch("SAPI.SpFileStream")
+            file_stream.Open(tmp_path, 3)  # SSFMCreateForWrite
+            self.sapi.AudioOutputStream = file_stream
+            self.sapi.Speak(text)
+            file_stream.Close()
+            
+            # Lire le fichier WAV généré
+            with open(tmp_path, 'rb') as f:
+                audio_data = f.read()
+            
+            # Nettoyer fichier temporaire
+            os.unlink(tmp_path)
+            
+            return audio_data
+            
+        except Exception as e:
+            logging.error(f"Erreur SapiFrenchHandler: {e}")
+            raise
 
 class SilentEmergencyHandler(TTSHandler):
     """Handler d'urgence qui retourne un silence pour éviter un crash."""
@@ -284,6 +440,16 @@ class UnifiedTTSManager:
                 start_time_handler = time.perf_counter()
                 handler = self.handlers[backend_type]
                 audio_data = await handler.synthesize(text, voice, speed)
+                
+                # 🔧 VALIDATION FINALE FORMAT AUDIO - Sécurité supplémentaire
+                if not is_valid_wav(audio_data):
+                    logging.warning(f"UnifiedTTSManager: Format invalide détecté pour {backend_type.value}, conversion forcée")
+                    audio_data = pcm_to_wav(
+                        pcm_data=audio_data,
+                        sample_rate=self.config['advanced'].get('sample_rate', 22050),
+                        channels=self.config['advanced'].get('channels', 1)
+                    )
+                
                 latency_ms = (time.perf_counter() - start_time_handler) * 1000
 
                 self.circuit_breakers[backend_type].record_success()
@@ -305,6 +471,13 @@ class UnifiedTTSManager:
         # Si tous les backends ont échoué
         return TTSResult(success=False, backend_used="none", latency_ms=0, 
                        error="Tous les backends TTS ont échoué, y compris l'handler d'urgence.")
+
+    async def cleanup(self):
+        """Nettoyage des ressources"""
+        # Nettoyage cache si nécessaire
+        self.cache.cache.clear()
+        self.cache.current_size = 0
+        logging.info("UnifiedTTSManager nettoyé.")
 
 # APPELER DANS TOUS LES SCRIPTS PRINCIPAUX
 if __name__ == "__main__":

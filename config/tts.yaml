@@ -79,6 +79,9 @@ advanced:
   max_text_length: 1000
   # Nettoyage automatique du texte (caractères non supportés, etc.)
   sanitize_text: true
+  # Paramètres audio pour conversion PCM → WAV
+  sample_rate: 22050
+  channels: 1
 
 # ===================================================================
 # FEATURE FLAGS (Pour déploiement progressif)

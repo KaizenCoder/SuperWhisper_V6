@@ -1,0 +1,207 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Phase 1 : Préparation et Setup",
+      "description": "Setup environnement sécurisé, sauvegarde et analyse des 40 fichiers cibles",
+      "status": "done",
+      "dependencies": [],
+      "priority": "critical",
+      "details": "Créer branche Git dédiée, structure de travail, sauvegarder les 40 fichiers originaux, analyser configuration GPU existante, créer templates de validation",
+      "testStrategy": "Vérifier structure créée, backups complets, analyse documentée",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Setup Environnement",
+          "description": "Créer branche Git + structure de travail",
+          "details": "Branche feature/gpu-mapping-homogenization, dossiers docs/gpu-correction/{reports,tests,backups}",
+          "status": "done",
+          "priority": "critical",
+          "testStrategy": "Vérifier branche créée et structure dossiers"
+        },
+        {
+          "id": 2,
+          "title": "Sauvegarde Sécurisée",
+          "description": "Copier 40 fichiers originaux + tag Git",
+          "details": "Backup tous les fichiers identifiés, créer tag v-before-gpu-correction",
+          "status": "done",
+          "priority": "critical",
+          "testStrategy": "Vérifier backups complets et tag Git"
+        },
+        {
+          "id": 3,
+          "title": "Analyse Configuration Existante",
+          "description": "Analyser CUDA_VISIBLE_DEVICES et CUDA_DEVICE_ORDER dans 40 fichiers",
+          "details": "Vérifier présence variables GPU, utilisation cuda:0 vs cuda:1, documenter findings",
+          "status": "done",
+          "priority": "high",
+          "testStrategy": "Rapport d'analyse complet documenté"
+        },
+        {
+          "id": 4,
+          "title": "Base Tests Référence",
+          "description": "Créer templates de validation GPU",
+          "details": "Template GPUCorrectionTestBase, fonctions validate_rtx3090_mandatory",
+          "status": "done",
+          "priority": "high",
+          "testStrategy": "Templates fonctionnels testés"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Phase 2 : Correction Modules Core",
+      "description": "Corriger 13 modules critiques avec configuration GPU complète + Memory Leak V4.0",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "priority": "critical",
+      "details": "Appliquer configuration GPU complète (CUDA_VISIBLE_DEVICES='1' + CUDA_DEVICE_ORDER='PCI_BUS_ID') aux 13 modules core avec validation factuelle RTX 3090",
+      "testStrategy": "Script diagnostic obligatoire + tests fonctionnels complets pour chaque module",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Modules Core Critiques (7 fichiers)",
+          "description": "benchmarks/benchmark_stt_realistic.py, LLM/llm_manager_enhanced.py, LUXA_TTS/tts_handler_coqui.py, Orchestrator/fallback_manager.py, STT/vad_manager_optimized.py, TTS/tts_handler_coqui.py, TTS/tts_handler_piper_native.py",
+          "details": "Configuration GPU complète + fonction validate_rtx3090_mandatory() + @gpu_test_cleanup",
+          "status": "done",
+          "priority": "critical",
+          "testStrategy": "Script diagnostic python C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py pour chaque fichier"
+        },
+        {
+          "id": 2,
+          "title": "Modules Core Supplémentaires (6 fichiers)",
+          "description": "STT/stt_manager_robust.py, STT/vad_manager.py, TTS/tts_handler_piper_espeak.py, TTS/tts_handler_piper_fixed.py, TTS/tts_handler_piper_french.py, utils/gpu_manager.py",
+          "details": "Configuration GPU complète + fonction validate_rtx3090_mandatory() + @gpu_test_cleanup",
+          "status": "done",
+          "priority": "critical",
+          "testStrategy": "Script diagnostic python C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py pour chaque fichier"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Phase 3 : Correction Scripts Test",
+      "description": "Corriger 27 scripts test/validation avec configuration GPU complète",
+      "status": "done",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Appliquer configuration GPU complète aux 27 scripts de test avec validation RTX 3090",
+      "testStrategy": "Script diagnostic + validation fonctionnelle pour chaque script",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Scripts Test Initiaux (13 fichiers)",
+          "description": "tests/test_double_check_corrections.py, tests/test_double_check_validation_simple.py, test_cuda_debug.py, test_cuda.py, test_espeak_french.py, test_french_voice.py, test_gpu_correct.py, test_piper_native.py, test_tts_fixed.py, test_tts_long_feedback.py, test_upmc_model.py, test_validation_decouverte.py, TTS/tts_handler_piper_rtx3090.py",
+          "details": "Configuration GPU complète + validation RTX 3090 pour scripts de test",
+          "status": "done",
+          "priority": "high",
+          "testStrategy": "Script diagnostic + exécution réussie de chaque test"
+        },
+        {
+          "id": 2,
+          "title": "Scripts Supplémentaires + Validation (14 fichiers)",
+          "description": "tests/test_llm_handler.py, tests/test_stt_handler.py, test_correction_validation_1.py à 4.py, test_rtx3090_detection.py, test_tts_rtx3090_performance.py, test_validation_globale_finale.py, test_validation_mvp_settings.py, test_validation_rtx3090_detection.py, test_validation_stt_manager_robust.py, test_validation_tts_performance.py, validate_gpu_config.py",
+          "details": "Configuration GPU complète + validation RTX 3090 pour scripts validation",
+          "status": "done",
+          "priority": "high",
+          "testStrategy": "Script diagnostic + exécution réussie + métriques de validation"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Phase 4 : Validation Système",
+      "description": "Tests d'intégration globale et validation stabilité système",
+      "status": "done",
+      "dependencies": [
+        3
+      ],
+      "priority": "critical",
+      "details": "Validation système complet avec RTX 3090 exclusive, tests workflow STT→LLM→TTS, benchmarks performance, stabilité 30min",
+      "testStrategy": "Tests intégration + benchmarks avant/après + stabilité continue",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Tests Intégration GPU",
+          "description": "Vérifier que tout le système utilise RTX 3090 exclusivement",
+          "details": "Scanner processus GPU, validation cuda:0 = RTX 3090 partout",
+          "status": "done",
+          "priority": "critical",
+          "testStrategy": "Script diagnostic système + monitoring GPU temps réel"
+        },
+        {
+          "id": 2,
+          "title": "Workflow STT→LLM→TTS Complet",
+          "description": "Test pipeline complet avec RTX 3090",
+          "details": "Workflow intégral speech-to-text → LLM → text-to-speech sur RTX 3090",
+          "status": "done",
+          "priority": "critical",
+          "testStrategy": "Pipeline complet fonctionnel avec métriques performance"
+        },
+        {
+          "id": 3,
+          "title": "Benchmarks Performance",
+          "description": "Comparer performance avant/après corrections",
+          "details": "Benchmarks STT, LLM, TTS - validation ≥98% performance maintenue",
+          "status": "done",
+          "priority": "high",
+          "testStrategy": "Métriques comparatives documentées"
+        },
+        {
+          "id": 4,
+          "title": "Tests Stabilité 30min",
+          "description": "Test stabilité prolongée du système corrigé",
+          "details": "Cycles complets 30min, monitoring memory leaks + GPU stable",
+          "status": "done",
+          "priority": "high",
+          "testStrategy": "Système stable 30min sans dégradation"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Phase 5 : Documentation",
+      "description": "Standards GPU définitifs et guides développement",
+      "status": "done",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "Documenter standards GPU pour développements futurs, guide développeur, rapport final mission",
+      "testStrategy": "Documentation complète et réutilisable",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Standards GPU Définitifs",
+          "description": "Template obligatoire configuration GPU + validation",
+          "details": "Standard CUDA_VISIBLE_DEVICES='1' + CUDA_DEVICE_ORDER='PCI_BUS_ID' + validate_rtx3090_mandatory()",
+          "status": "done",
+          "priority": "medium",
+          "testStrategy": "Standards documentés et templates utilisables"
+        },
+        {
+          "id": 2,
+          "title": "Guide Développement",
+          "description": "Checklist développeur + exemples + processus validation",
+          "details": "Guide complet pour futurs développements GPU avec exemples concrets",
+          "status": "done",
+          "priority": "medium",
+          "testStrategy": "Guide testé avec nouveau développement"
+        },
+        {
+          "id": 3,
+          "title": "Rapport Final",
+          "description": "Métriques mission + résultats + recommandations",
+          "details": "Rapport exécutif complet avec tous les résultats et apprentissages",
+          "status": "done",
+          "priority": "medium",
+          "testStrategy": "Rapport complet et actionable"
+        }
+      ]
+    }
+  ]
+}

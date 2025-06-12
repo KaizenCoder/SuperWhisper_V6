@@ -93,4 +93,56 @@ def get_wav_info(data: bytes) -> dict:
         return info
         
     except Exception as e:
-        return {"error": str(e)} 
+        return {"error": str(e)}
+
+
+def extract_wav_data(wav_bytes: bytes) -> bytes:
+    """
+    Extrait les données audio brutes d'un fichier WAV (sans header)
+    
+    Args:
+        wav_bytes: Fichier WAV complet avec headers
+        
+    Returns:
+        bytes: Données audio brutes (PCM)
+    """
+    if not is_valid_wav(wav_bytes):
+        raise ValueError("Format WAV invalide")
+    
+    try:
+        buf = io.BytesIO(wav_bytes)
+        with wave.open(buf, 'rb') as wf:
+            # Lecture de toutes les frames audio
+            audio_data = wf.readframes(wf.getnframes())
+        return audio_data
+        
+    except Exception as e:
+        raise ValueError(f"Erreur extraction données WAV: {e}")
+
+
+def create_wav_header(audio_data: bytes, sample_rate: int = 22050, 
+                     channels: int = 1, sampwidth: int = 2) -> bytes:
+    """
+    Crée un fichier WAV complet à partir de données audio brutes
+    
+    Args:
+        audio_data: Données audio brutes (PCM)
+        sample_rate: Fréquence d'échantillonnage
+        channels: Nombre de canaux
+        sampwidth: Largeur d'échantillon en bytes (2 = 16-bit)
+        
+    Returns:
+        bytes: Fichier WAV complet avec header
+    """
+    try:
+        buf = io.BytesIO()
+        with wave.open(buf, 'wb') as wf:
+            wf.setnchannels(channels)
+            wf.setsampwidth(sampwidth)
+            wf.setframerate(sample_rate)
+            wf.writeframes(audio_data)
+        buf.seek(0)
+        return buf.read()
+        
+    except Exception as e:
+        raise ValueError(f"Erreur création WAV: {e}") 

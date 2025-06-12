@@ -1,0 +1,78 @@
+{
+  "summary": {
+    "total_duration": 2.558665300020948,
+    "total_tests": 4,
+    "successful_tests": 0,
+    "failed_tests": 4,
+    "success_rate": 0.0,
+    "total_execution_time": 1.118973799952073
+  },
+  "details": {
+    "timestamp": "2025-06-12T15:15:04.960385",
+    "gpu_config": "1",
+    "tests": {
+      "system_requirements": {
+        "python_version": {
+          "version": "3.12.10",
+          "valid": true
+        },
+        "module_torch": {
+          "available": true
+        },
+        "module_yaml": {
+          "available": true
+        },
+        "module_pytest": {
+          "available": true
+        },
+        "module_asyncio": {
+          "available": true
+        },
+        "gpu": {
+          "available": true,
+          "name": "NVIDIA GeForce RTX 3090",
+          "memory_gb": 23.99951171875,
+          "cuda_device": "1"
+        },
+        "config_config/tts.yaml": {
+          "exists": true,
+          "path": "config\\tts.yaml"
+        }
+      },
+      "pytest_integration": {
+        "success": false,
+        "execution_time": 0.9050084999762475,
+        "returncode": 2,
+        "stdout": "\u001b[1m============================= test session starts =============================\u001b[0m\nplatform win32 -- Python 3.12.10, pytest-8.4.0, pluggy-1.6.0 -- C:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\python.exe\ncachedir: .pytest_cache\nrootdir: C:\\Dev\\SuperWhisper_V6\nconfigfile: pytest.ini\nplugins: anyio-4.9.0, Faker-37.3.0, asyncio-1.0.0, cov-6.1.1, env-1.1.5, timeout-2.4.0, typeguard-4.4.3\nasyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\n\u001b[1mcollecting ... \u001b[0mcollected 0 items / 1 error\n\n=================================== ERRORS ====================================\n\u001b[31m\u001b[1m___________ ERROR collecting tests/test_tts_manager_integration.py ____________\u001b[0m\n\u001b[1m\u001b[31mtests\\test_tts_manager_integration.py\u001b[0m:25: in <module>\n    \\x1b[0m\\x1b[96mprint\\x1b[39;49;00m(\\x1b[33m\"\\x1b[39;49;00m\\x1b[33m\\U0001f3ae GPU Configuration: RTX 3090 (CUDA:1) forc\\xe9e\\x1b[39;49;00m\\x1b[33m\"\\x1b[39;49;00m)\\x1b[90m\\x1b[39;49;00m\n\u001b[1m\u001b[31mC:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\encodings\\cp1252.py\u001b[0m:19: in encode\n    \u001b[0m\u001b[94mreturn\u001b[39;49;00m codecs.charmap_encode(\u001b[96minput\u001b[39;49;00m,\u001b[96mself\u001b[39;49;00m.errors,encoding_table)[\u001b[94m0\u001b[39;49;00m]\u001b[90m\u001b[39;49;00m\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[90m\u001b[39;49;00m\n\u001b[1m\u001b[31mE   UnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f3ae' in position 0: character maps to <undefined>\u001b[0m\n\u001b[36m\u001b[1m=========================== short test summary info ===========================\u001b[0m\n\u001b[31mERROR\u001b[0m tests/test_tts_manager_integration.py - UnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f3ae' in ...\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n\u001b[31m============================== \u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.22s\u001b[0m\u001b[31m ===============================\u001b[0m\n",
+        "stderr": "",
+        "command": "C:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -m pytest tests\\test_tts_manager_integration.py -v -s --tb=short --disable-warnings --color=yes"
+      },
+      "demo_batch": {
+        "success": false,
+        "execution_time": 0.03878559998702258,
+        "returncode": 2,
+        "stdout": "",
+        "stderr": "python: can't open file 'C:\\\\Dev\\\\SuperWhisper_V6\\\\\"scripts\\\\demo_tts.py\"': [Errno 22] Invalid argument\n",
+        "command": "cmd /c echo 2 | python \"scripts\\demo_tts.py\""
+      },
+      "performance_tests": {
+        "test_performance_simple.py": {
+          "success": false,
+          "execution_time": 0.08702159998938441,
+          "returncode": 1,
+          "stdout": "",
+          "stderr": "Traceback (most recent call last):\n  File \"C:\\Dev\\SuperWhisper_V6\\test_performance_simple.py\", line 22, in <module>\n    print(\"\\U0001f3ae GPU Configuration: RTX 3090 (CUDA:1) forcée\")\n  File \"C:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f3ae' in position 0: character maps to <undefined>\n",
+          "command": "C:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\python.exe test_performance_simple.py"
+        },
+        "monitor_phase3_demo.py": {
+          "success": false,
+          "execution_time": 0.08815809999941848,
+          "returncode": 1,
+          "stdout": "",
+          "stderr": "Traceback (most recent call last):\n  File \"C:\\Dev\\SuperWhisper_V6\\monitor_phase3_demo.py\", line 25, in <module>\n    print(\"\\U0001f3ae GPU Configuration: RTX 3090 (CUDA:1) forcée\")\n  File \"C:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f3ae' in position 0: character maps to <undefined>\n",
+          "command": "C:\\Users\\Utilisateur\\AppData\\Local\\Programs\\Python\\Python312\\python.exe monitor_phase3_demo.py"
+        }
+      }
+    }
+  }
+}

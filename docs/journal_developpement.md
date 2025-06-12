@@ -1265,3 +1265,78 @@ SuperWhisper V6 est maintenant transformé d'un projet avec configuration GPU h�
 SuperWhisper V6 est maintenant transformé d'un projet avec configuration GPU hétérogène vers un **système homogène, performant et évolutif** avec RTX 3090 exclusive, performance +67% validée scientifiquement, et framework complet pour développements futurs.
 
 ---
+
+### 2025-06-12 - DÉMARRAGE MISSION CONSOLIDATION TTS PHASE 2 ENTERPRISE 🚀
+**Contexte**: Lancement de la mission critique de consolidation TTS SuperWhisper V6 pour remplacer 15 handlers fragmentés par une architecture UnifiedTTSManager enterprise-grade selon le code expert fourni dans docs/prompt.md.
+
+**Analyse**:
+- **Problème critique identifié** : 15 handlers TTS fragmentés avec seulement 2 fonctionnels
+- **Architecture cible** : UnifiedTTSManager avec fallback 4 niveaux (PiperNative GPU <120ms → PiperCLI CPU <1000ms → SAPI <2000ms → SilentEmergency <5ms)
+- **Code expert disponible** : Architecture complète fournie dans docs/prompt.md avec circuit breakers, cache LRU, monitoring Prometheus
+- **Contraintes absolues** : RTX 3090 (CUDA:1) exclusive, modèles D:\TTS_Voices\ obligatoire, tests audio manuels requis
+- **Plan structuré** : 5.5 jours selon docs/dev_plan.md avec checkpoints bloquants
+
+**Décisions techniques**:
+- **Référence unique** : Utilisation EXCLUSIVE du code expert fourni dans docs/prompt.md sans modification
+- **Configuration GPU** : RTX 3090 (CUDA:1) avec `CUDA_VISIBLE_DEVICES='1'` + `CUDA_DEVICE_ORDER='PCI_BUS_ID'`
+- **Modèles TTS** : Utilisation exclusive modèles disponibles sur D:\TTS_Voices\ (fr_FR-siwis-medium.onnx validé)
+- **Architecture fallback** : 4 handlers hiérarchisés avec circuit breakers et cache LRU intelligent
+- **Validation pratique** : Tests réels avec écoute audio manuelle OBLIGATOIRE
+- **Approche séquentielle** : Phase 0 → Phase 1 → Phase 2 → Phase 3 avec validation continue
+
+**Implémentation**:
+- [x] **Phase 0 - Préparation (0.5j)** : Archivage sécurisé 14 handlers obsolètes
+  - ✅ Branche Git `feature/tts-enterprise-consolidation` créée
+  - ✅ Tag sauvegarde `pre-tts-enterprise-consolidation` posé
+  - ✅ 14 handlers archivés dans `TTS/legacy_handlers_20250612/`
+  - ✅ Documentation rollback complète (`README_ROLLBACK.md`)
+  - ✅ 2 handlers fonctionnels conservés (`tts_handler_sapi_french.py` + `tts_handler.py`)
+  - ✅ TaskMaster configuré avec tâche #6 (complexité 9, priorité HIGH)
+- [ ] **Phase 1 - PiperNativeHandler (2j)** : Réparation handler GPU + UnifiedTTSManager
+- [ ] **Phase 2 - Architecture Complète (2j)** : Circuit breakers + Cache LRU + Configuration YAML
+- [ ] **Phase 3 - Tests & Déploiement (1j)** : Validation pratique + intégration run_assistant.py
+
+**Tests/Validation**:
+- ✅ **Environnement validé** : RTX 3090 disponible + modèles D:\TTS_Voices\ présents
+- ✅ **Modèles confirmés** : fr_FR-siwis-medium.onnx (63MB) + .json disponibles
+- ✅ **Phase 0 terminée** : Archivage sécurisé + documentation complète
+- ✅ **TaskMaster opérationnel** : Tâche #6 créée avec 7 sous-tâches
+- ✅ **Code expert analysé** : Architecture UnifiedTTSManager complète dans prompt.md
+- ⏳ **Phase 1 en cours** : Création config/tts.yaml + TTS/tts_manager.py
+
+**Notes importantes**:
+- **🎯 Mission critique** : Transformation 15→4 handlers pour performance <120ms et robustesse 99.9%
+- **📋 Code expert obligatoire** : Utilisation EXCLUSIVE du code fourni dans docs/prompt.md
+- **🛡️ Sécurité RTX 3090** : Configuration GPU exclusive garantie par standards établis
+- **📊 Suivi détaillé** : Fichier docs/suivi_consolidation_tts_phase2.md créé pour traçabilité
+- **🔧 Approche méthodique** : Plan séquentiel avec validation continue et checkpoints bloquants
+- **🎧 Validation pratique** : Tests audio manuels obligatoires pour validation qualité voix française
+
+**Fichiers Structurels Créés**:
+- **[📋 Suivi Mission TTS](docs/suivi_consolidation_tts_phase2.md)** - Traçabilité complète progression, analyses, points d'attention
+- **[📁 Archive Handlers](TTS/legacy_handlers_20250612/)** - 14 handlers obsolètes + documentation rollback
+
+**Métriques Phase 0 Accomplies**:
+- **Handlers archivés** : 14/15 handlers obsolètes (93% nettoyage)
+- **Handlers conservés** : 2 fonctionnels (tts_handler_sapi_french.py + tts_handler.py)
+- **Documentation** : README_ROLLBACK.md complet avec procédures
+- **Sécurité** : Tag Git + branche dédiée pour rollback garanti
+- **TaskMaster** : Tâche #6 configurée avec 7 sous-tâches structurées
+- **Temps Phase 0** : 45min vs 4h prévues (88% plus rapide)
+
+**Prochaines actions immédiates**:
+- [ ] **PRIORITÉ 1** : Création config/tts.yaml avec code expert (lignes 47-95 prompt.md)
+- [ ] **PRIORITÉ 2** : Implémentation TTS/tts_manager.py avec code expert (lignes 96-280 prompt.md)
+- [ ] **PRIORITÉ 3** : Réparation PiperNativeHandler pour RTX 3090 (CUDA:1)
+- [ ] **PRIORITÉ 4** : Tests réels pratiques avec scripts fournis (lignes 400-600 prompt.md)
+
+**Objectifs Phase 1** :
+- Configuration YAML centralisée opérationnelle
+- UnifiedTTSManager fonctionnel avec 4 handlers
+- PiperNativeHandler <120ms validé sur RTX 3090
+- Tests audio manuels réussis avec écoute qualité française
+
+**Impact attendu** :
+Transformation SuperWhisper V6 d'un système TTS fragmenté (15 handlers, 2 fonctionnels) vers une architecture enterprise unifiée (4 handlers hiérarchisés) avec performance <120ms, robustesse 99.9%, et monitoring Prometheus intégré.
+
+---

@@ -1,415 +1,438 @@
-# 📋 PRD - HOMOGÉNISATION DU MAPPING GPU SUPERWHISPER V6
+# 📋 PRD - CONSOLIDATION TTS SUPERWHISPER V6 (PHASE 2 ENTERPRISE)
+
+**Date :** 2025-06-12  
+**Version :** v2.0 Enterprise  
+**Statut :** Approuvé pour implémentation  
+**Équipe :** SuperWhisper V6 Core Team  
 
 ---
 
-**Projet :** Correction et Homogénisation du Mapping GPU SuperWhisper V6  
-**Version :** 2.0 [OPTIMISÉE avec Memory Leak V4.0 + Parallélisation]  
-**Date :** Juin 2025  
-**Priorité :** CRITIQUE  
-**Durée estimée :** 12-16 heures (40 fichiers) [64% GAIN vs 33h séquentiel]  
-**Durée séquentielle :** 33 heures (baseline de référence)  
+## 🎯 **EXECUTIVE SUMMARY**
+
+### **Problème Business :**
+Le sous-système TTS de SuperWhisper V6 souffre d'une **fragmentation critique** avec 15 handlers redondants, causant une **complexité de maintenance insoutenable** et des **risques d'instabilité**. La performance n'est pas garantie (<1000ms vs objectif <120ms) et l'architecture actuelle ne permet pas de scaling enterprise.
+
+### **Solution Proposée :**
+Implémentation d'une **architecture UnifiedTTSManager enterprise-grade** avec 4 handlers hiérarchisés, circuit breakers, cache intelligent et monitoring Prometheus, garantissant une **performance <120ms** et une **disponibilité 99.9%**.
+
+### **Impact Business :**
+- **Réduction complexité** : -87% de fichiers TTS (15→4 handlers)
+- **Performance garantie** : <120ms latence (vs <1000ms actuel)
+- **Disponibilité enterprise** : 99.9% via fallback automatique
+- **Maintenabilité** : Architecture modulaire + monitoring intégré
+- **Expérience utilisateur** : Réactivité vocale optimale pour assistant IA
 
 ---
 
-## 🎯 CONTEXTE ET PROBLÉMATIQUE
+## 📊 **CONTEXTE PROJET**
 
-### Situation Actuelle
-Le projet SuperWhisper V6 présente une **méthodologie de sélection et contrôle GPU non homogène** à travers ses 89 fichiers Python/PowerShell. Cette hétérogénéité génère :
-
-- **Risques de performance** : Utilisation accidentelle de RTX 5060 Ti (16GB) au lieu de RTX 3090 (24GB)
-- **Instabilité système** : Mappings GPU incohérents entre modules
-- **Maintenance complexe** : Pas de standard unifié pour la sélection GPU
-- **Erreurs silencieuses** : Aucune validation systématique du GPU utilisé
-
-### Découverte Critique
-L'analyse factuelle révèle que la **configuration GPU nécessite deux variables d'environnement** pour fonctionner correctement :
-- `CUDA_VISIBLE_DEVICES='1'` seul ne suffit pas
-- `CUDA_DEVICE_ORDER='PCI_BUS_ID'` est **obligatoire** pour respecter l'ordre physique des GPU
-
-### Configuration Matérielle
+### **🏗️ Architecture SuperWhisper V6 :**
 ```
-Configuration physique du système :
-- GPU Bus PCI 0 : RTX 5060 Ti (16GB) → STRICTEMENT INTERDITE
-- GPU Bus PCI 1 : RTX 3090 (24GB) → SEULE GPU AUTORISÉE
-
-⚠️ ATTENTION : Sans CUDA_DEVICE_ORDER='PCI_BUS_ID', PyTorch peut ordonner les GPU différemment !
+🎤 MICROPHONE → STT (Whisper) → LLM (Llama) → TTS (Piper) → 🔊 SPEAKERS
+                    ↓               ↓              ↓
+                VAD Manager    Context Manager   Audio Output
 ```
 
-### Impact Business
-- **Performance dégradée** sur les tâches IA critiques
-- **Risque de plantage** lors de traitement de gros volumes  
-- **Incohérence utilisateur** avec des temps de réponse variables
-- **Maintenance difficile** due aux standards non homogènes
+### **🚨 Configuration Hardware Critique :**
+- **RTX 5060 (8GB) CUDA:0** ❌ **STRICTEMENT INTERDITE**
+- **RTX 3090 (24GB) CUDA:1** ✅ **SEULE GPU AUTORISÉE**
+- **RAM :** 64GB DDR4-4800
+- **CPU :** Intel Core Ultra 7 265K (20 threads)
+- **Stockage Modèles :** `D:\TTS_Voices\` ✅ **EXCLUSIVEMENT**
+
+### **📈 État Actuel :**
+- **Modules fonctionnels :** 6/18 (33%)
+- **TTS handlers :** 15 fragmentés (2 fonctionnels)
+- **Performance TTS :** <1000ms (CLI) vs objectif <120ms
+- **Disponibilité :** 95% (fallback basique)
+- **Modèles disponibles :** `D:\TTS_Voices\piper\` (fr_FR-siwis-medium.onnx 63MB)
 
 ---
 
-## 🎯 OBJECTIFS
+## 🎯 **OBJECTIFS QUANTIFIABLES**
 
-### Objectif Principal
-**Homogénéiser et sécuriser la sélection GPU** dans tous les scripts du projet pour garantir l'utilisation exclusive de la RTX 3090.
+### **📊 KPIs Performance :**
+| Métrique | Baseline Actuel | Objectif Cible | Amélioration |
+|----------|-----------------|----------------|--------------|
+| **Latence TTS Principal** | <1000ms (CLI) | <120ms (GPU) | **88% plus rapide** |
+| **Latence Fallback 1** | <1000ms | <1000ms | Maintenu |
+| **Latence Fallback 2** | N/A | <2000ms | Nouveau |
+| **Disponibilité** | 95% | 99.9% | **+4.9%** |
+| **Handlers TTS** | 15 fragmentés | 4 unifiés | **-73% complexité** |
 
-### Objectifs Spécifiques
-1. **Ajouter la configuration GPU complète** dans les 40 scripts identifiés
-2. **S'assurer de l'utilisation cohérente de `cuda:0`** dans le code (qui pointera vers RTX 3090)
-3. **Implémenter une validation systématique** de sélection GPU
-4. **Garantir zéro régression fonctionnelle**
-5. **Documenter les standards** pour développements futurs
+### **📊 KPIs Robustesse :**
+| Métrique | Baseline | Cible | Mesure |
+|----------|----------|-------|--------|
+| **MTBF** (Mean Time Between Failures) | 24h | 168h | Semaine sans panne |
+| **MTTR** (Mean Time To Recovery) | 30s | <5s | Fallback automatique |
+| **Cache Hit Rate** | 0% | >80% | Phrases récurrentes |
+| **Circuit Breaker Efficiency** | N/A | >95% | Isolation pannes |
 
 ---
 
-## 🎯 COMPRÉHENSION FACTUELLE CONFIRMÉE
+## 📋 **EXIGENCES FONCTIONNELLES**
 
-### **Configuration Physique Réelle Validée :**
-```bash
-nvidia-smi --query-gpu=index,name,memory.total --format=csv
-GPU 0: NVIDIA GeForce RTX 5060 Ti (16311 MiB = ~16GB) ❌ INTERDITE
-GPU 1: NVIDIA GeForce RTX 3090 (24576 MiB = ~24GB)    ✅ CIBLE
-```
-
-### **Logique CUDA_VISIBLE_DEVICES Confirmée :**
-1. **`CUDA_VISIBLE_DEVICES='1'`** = Rendre visible UNIQUEMENT le GPU physique 1 (RTX 3090)
-2. **PyTorch remapping automatique** = Le seul GPU visible devient `cuda:0` dans le code
-3. **Résultat final** = `cuda:0` dans PyTorch pointe vers RTX 3090 ✅
-4. **RTX 5060 Ti devient inaccessible** = Aucun risque d'utilisation accidentelle
-
-### **Validation Obligatoire avec Script de Diagnostic :**
+### **FR1 - Interface Unifiée :**
+**Description :** Le système doit exposer une unique méthode asynchrone pour toutes les opérations TTS.
 ```python
-# Utiliser OBLIGATOIREMENT ce script pour validation :
-python "C:\Dev\SuperWhisper_V6\test_diagnostic_rtx3090.py"
-
-# Le script DOIT confirmer :
-# ✅ CUDA_VISIBLE_DEVICES='1' configuré
-# ✅ GPU 0 (après mapping) = RTX 3090 24GB
-# ✅ RTX 5060 Ti invisible/inaccessible
-# ✅ Configuration fonctionnelle validée
+async def synthesize(
+    text: str, 
+    voice: Optional[str] = None,
+    speed: Optional[float] = None, 
+    reuse_cache: bool = True
+) -> TTSResult
 ```
+**Critères d'acceptation :**
+- ✅ Interface unique pour tous les backends
+- ✅ Retour standardisé `TTSResult`
+- ✅ Support paramètres optionnels (voice, speed)
+- ✅ Cache configurable par appel
 
-### **Points Critiques de Compréhension :**
-- **CUDA_VISIBLE_DEVICES='1'** ne change PAS l'ordre, il MASQUE le GPU 0
-- **PyTorch voit 1 seul GPU** (RTX 3090) qu'il nomme automatiquement `cuda:0`
-- **Le code utilise `cuda:0`** qui pointe maintenant vers RTX 3090
-- **Aucune confusion possible** : RTX 5060 Ti est complètement invisible
+### **FR2 - Fallback Automatique 4 Niveaux :**
+**Description :** En cas d'échec d'un handler, basculement transparent vers le niveau suivant.
+```
+Niveau 1: PiperNativeHandler (GPU) → <120ms
+Niveau 2: PiperCliHandler (CPU) → <1000ms  
+Niveau 3: SapiFrenchHandler (SAPI) → <2000ms
+Niveau 4: SilentEmergencyHandler → <5ms
+```
+**Critères d'acceptation :**
+- ✅ Basculement automatique sans intervention
+- ✅ Ordre de priorité respecté
+- ✅ Logging détaillé des basculements
+- ✅ Métriques de fallback exportées
+
+### **FR3 - Circuit Breaker Pattern :**
+**Description :** Isolation automatique des handlers défaillants pour éviter la surcharge.
+**Paramètres :**
+- **Seuil d'échec :** 3 échecs consécutifs
+- **Timeout isolation :** 30 secondes
+- **États :** Fermé → Ouvert → Semi-ouvert
+**Critères d'acceptation :**
+- ✅ Isolation après 3 échecs
+- ✅ Réinitialisation automatique après 30s
+- ✅ Monitoring état circuit breakers
+- ✅ Logs détaillés transitions d'état
+
+### **FR4 - Cache Intelligent :**
+**Description :** Cache LRU pour les synthèses fréquentes avec TTL.
+**Paramètres :**
+- **Taille max :** 100MB
+- **TTL :** 1 heure
+- **Politique :** LRU (Least Recently Used)
+**Critères d'acceptation :**
+- ✅ Cache hit <5ms
+- ✅ Éviction LRU automatique
+- ✅ TTL respecté
+- ✅ Métriques cache (hit rate, size)
+
+### **FR5 - Configuration Externalisée :**
+**Description :** Tous les paramètres gérés via fichier YAML centralisé.
+**Fichier :** `config/tts.yaml`
+**Critères d'acceptation :**
+- ✅ Aucune valeur codée en dur
+- ✅ Rechargement à chaud possible
+- ✅ Validation schéma YAML
+- ✅ Valeurs par défaut sécurisées
 
 ---
 
-## 🚀 OPTIMISATIONS PERFORMANCE VALIDÉES
+## 📋 **EXIGENCES NON-FONCTIONNELLES**
 
-### Memory Leak Solution V4.0 - Intégration Obligatoire
-- **Script central** : `memory_leak_v4.py` (solution finalisée et validée)
-- **Memory leak prevention** : 0% memory leak détecté sur 10/10 stress tests
-- **Context manager automatique** : `@gpu_test_cleanup()` pour tous tests GPU
-- **Queue GPU exclusive** : Sémaphore multiprocess pour RTX 3090
-- **Monitoring temps réel** : Mémoire, fragmentation, performance
-- **Emergency recovery** : Reset automatique si memory leak critique
-- **Métriques Prometheus** : Monitoring centralisé intégré
+### **NFR1 - Performance :**
+- **Latence P95 :** <120ms (PiperNative), <1000ms (PiperCLI), <2000ms (SAPI)
+- **Throughput :** >10 synthèses/seconde
+- **VRAM GPU :** ≤10% RTX 3090 (90% réservé LLM)
+- **CPU Usage :** <20% pendant synthèse
 
-### Parallélisation Validée - 64% Gain Performance
-```
-CONFIGURATION SYSTÈME VALIDÉE :
-- RAM : 64GB (32+32GB DDR4-4800) ✅
-- CPU : Intel Core Ultra 7 265K (20 threads logiques) ✅
-- GPU : RTX 3090 (24GB VRAM) sur Bus PCI 1 ✅
-- Memory Leak Solution : 10/10 tests réussis ✅
+### **NFR2 - Disponibilité :**
+- **Uptime :** 99.9% (8.76h downtime/an max)
+- **Fallback :** <5s basculement automatique
+- **Recovery :** Automatique sans intervention
+- **Monitoring :** Alertes temps réel
 
-GAINS PERFORMANCE CONFIRMÉS :
-- Phase 1 (Préparation) : 3h → 1.5h (50% gain)
-- Phase 2 (13 modules core) : 10h → 3.5h (65% gain) 
-- Phase 3 (27 scripts test) : 15h → 4.5h (70% gain)
-- Phase 4 (Tests système) : 3h → 3h (séquentiel obligatoire)
-- Phase 5 (Documentation) : 2h → 1h (50% gain)
+### **NFR3 - Scalabilité :**
+- **Concurrence :** 5 synthèses simultanées
+- **Memory :** <500MB RAM total
+- **Storage :** <200MB cache max
+- **Network :** 0 (100% local)
 
-TOTAL : 33h → 13.5h (59% gain validé)
-```
+### **NFR4 - Sécurité :**
+- **Validation input :** Sanitization texte
+- **Isolation :** Handlers sandboxés
+- **Logs :** Pas de données sensibles
+- **Access :** Interface interne uniquement
 
-### Architecture Technique Parallélisation
-- **ThreadPool** : 8-10 workers CPU simultanés optimaux
-- **GPU Queue** : Accès RTX 3090 exclusif via sémaphore multiprocess
-- **Memory Management** : `memory_leak_v4.py` intégré à chaque worker
-- **Git Workflow** : Branches dédiées par worker pour éviter conflits
-- **Monitoring centralisé** : Prometheus metrics temps réel
-- **Fallback automatique** : Séquentiel si instabilité détectée
+### **NFR5 - Maintenabilité :**
+- **Type hints :** 100% coverage
+- **Documentation :** Docstrings complètes
+- **Tests :** >90% coverage
+- **Monitoring :** Métriques Prometheus
 
-### Contraintes et Limitations Parallélisation
-- **GPU unique** : RTX 3090 = queue obligatoire, pas de parallélisme GPU pur
-- **Memory leaks** : Surveillance continue requise entre workers
-- **Conflits Git** : Résolution manuelle si branches divergent
-- **Ressources système** : 64GB RAM + 20 threads CPU requis minimum
-- **Tests système** : Phase 4 reste séquentielle (validation intégrité)
+### **NFR6 - Stockage & Modèles :**
+- **Répertoire obligatoire :** `D:\TTS_Voices\` exclusivement
+- **Modèles disponibles :** Vérification préalable avant téléchargement
+- **Interdiction absolue :** Stockage modèles ailleurs que sur D:\
+- **Modèles validés :** fr_FR-siwis-medium.onnx (63MB) + .json
+
+### **NFR7 - Validation Pratique :**
+- **Tests réels obligatoires :** Génération fichiers audio pour écoute
+- **Validation manuelle :** Qualité voix française acceptable
+- **Benchmark performance :** 10 mesures par cas avec statistiques P95
+- **Tests fallback :** Simulation pannes avec validation audio
 
 ---
 
-## 🔧 SPÉCIFICATIONS TECHNIQUES
+## 🏗️ **ARCHITECTURE TECHNIQUE**
 
-### Configuration GPU Standard Obligatoire
+### **🎯 Composants Principaux :**
+
+#### **1. UnifiedTTSManager :**
 ```python
-# STANDARD OBLIGATOIRE - À INTÉGRER DANS CHAQUE SCRIPT
-import os
-import torch
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB sur Bus PCI 1
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Force l'ordre du bus physique
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU Configuration: RTX 3090 (CUDA:0 après mapping)")
-print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
-print(f"🔒 CUDA_DEVICE_ORDER: {os.environ.get('CUDA_DEVICE_ORDER')}")
+class UnifiedTTSManager:
+    """Orchestrateur principal avec fallback automatique"""
+    - Circuit breakers par handler
+    - Cache LRU intelligent  
+    - Monitoring Prometheus
+    - Configuration YAML
 ```
 
-### Validation Obligatoire - AUCUNE EXCEPTION
+#### **2. Handlers Hiérarchisés :**
 ```python
-def validate_rtx3090_mandatory():
-    """Validation systématique - OBLIGATOIRE dans chaque script"""
-    if not torch.cuda.is_available():
-        raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
-    
-    # CONTRÔLE 1: Variables environnement
-    cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
-    cuda_order = os.environ.get('CUDA_DEVICE_ORDER', '')
-    
-    if cuda_devices != '1':
-        raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
-    
-    if cuda_order != 'PCI_BUS_ID':
-        raise RuntimeError(f"🚫 CUDA_DEVICE_ORDER='{cuda_order}' incorrect - doit être 'PCI_BUS_ID'")
-    
-    # CONTRÔLE 2: GPU physique détecté (après mapping, cuda:0 = RTX 3090)
-    gpu_name = torch.cuda.get_device_name(0)
-    if "RTX 3090" not in gpu_name:
-        raise RuntimeError(f"🚫 GPU détecté: {gpu_name} - RTX 3090 requise")
-    
-    # CONTRÔLE 3: Mémoire GPU
-    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
-    if gpu_memory < 20:  # RTX 3090 ≈ 24GB
-        raise RuntimeError(f"🚫 GPU ({gpu_memory:.1f}GB) insuffisante - RTX 3090 requise")
-    
-    print(f"✅ RTX 3090 validée: {gpu_name} ({gpu_memory:.1f}GB)")
+# Niveau 1 - Performance optimale
+class PiperNativeHandler(TTSHandler):
+    """GPU RTX 3090, <120ms, piper-python native"""
 
-# APPELER OBLIGATOIREMENT dans __main__ ou au début du script
-if __name__ == "__main__":
-    validate_rtx3090_mandatory()
+# Niveau 2 - Fallback robuste  
+class PiperCliHandler(TTSHandler):
+    """CPU subprocess, <1000ms, piper.exe CLI"""
+
+# Niveau 3 - Fallback système
+class SapiFrenchHandler(TTSHandler):
+    """Windows SAPI, <2000ms, voix française"""
+
+# Niveau 4 - Sécurité ultime
+class SilentEmergencyHandler(TTSHandler):
+    """Silence généré, <5ms, évite crash"""
 ```
 
-### Fichiers à Corriger (40 identifiés - Liste Exhaustive)
+#### **3. Composants Support :**
+```python
+class CircuitBreaker:
+    """Isolation handlers défaillants"""
 
-#### Modules Core Critiques Initiaux (7)
-- `benchmarks/benchmark_stt_realistic.py`
-- `LLM/llm_manager_enhanced.py`  
-- `LUXA_TTS/tts_handler_coqui.py`
-- `Orchestrator/fallback_manager.py`
-- `STT/vad_manager_optimized.py`
-- `TTS/tts_handler_coqui.py`
-- `TTS/tts_handler_piper_native.py`
+class TTSCache:
+    """Cache LRU avec TTL"""
 
-#### Modules Core Supplémentaires (6)
-- `STT/stt_manager_robust.py`
-- `STT/vad_manager.py`
-- `TTS/tts_handler_piper_espeak.py`
-- `TTS/tts_handler_piper_fixed.py`
-- `TTS/tts_handler_piper_french.py`
-- `utils/gpu_manager.py`
+class PrometheusMetrics:
+    """Métriques temps réel"""
+```
 
-#### Scripts de Test Initiaux (13)
-- `tests/test_double_check_corrections.py`
-- `tests/test_double_check_validation_simple.py`
-- `test_cuda_debug.py`
-- `test_cuda.py`
-- `test_espeak_french.py`
-- `test_french_voice.py`
-- `test_gpu_correct.py`
-- `test_piper_native.py`
-- `test_tts_fixed.py`
-- `test_tts_long_feedback.py`
-- `test_upmc_model.py`
-- `test_validation_decouverte.py`
-- `TTS/tts_handler_piper_rtx3090.py`
+### **🔧 Configuration YAML :**
+```yaml
+# config/tts.yaml
+backends:
+  piper_native:
+    enabled: true
+    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+    model_config_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx.json"
+    device: "cuda:0"  # Pointera RTX 3090 après CUDA_VISIBLE_DEVICES
+    target_latency_ms: 120
 
-#### Tests Supplémentaires (2)
-- `tests/test_llm_handler.py`
-- `tests/test_stt_handler.py`
+  piper_cli:
+    enabled: true
+    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+    executable_path: "piper/piper.exe"
+    target_latency_ms: 1000
 
-#### Scripts de Validation Exhaustifs (12)
-- `test_correction_validation_1.py`
-- `test_correction_validation_2.py`
-- `test_correction_validation_3.py`
-- `test_correction_validation_4.py`
-- `test_rtx3090_detection.py`
-- `test_tts_rtx3090_performance.py`
-- `test_validation_globale_finale.py`
-- `test_validation_mvp_settings.py`
-- `test_validation_rtx3090_detection.py`
-- `test_validation_stt_manager_robust.py`
-- `test_validation_tts_performance.py`
-- `validate_gpu_config.py`
+cache:
+  enabled: true
+  max_size_mb: 100
+  ttl_seconds: 3600
+
+circuit_breaker:
+  failure_threshold: 3
+  reset_timeout_seconds: 30
+
+monitoring:
+  prometheus_enabled: true
+  prometheus_port: 9090
+```
 
 ---
 
-## 🛠️ MÉTHODOLOGIE DE CORRECTION
+## 🧪 **STRATÉGIE DE TEST**
 
-### Phase 1 : Préparation et Analyse
-1. **Analyse détaillée** de chaque fichier cible
-2. **Vérification de la configuration existante** (CUDA_VISIBLE_DEVICES et CUDA_DEVICE_ORDER)
-3. **Création de tests de référence** (version originale)
-4. **Documentation des fonctionnalités** existantes complètes
-5. **Sauvegarde versions originales** dans Git
+### **📊 Types de Tests :**
 
-### Phase 2 : Correction Systématique
-1. **Ajout/complétion de la configuration GPU** :
-   - `CUDA_VISIBLE_DEVICES='1'`
-   - `CUDA_DEVICE_ORDER='PCI_BUS_ID'`
-2. **Vérification que le code utilise `cuda:0`** (mappé vers RTX 3090)
-3. **Ajout de la validation obligatoire** RTX 3090
-4. **Préservation intégrale** de toute la logique métier
-5. **Application du template standard** GPU
+#### **1. Tests Unitaires :**
+- **Chaque handler** individuellement
+- **Composants** (CircuitBreaker, Cache)
+- **Configuration** YAML loading
+- **Coverage :** >90%
 
-### Phase 3 : Validation Intégrale - ZÉRO RÉGRESSION
-Pour **CHAQUE fichier corrigé** :
+#### **2. Tests Intégration :**
+- **Fallback automatique** (simulation pannes)
+- **Circuit breakers** (seuils déclenchement)
+- **Cache** (hit/miss scenarios)
+- **Configuration** end-to-end
 
-#### Test 1 : Configuration GPU (OBLIGATOIRE)
-```python
-def test_gpu_configuration():
-    # ÉTAPE 0: Script diagnostic OBLIGATOIRE POUR CHAQUE FICHIER
-    import subprocess
-    print("🔍 DIAGNOSTIC RTX 3090 POUR CE FICHIER:")
-    result = subprocess.run([
-        "python", "C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py"
-    ], capture_output=True, text=True)
-    
-    print(result.stdout)
-    assert result.returncode == 0, "ÉCHEC: Script diagnostic RTX 3090"
-    assert "RTX 3090 détecté: ✅ OUI" in result.stdout, "ÉCHEC: RTX 3090 non détectée"
-    print("✅ Script diagnostic RTX 3090 validé pour ce fichier")
-    
-    # ÉTAPE 1: Vérifications environnement
-    # Vérifier CUDA_VISIBLE_DEVICES='1'
-    # Vérifier CUDA_DEVICE_ORDER='PCI_BUS_ID'
-    # Vérifier torch.cuda.get_device_name(0) contient "RTX 3090"
-    # Vérifier mémoire GPU > 20GB
-    # AUCUNE ASSOMPTION - CONTRÔLE FACTUEL OBLIGATOIRE
-```
+#### **3. Tests Performance :**
+- **Benchmarks latence** <120ms validation
+- **Load testing** concurrence
+- **Memory profiling** VRAM/RAM
+- **Stress testing** stabilité
 
-#### Test 2 : Fonctionnalité Intégrale (OBLIGATOIRE)
-```python
-def test_all_functionalities():
-    # Tester 100% des fonctions du module
-    # Tester 100% des classes du module  
-    # Tester tous les workflows d'usage
-    # Comparer sorties avec version originale
-    # Vérifier performance identique ou meilleure
-    # Valider gestion d'erreurs identique
-```
+#### **4. Tests Régression :**
+- **Comparaison avant/après** consolidation
+- **Audio quality** (hash comparison)
+- **Performance baseline** maintenue
+- **Fonctionnalités** préservées
 
-#### Test 3 : Non-Régression (OBLIGATOIRE)
-```python
-def test_no_regression():
-    # Benchmark performance vs version originale
-    # Test mémoire (pas de fuites)
-    # Test stabilité sur durée
-    # Validation sorties bit-perfect si possible
-```
+#### **5. Tests Réels Pratiques :**
+- **Génération audio** : 4 fichiers test pour écoute manuelle
+- **Validation qualité** : Voix française compréhensible
+- **Benchmark performance** : 10 mesures par cas (P95 validation)
+- **Test fallback** : Simulation pannes avec audio généré
+- **Scripts validation** : test_tts_real.py, test_fallback_real.py, test_performance_real.py
 
-### Phase 4 : Documentation et Standards
-1. **Rapport de correction détaillé** par fichier
-2. **Standards GPU définitifs** pour développements futurs
-3. **Guide de validation GPU** 
-4. **Template de code** pour nouveaux développements
+### **🎯 Environnements Test :**
+- **Local :** Développement + debugging
+- **Staging :** Validation pré-production
+- **Production :** Monitoring continu
 
 ---
 
-## 🔍 CRITÈRES D'ACCEPTATION STRICTS
+## 📅 **PLANNING DÉVELOPPEMENT**
 
-### ✅ Correction Validée UNIQUEMENT Si
-1. **Configuration GPU complète** : CUDA_VISIBLE_DEVICES='1' ET CUDA_DEVICE_ORDER='PCI_BUS_ID'
-2. **RTX 3090 détectée et utilisée** : Validation factuelle obligatoire
-3. **Code utilise `cuda:0`** de manière cohérente (mappé vers RTX 3090)
-4. **100% fonctionnalités opérationnelles** : aucune régression autorisée
-5. **Performance maintenue** : identique ou améliorée (±2% max)
-6. **Tests automatisés** : 100% passent
-7. **Documentation** : complète et validée
+### **🕒 Timeline (5.5 jours) :**
 
-### ❌ Correction Rejetée Si
-- **Configuration incomplète** (manque CUDA_DEVICE_ORDER)
-- **Mauvaise variable CUDA_VISIBLE_DEVICES** (différente de '1')
-- **Une seule fonction** défaillante
-- **Régression de performance** détectée (>2%)
-- **Validation GPU** échoue
-- **Tests automatisés** en échec
-- **Comportement modifié** vs original
+#### **Phase 0 - Préparation (0.5 jour) :**
+- ✅ Branche feature + tag sauvegarde
+- ✅ Archivage 13 handlers obsolètes
+- ✅ Script rollback automatisé
 
----
+#### **Phase 1 - PiperNativeHandler (2 jours) :**
+- 🔧 Diagnostic handler défaillant
+- 🔧 Réparation intégration GPU
+- 🔧 Validation <120ms
+- 🔧 Tests performance
 
-## 🧰 OUTILS ET TECHNOLOGIES REQUIS
+#### **Phase 2 - UnifiedTTSManager (2 jours) :**
+- 🔧 Implémentation manager principal
+- 🔧 Circuit breakers + cache
+- 🔧 Configuration YAML
+- 🔧 Tests unitaires + intégration
 
-### Langages
-- **Python 3.8+** pour scripts de correction
-- **PowerShell 7+** pour automation Windows
+#### **Phase 3 - Déploiement (1 jour) :**
+- 🔧 Feature flags activation
+- 🔧 Monitoring Prometheus
+- 🔧 Tests validation complète
+- 🔧 Documentation + rollback
 
-### Bibliothèques Python
-- **PyTorch** pour validation GPU
-- **pathlib** pour gestion fichiers
-- **unittest/pytest** pour tests automatisés
-- **psutil** pour monitoring système
-- **memory_profiler** pour validation mémoire
-
-### Outils de Développement
-- **Git** pour versioning et rollback sécurisé
-- **Cursor/VS Code** pour édition
-- **TaskMaster** pour gestion des tâches structurées
-
-### Validation et Tests
-- **Scripts de test personnalisés** par fichier
-- **Profiling mémoire GPU** (nvidia-smi)
-- **Benchmarks de performance** comparatifs
-- **Tests de charge** pour validation stabilité
+### **🎯 Jalons Critiques :**
+- **J2 :** PiperNativeHandler <120ms validé
+- **J4 :** UnifiedTTSManager fonctionnel
+- **J5.5 :** Déploiement production ready
 
 ---
 
-## ⚠️ RISQUES ET MITIGATION
+## ⚠️ **RISQUES ET MITIGATION**
+
+### **🚨 Risques Techniques :**
 
 | Risque | Impact | Probabilité | Mitigation |
 |--------|--------|-------------|------------|
-| Configuration GPU incomplète | **CRITIQUE** | Élevé | Double validation (CUDA_VISIBLE_DEVICES + CUDA_DEVICE_ORDER) |
-| Régression fonctionnelle | **CRITIQUE** | Moyen | Tests exhaustifs avant/après + rollback Git |
-| Performance dégradée | **ÉLEVÉ** | Faible | Benchmarks comparatifs + validation continue |
-| Erreurs silencieuses | **ÉLEVÉ** | Moyen | Validation GPU obligatoire + tests automatisés |
-| Mauvaise compréhension config | **ÉLEVÉ** | Élevé | Documentation claire + exemples concrets |
+| **PiperNativeHandler échec** | CRITIQUE | Moyen | Fallback architecture actuelle |
+| **Performance <120ms non atteinte** | ÉLEVÉ | Faible | Optimisation GPU + profiling |
+| **Régression fonctionnelle** | ÉLEVÉ | Faible | Tests exhaustifs + rollback |
+| **Dépendances manquantes** | MOYEN | Moyen | Validation environnement |
+
+### **🛡️ Stratégies Mitigation :**
+- **Checkpoints bloquants** à chaque phase
+- **Rollback automatisé** si échec critique
+- **Tests régression** systématiques
+- **Monitoring continu** post-déploiement
 
 ---
 
-## 📈 MÉTRIQUES DE SUCCÈS
+## 🎖️ **CRITÈRES D'ACCEPTATION**
 
-### Objectifs Quantifiables
-- **100%** des 40 fichiers avec configuration GPU complète
-- **100%** des fichiers utilisent RTX 3090 exclusivement
-- **0** régression fonctionnelle détectée
-- **100%** des tests automatisés passent
-- **≥98%** de préservation des performances
-- **Standards GPU** documentés et validés
+### **✅ Critères Fonctionnels :**
+- [ ] UnifiedTTSManager opérationnel (4 handlers)
+- [ ] Fallback automatique testé et validé
+- [ ] Circuit breakers fonctionnels
+- [ ] Cache LRU opérationnel
+- [ ] Configuration YAML centralisée
 
-### Livrables Attendus
-1. **40 fichiers avec configuration GPU homogène**
-2. **Code utilisant `cuda:0` de manière cohérente**
-3. **40 validations script diagnostic** "C:\Dev\SuperWhisper_V6\test_diagnostic_rtx3090.py"
-4. **Standards GPU documentés** 
-5. **Guide de développement** GPU
-6. **Tests automatisés** pour validation continue
-7. **Rapport de correction** détaillé
+### **✅ Critères Performance :**
+- [ ] PiperNativeHandler <120ms (P95)
+- [ ] Aucune régression vs baseline
+- [ ] VRAM ≤10% RTX 3090
+- [ ] Disponibilité 99.9%
+
+### **✅ Critères Qualité :**
+- [ ] Tests coverage >90%
+- [ ] Type hints 100%
+- [ ] Documentation complète
+- [ ] Métriques Prometheus exportées
+
+### **✅ Critères Validation Pratique :**
+- [ ] **Tests réels exécutés** : test_tts_real.py, test_fallback_real.py, test_performance_real.py
+- [ ] **Audio généré audible** : 4 fichiers test écoutés et validés
+- [ ] **Qualité voix française** : Compréhensible et acceptable
+- [ ] **Performance mesurée** : <120ms P95 pour piper_native confirmé
+- [ ] **Fallback testé** : 4 niveaux validés avec audio généré
+
+### **✅ Critères Déploiement :**
+- [ ] Feature flags opérationnels
+- [ ] Rollback script testé
+- [ ] Archivage sécurisé
+- [ ] Monitoring alertes configurées
 
 ---
 
-## 🎯 DÉFINITION DU SUCCÈS
+## 📊 **MÉTRIQUES DE SUCCÈS**
 
-**Le projet sera considéré comme réussi quand :**
-- Tous les scripts ont la configuration GPU complète (CUDA_VISIBLE_DEVICES='1' + CUDA_DEVICE_ORDER='PCI_BUS_ID')
-- Tous les scripts utilisent exclusivement la RTX 3090
-- Le code utilise `cuda:0` de manière cohérente
-- Aucune régression fonctionnelle n'est détectée
-- Les standards GPU sont adoptés pour les développements futurs
-- La validation GPU est automatisée et obligatoire
-- La documentation est complète et accessible
+### **🎯 KPIs Post-Déploiement :**
+
+#### **Performance :**
+- **Latence moyenne** : <120ms (vs <1000ms)
+- **P95 latence** : <150ms
+- **Cache hit rate** : >80%
+- **Throughput** : >10 synthèses/s
+
+#### **Robustesse :**
+- **Uptime** : >99.9%
+- **MTBF** : >168h
+- **MTTR** : <5s
+- **Fallback rate** : <1%
+
+#### **Maintenance :**
+- **Complexité code** : -87% fichiers
+- **Time to fix** : -50%
+- **Deployment time** : <5min
+- **Rollback time** : <2min
 
 ---
 
-**Ce PRD garantit une approche méthodique, rigoureuse et sans risque pour l'homogénisation du mapping GPU, avec validation factuelle obligatoire à chaque étape et préservation intégrale des fonctionnalités existantes.** 
+## 🚀 **APPROBATION**
+
+### **✅ Validation Stakeholders :**
+- **Tech Lead :** Architecture approuvée
+- **Product Owner :** Objectifs business validés
+- **DevOps :** Infrastructure ready
+- **QA :** Stratégie test approuvée
+
+### **🎯 Go/No-Go Decision :**
+**✅ GO pour implémentation Phase 2 Enterprise**
+
+**Justification :**
+- Architecture technique solide
+- ROI élevé (-87% complexité, +88% performance)
+- Risques maîtrisés avec mitigation
+- Timeline réaliste (5.5 jours)
+
+---
+
+**🚀 Prêt pour implémentation UnifiedTTSManager enterprise-grade !** 

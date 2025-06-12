@@ -1,813 +1,1066 @@
-# 🚀 PLAN DE DÉVELOPPEMENT - HOMOGÉNISATION GPU SUPERWHISPER V6
+# 📅 PLAN DE DÉVELOPPEMENT - CONSOLIDATION TTS PHASE 2 ENTERPRISE
+
+**Date :** 2025-06-12  
+**Version :** v2.0 Enterprise  
+**Durée Totale :** 5.5 jours  
+**Équipe :** SuperWhisper V6 Core Team  
 
 ---
 
-**Projet :** Correction Mapping GPU SuperWhisper V6  
-**Durée totale :** 12-16 heures (40 fichiers) [OPTIMISÉE AVEC PARALLÉLISATION]  
-**Durée séquentielle :** 33 heures (baseline de référence)  
-**Gain performance :** 64% plus rapide avec parallélisation validée  
-**Priorité :** CRITIQUE  
-**Méthodologie :** TaskMaster + Validation factuelle + Memory Leak V4.0 + Parallélisation  
+## 🎯 **VUE D'ENSEMBLE STRATÉGIQUE**
 
----
+### **Philosophie de Développement :**
+- **Validation Continue :** Checkpoints bloquants à chaque phase
+- **Préservation des Acquis :** Architecture fonctionnelle maintenue
+- **Approche Enterprise :** Robustesse + monitoring + performance
 
-## 📋 OVERVIEW DU PLAN
-
-### Problème à Résoudre
-**Méthodologie de sélection et contrôle GPU non homogène** dans SuperWhisper V6 causant :
-- Utilisation accidentelle RTX 5060 Ti au lieu de RTX 3090
-- Configuration GPU incomplète (manque CUDA_DEVICE_ORDER)
-- Instabilité et performance dégradée
-- 40 scripts identifiés nécessitant homogénéisation (20 initiaux + 20 supplémentaires)
-
-### Solution Proposée
-**Homogénéisation systématique** avec configuration GPU complète et validation factuelle obligatoire pour garantir l'utilisation exclusive de RTX 3090.
-
-### Configuration Cible
-```python
-# Configuration obligatoire pour RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 sur bus PCI 1
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Force ordre physique
-# Après cette config : cuda:0 = RTX 3090
+### **Architecture Cible :**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 UnifiedTTSManager                           │
+├─────────────────┬─────────────────┬─────────────────────────┤
+│ PiperNativeHandler │ PiperCliHandler │ SapiFrenchHandler │ SilentEmergencyHandler │
+│   <120ms GPU    │   <1000ms CPU   │   <2000ms SAPI    │     <5ms Silence       │
+└─────────────────┴─────────────────┴─────────────────────────┘
+         │                 │                 │                 │
+         ▼                 ▼                 ▼                 ▼
+┌─────────────────┬─────────────────┬─────────────────────────┐
+│ Circuit Breakers│   TTSCache      │   Prometheus Metrics    │
+│ 3 échecs/30s    │   100MB LRU     │   Temps réel           │
+└─────────────────┴─────────────────┴─────────────────────────┘
 ```
 
 ---
 
-## 🎯 COMPRÉHENSION FACTUELLE CONFIRMÉE
+## 📋 **PHASE 0 : PRÉPARATION (0.5 JOUR)**
 
-### **Configuration Physique Réelle Validée :**
+### **🕒 Timing :** J0 - 09h00 → 13h00 (4h)
+
+#### **0.1 - Initialisation Git (1h) :**
 ```bash
-nvidia-smi --query-gpu=index,name,memory.total --format=csv
-GPU 0: NVIDIA GeForce RTX 5060 Ti (16311 MiB = ~16GB) ❌ INTERDITE
-GPU 1: NVIDIA GeForce RTX 3090 (24576 MiB = ~24GB)    ✅ CIBLE
+# Création branche feature
+git checkout -b feature/tts-enterprise-consolidation
+
+# Tag de sauvegarde
+git tag pre-tts-enterprise-consolidation
+git push origin pre-tts-enterprise-consolidation
+
+# Validation état initial
+git status
+git log --oneline -5
 ```
 
-### **Logique CUDA_VISIBLE_DEVICES Confirmée :**
-1. **`CUDA_VISIBLE_DEVICES='1'`** = Rendre visible UNIQUEMENT le GPU physique 1 (RTX 3090)
-2. **PyTorch remapping automatique** = Le seul GPU visible devient `cuda:0` dans le code
-3. **Résultat final** = `cuda:0` dans PyTorch pointe vers RTX 3090 ✅
-4. **RTX 5060 Ti devient inaccessible** = Aucun risque d'utilisation accidentelle
-
-### **Validation Obligatoire avec Script de Diagnostic :**
-```python
-# Utiliser OBLIGATOIREMENT ce script pour validation :
-python "C:\Dev\SuperWhisper_V6\test_diagnostic_rtx3090.py"
-
-# Le script DOIT confirmer :
-# ✅ CUDA_VISIBLE_DEVICES='1' configuré
-# ✅ GPU 0 (après mapping) = RTX 3090 24GB
-# ✅ RTX 5060 Ti invisible/inaccessible
-# ✅ Configuration fonctionnelle validée
-```
-
-### **Points Critiques de Compréhension :**
-- **CUDA_VISIBLE_DEVICES='1'** ne change PAS l'ordre, il MASQUE le GPU 0
-- **PyTorch voit 1 seul GPU** (RTX 3090) qu'il nomme automatiquement `cuda:0`
-- **Le code utilise `cuda:0`** qui pointe maintenant vers RTX 3090
-- **Aucune confusion possible** : RTX 5060 Ti est complètement invisible
-
----
-
-## 🚀 NOUVELLES OPTIMISATIONS INTÉGRÉES AU PLAN
-
-### Memory Leak Solution V4.0 - INTÉGRATION OBLIGATOIRE
-- **Script obligatoire** : `memory_leak_v4.py` doit être utilisé pour TOUS les tests GPU
-- **Context manager** : `@gpu_test_cleanup()` pour cleanup automatique
-- **Memory monitoring** : Surveillance temps réel fragmentation + memory leaks
-- **Queue GPU exclusive** : Sémaphore multiprocess pour accès RTX 3090 exclusif
-- **Emergency recovery** : Reset automatique si memory leak critique détecté
-
-### Parallélisation Validée - Architecture Éprouvée
-```
-CONFIGURATION SYSTÈME VALIDÉE :
-- RAM : 64GB (32+32GB DDR4) ✅
-- CPU : Intel Core Ultra 7 265K (20 threads) ✅  
-- GPU : RTX 3090 (24GB) sur CUDA:1 ✅
-- Script Memory Leak : Validé 10/10 stress tests ✅
-
-GAINS PERFORMANCE CONFIRMÉS :
-- Phase 1 : 3h → 1.5h (50% gain)    [Préparation parallélisable]
-- Phase 2 : 10h → 3.5h (65% gain)  [13 modules core PARALLÉLISABLES]
-- Phase 3 : 15h → 4.5h (70% gain)  [27 scripts test PARALLÉLISABLES]
-- Phase 4 : 3h → 3h (0% gain)      [Tests système séquentiels]
-- Phase 5 : 2h → 1h (50% gain)     [Documentation parallélisable]
-
-TOTAL : 33h → 13.5h (59% gain confirmé)
-```
-
-### Architecture Parallélisation Phase 2 + 3
-- **ThreadPool** : 8-10 workers CPU simultanés
-- **GPU Queue** : Un seul script accède RTX 3090 à la fois (sémaphore)
-- **Memory Management** : `memory_leak_v4.py` intégré à chaque worker
-- **Git Branches** : Dédiées par thread pour éviter conflits merge
-- **Monitoring centralisé** : Prometheus metrics temps réel
-- **Fallback séquentiel** : Si instabilité détectée
-
-### Workflow Intégré Memory Leak + Parallélisation
-```python
-# Template workflow pour chaque worker parallèle
-from memory_leak_v4 import configure_for_environment, gpu_test_cleanup
-
-# Configuration selon environnement
-configure_for_environment("ci")  # ou "dev" ou "production"
-
-@gpu_test_cleanup("correction_fichier_X")
-def correct_file_with_memory_safety(file_path):
-    # 1. Configuration GPU obligatoire
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-    
-    # 2. Votre correction de fichier
-    # Memory cleanup automatique via décorateur
-    
-    # 3. Validation RTX 3090
-    validate_rtx3090_mandatory()
-    
-    # 4. Tests fonctionnels
-    # Memory leak prevention automatique
-```
-
----
-
-## 🎯 PHASE 1 : PRÉPARATION ET SETUP (1.5h) [PARALLÉLISÉ]
-
-### Objectifs
-- Créer environnement de travail sécurisé
-- Analyser en profondeur les 40 fichiers cibles
-- Vérifier la configuration GPU existante
-- Établir les bases de tests de référence
-
-### Tâches Détaillées
-
-#### 1.1 Setup Environnement (30min)
+#### **0.2 - Archivage Handlers Obsolètes (2h) :**
 ```bash
-# Créer branche dédiée
-git checkout -b feature/gpu-mapping-homogenization
-git push -u origin feature/gpu-mapping-homogenization
+# Création répertoire archive
+mkdir -p TTS/legacy_handlers_20250612
 
-# Créer structure de travail
-mkdir -p docs/gpu-correction/{reports,tests,backups}
-mkdir -p temp/gpu-validation
-```
+# Documentation rollback
+cat > TTS/legacy_handlers_20250612/README_ROLLBACK.md << 'EOF'
+# Archive Handlers TTS - 12 juin 2025
 
-#### 1.2 Sauvegarde Sécurisée (30min)
+## Contexte
+Consolidation 15→4 handlers suite Phase 2 Enterprise.
+Handlers archivés car non-fonctionnels/redondants.
+
+## Handlers Archivés (13 fichiers)
+- tts_handler_piper_native.py (défaillant)
+- tts_handler_piper_rtx3090.py (défaillant)
+- tts_handler_piper_simple.py (non testé)
+- tts_handler_piper_french.py (non testé)
+- tts_handler_piper_original.py (legacy)
+- tts_handler_piper_direct.py (legacy)
+- tts_handler_piper_espeak.py (legacy)
+- tts_handler_piper_fixed.py (legacy)
+- tts_handler_piper_cli.py (legacy)
+- tts_handler_piper.py (legacy)
+- tts_handler_coqui.py (alternatif)
+- tts_handler_mvp.py (basique)
+- tts_handler_fallback.py (interface manquante)
+
+## Rollback Complet
 ```bash
-# Copier versions originales - TOUS LES FICHIERS
-cp benchmarks/benchmark_stt_realistic.py docs/gpu-correction/backups/
-cp LLM/llm_manager_enhanced.py docs/gpu-correction/backups/
-cp STT/stt_manager_robust.py docs/gpu-correction/backups/
-cp STT/vad_manager.py docs/gpu-correction/backups/
-cp utils/gpu_manager.py docs/gpu-correction/backups/
-# [Répéter pour les 40 fichiers au total]
+# Restauration handlers
+mv TTS/legacy_handlers_20250612/*.py TTS/
+rm -rf TTS/legacy_handlers_20250612/
 
-# Créer tag Git de référence
-git tag -a v-before-gpu-correction -m "État avant correction mapping GPU"
+# Restauration Git
+git checkout pre-tts-enterprise-consolidation
+git branch -D feature/tts-enterprise-consolidation
 ```
 
-#### 1.3 Analyse Configuration Existante (45min)
-Pour chaque fichier, vérifier :
-- Présence de `CUDA_VISIBLE_DEVICES`
-- Présence de `CUDA_DEVICE_ORDER` (souvent manquant)
-- Utilisation de `cuda:0` ou `cuda:1` dans le code
-- Fonctionnalités principales du module
+## Rollback Partiel
+```bash
+# Restauration handler spécifique
+cp TTS/legacy_handlers_20250612/tts_handler_X.py TTS/
+```
+EOF
 
-#### 1.4 Création Base de Tests (15min)
-```python
-# Template de test de référence
-class GPUCorrectionTestBase:
-    def test_gpu_configuration_complete(self):
-        """Test configuration GPU complète"""
-        assert os.environ.get('CUDA_VISIBLE_DEVICES') == '1'
-        assert os.environ.get('CUDA_DEVICE_ORDER') == 'PCI_BUS_ID'
-    
-    def test_rtx3090_detected(self):
-        """Test RTX 3090 détectée après configuration"""
-        gpu_name = torch.cuda.get_device_name(0)
-        assert "RTX 3090" in gpu_name
-    
-    def test_functionality_preservation(self):
-        """Test préservation fonctionnalités"""
-    
-    def test_performance_regression(self):
-        """Test absence de régression"""
+# Migration handlers obsolètes
+mv TTS/tts_handler_piper_native.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_rtx3090.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_simple.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_french.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_original.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_direct.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_espeak.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_fixed.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper_cli.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_piper.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_coqui.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_mvp.py TTS/legacy_handlers_20250612/
+mv TTS/tts_handler_fallback.py TTS/legacy_handlers_20250612/
 ```
 
-### Livrables Phase 1
-- ✅ Environnement de travail configuré
-- ✅ 40 fichiers sauvegardés
-- ✅ Analyse configuration GPU documentée
-- ✅ Base de tests créée
+#### **0.3 - Script Rollback Automatisé (1h) :**
+```bash
+# Création script rollback
+cat > scripts/rollback_tts_enterprise.sh << 'EOF'
+#!/bin/bash
+# Script de rollback automatisé TTS Enterprise
+
+echo "🔄 Rollback TTS Enterprise en cours..."
+
+# Vérification tag existe
+if ! git tag -l | grep -q "pre-tts-enterprise-consolidation"; then
+    echo "❌ Tag de sauvegarde introuvable"
+    exit 1
+fi
+
+# Sauvegarde état actuel
+git stash push -m "Rollback TTS Enterprise $(date)"
+
+# Restauration tag
+git checkout pre-tts-enterprise-consolidation
+
+# Nettoyage branche feature
+git branch -D feature/tts-enterprise-consolidation 2>/dev/null || true
+
+# Restauration handlers archivés
+if [ -d "TTS/legacy_handlers_20250612" ]; then
+    mv TTS/legacy_handlers_20250612/*.py TTS/ 2>/dev/null || true
+    rm -rf TTS/legacy_handlers_20250612/
+fi
+
+# Nettoyage fichiers nouveaux
+rm -f config/tts.yaml
+rm -f TTS/tts_manager_unified.py
+rm -rf TTS/handlers/
+rm -rf TTS/components/
+rm -f tests/test_unified_tts_manager.py
+
+echo "✅ Rollback TTS Enterprise terminé"
+echo "📋 État restauré au tag pre-tts-enterprise-consolidation"
+EOF
+
+chmod +x scripts/rollback_tts_enterprise.sh
+```
+
+### **✅ Livrables Phase 0 :**
+- [x] Branche feature créée
+- [x] Tag sauvegarde posé
+- [x] 13 handlers archivés
+- [x] Documentation rollback
+- [x] Script rollback automatisé
 
 ---
 
-## 🔧 PHASE 2 : CORRECTION MODULES CORE (3.5h) [PARALLÉLISÉ avec Memory Leak V4.0]
+## 📋 **PHASE 1 : RÉPARATION PIPERNATIVEHANDLER (2 JOURS)**
 
-### Objectifs
-Corriger les **13 modules critiques** (7 initiaux + 6 supplémentaires) avec configuration GPU complète et validation intégrale.
+### **🕒 Timing :** J1-J2 - 09h00 → 17h00 (16h)
 
-### Méthodologie par Fichier (50min/fichier) [OPTIMISÉE avec Memory Leak V4.0]
-1. **Vérification compréhension factuelle IA** (5min) - OBLIGATOIRE
-2. **Analyse configuration actuelle + Memory setup** (10min)
-3. **Ajout/correction configuration GPU + Memory Leak** (15min)  
-4. **Validation factuelle RTX 3090 + Memory Safety** (15min)
-5. **Tests fonctionnels avec `@gpu_test_cleanup`** (5min)
+#### **1.1 - Diagnostic Handler Défaillant (J1 - 4h) :**
 
-### Architecture Parallélisation Phase 2
-- **8-10 workers CPU** : Traitement simultané des 13 modules core
-- **Queue GPU exclusive** : Sémaphore RTX 3090 via `memory_leak_v4.py`
-- **Memory monitoring** : Temps réel pour chaque worker
-- **Git branches** : `feature/gpu-fix-worker-{1-10}` dédiées
-- **Temps estimé** : 10h/8 workers = 1.25h + overhead = **3.5h total**
-
-### 2.1 benchmarks/benchmark_stt_realistic.py (50min)
-
-#### Étape 0 : Vérification Compréhension Factuelle IA (5min)
+##### **Analyse Erreurs Existantes :**
 ```python
-# OBLIGATOIRE AVANT TOUTE CORRECTION - L'IA DOIT CONFIRMER :
-print("🔍 VÉRIFICATION COMPRÉHENSION FACTUELLE")
-print("1. GPU 0 physique = RTX 5060 Ti (16GB) ❌ INTERDITE")
-print("2. GPU 1 physique = RTX 3090 (24GB) ✅ CIBLE")
-print("3. CUDA_VISIBLE_DEVICES='1' = Masque GPU 0, rend visible uniquement GPU 1")
-print("4. PyTorch remapping = cuda:0 dans le code pointe vers RTX 3090")
-print("5. Script diagnostic = python C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py")
-
-# L'IA DOIT VALIDER SA COMPRÉHENSION AVANT DE CONTINUER
-input("IA: Confirmez-vous cette compréhension factuelle ? (Entrée pour continuer)")
+# Examen tts_handler_piper_native.py archivé
+# Identification causes échec :
+# - Dépendances manquantes ?
+# - Chemin modèle incorrect ?
+# - Configuration GPU défaillante ?
+# - Interface API obsolète ?
 ```
 
-#### Analyse Configuration
-```python
-# Vérifier configuration existante
-grep -n "CUDA_VISIBLE_DEVICES" benchmarks/benchmark_stt_realistic.py
-grep -n "CUDA_DEVICE_ORDER" benchmarks/benchmark_stt_realistic.py
-grep -n "cuda:" benchmarks/benchmark_stt_realistic.py
+##### **Validation Environnement :**
+```bash
+# Test dépendances
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+python -c "import torch; print(f'GPU: {torch.cuda.get_device_name(0)}')"
+
+# Test modèles disponibles sur D:\
+Get-ChildItem "D:\TTS_Voices\piper" -Name
+# ✅ Confirmer : fr_FR-siwis-medium.onnx (63MB) + .json
+
+# Test piper-python
+pip list | grep piper
 ```
 
-#### Correction Configuration
+##### **Benchmark Baseline :**
 ```python
-# Ajouter en début de fichier (après imports initiaux)
+# Test handler CLI actuel (référence)
+python test_tts_handler.py  # Validation <1000ms
+```
+
+#### **1.2 - Implémentation PiperNativeHandler (J1-J2 - 8h) :**
+
+##### **Structure Handler GPU :**
+```python
+# TTS/handlers/piper_native.py
+#!/usr/bin/env python3
+"""
+PiperNativeHandler - GPU RTX 3090 <120ms
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
 import os
+import sys
 
-# Configuration GPU obligatoire
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre physique
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
 
-# Dans le code, s'assurer d'utiliser
-device = "cuda:0"  # ou "cuda" (équivalent après mapping)
+import time
+import asyncio
+from typing import Optional
+import torch
+import numpy as np
 
-# Ajouter validation obligatoire
-def validate_rtx3090_mandatory():
-    if not torch.cuda.is_available():
-        raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
-    
-    cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
-    cuda_order = os.environ.get('CUDA_DEVICE_ORDER', '')
-    
-    if cuda_devices != '1':
-        raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect")
-    
-    if cuda_order != 'PCI_BUS_ID':
-        raise RuntimeError(f"🚫 CUDA_DEVICE_ORDER='{cuda_order}' incorrect")
-    
-    gpu_name = torch.cuda.get_device_name(0)
-    if "RTX 3090" not in gpu_name:
-        raise RuntimeError(f"🚫 GPU détecté: {gpu_name} - RTX 3090 requise")
+# Import piper-python (à installer)
+# from piper import PiperVoice
+
+class PiperNativeHandler:
+    def __init__(self, config: dict):
+        self.config = config
+        self._validate_rtx3090_configuration()
+        self._initialize_piper_voice()
+        
+    def _validate_rtx3090_configuration(self):
+        """Validation obligatoire RTX 3090"""
+        if not torch.cuda.is_available():
+            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+        
+        device_name = torch.cuda.get_device_name(0)
+        if "3090" not in device_name:
+            raise RuntimeError(f"🚫 GPU invalide: {device_name} - RTX 3090 requise")
+        
+        # Allocation VRAM limitée (10% max)
+        torch.cuda.set_per_process_memory_fraction(0.1, 0)
+        
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+        print(f"✅ RTX 3090 validée: {device_name} ({gpu_memory:.1f}GB)")
+        
+    def _initialize_piper_voice(self):
+        """Initialisation voix Piper native"""
+        model_path = self.config['model_path']
+        # self.voice = PiperVoice.load(model_path, use_cuda=True)
+        print(f"✅ PiperNativeHandler initialisé: {model_path}")
+        
+    async def synthesize(self, text: str, voice: Optional[str] = None, 
+                        speed: Optional[float] = None) -> bytes:
+        """Synthèse TTS GPU <120ms"""
+        start_time = time.perf_counter()
+        
+        # Synthèse via piper-python GPU
+        # audio_bytes = await asyncio.to_thread(self.voice.synthesize, text)
+        
+        # SIMULATION pour développement
+        await asyncio.sleep(0.08)  # Simule 80ms
+        audio_bytes = b"fake_gpu_audio_data"
+        
+        latency_ms = (time.perf_counter() - start_time) * 1000
+        
+        if latency_ms > 120:
+            raise RuntimeError(f"Performance dégradée: {latency_ms:.0f}ms > 120ms")
+            
+        print(f"✅ PiperNative synthèse: {latency_ms:.0f}ms")
+        return audio_bytes
 ```
 
-#### Validation Factuelle avec Script Diagnostic
+#### **1.3 - Tests Performance <120ms (J2 - 4h) :**
+
+##### **Benchmarks Validation :**
 ```python
-def test_benchmark_gpu_correction():
-    """Test factuel - benchmark utilise RTX 3090"""
+# tests/test_piper_native_performance.py
+import pytest
+import asyncio
+import time
+from TTS.handlers.piper_native import PiperNativeHandler
+
+@pytest.mark.asyncio
+async def test_piper_native_latency():
+    """Test latence <120ms obligatoire"""
+    config = {
+        'model_path': 'models/TTS/fr_FR-siwis-medium.onnx',
+        'device': 'cuda:0',
+        'target_latency_ms': 120
+    }
     
-    # ÉTAPE 1: Validation avec script diagnostic OBLIGATOIRE
-    import subprocess
-    result = subprocess.run([
-        "python", "C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py"
-    ], capture_output=True, text=True)
+    handler = PiperNativeHandler(config)
     
-    print("🔍 DIAGNOSTIC GPU:")
-    print(result.stdout)
-    assert result.returncode == 0, "Script diagnostic a échoué"
-    assert "RTX 3090" in result.stdout, "RTX 3090 non détectée"
+    # Test 10 synthèses
+    latencies = []
+    for i in range(10):
+        start = time.perf_counter()
+        await handler.synthesize(f"Test synthèse numéro {i+1}")
+        latency_ms = (time.perf_counter() - start) * 1000
+        latencies.append(latency_ms)
     
-    # ÉTAPE 2: Tests de configuration
-    assert os.environ.get('CUDA_VISIBLE_DEVICES') == '1'
-    assert os.environ.get('CUDA_DEVICE_ORDER') == 'PCI_BUS_ID'
+    # Validation P95 <120ms
+    p95_latency = sorted(latencies)[int(0.95 * len(latencies))]
+    assert p95_latency < 120, f"P95 latence {p95_latency:.0f}ms > 120ms"
     
-    # ÉTAPE 3: Tests PyTorch
-    gpu_name = torch.cuda.get_device_name(0)
-    assert "RTX 3090" in gpu_name
+    print(f"✅ P95 latence: {p95_latency:.0f}ms")
+    print(f"📊 Latences: {[f'{l:.0f}ms' for l in latencies]}")
+
+@pytest.mark.asyncio 
+async def test_gpu_memory_usage():
+    """Test utilisation VRAM ≤10%"""
+    import torch
     
-    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
-    assert gpu_memory > 20  # RTX 3090 = 24GB
+    # Mesure VRAM avant
+    torch.cuda.empty_cache()
+    memory_before = torch.cuda.memory_allocated(0)
     
-    # ÉTAPE 4: Tests fonctionnels
-    results = run_stt_benchmark()
-    assert results['completion_rate'] > 0.95
-    assert results['avg_processing_time'] < max_processing_time
+    # Synthèse
+    handler = PiperNativeHandler(config)
+    await handler.synthesize("Test utilisation mémoire GPU")
     
-    print(f"✅ {gpu_name} validée avec diagnostic complet")
+    # Mesure VRAM après
+    memory_after = torch.cuda.memory_allocated(0)
+    memory_used_mb = (memory_after - memory_before) / 1024**2
+    
+    # Validation ≤10% de 24GB = 2.4GB
+    assert memory_used_mb <= 2400, f"VRAM utilisée {memory_used_mb:.0f}MB > 2400MB"
+    
+    print(f"✅ VRAM utilisée: {memory_used_mb:.0f}MB")
 ```
 
-### 2.2 LLM/llm_manager_enhanced.py (50min)
-*[Même méthodologie appliquée avec attention particulière à la configuration GPU]*
+### **🚨 Checkpoint 1 - PiperNativeHandler :**
+- [ ] Handler GPU fonctionnel sans erreur
+- [ ] Latence P95 <120ms validée
+- [ ] VRAM ≤10% RTX 3090 confirmée
+- [ ] Tests automatisés passants
+- [ ] **TEST RÉEL OBLIGATOIRE :** `python test_tts_real.py` → Audio généré audible
+- [ ] **VALIDATION MANUELLE :** Qualité voix française acceptable
+- [ ] **MODÈLES D:\ VALIDÉS :** fr_FR-siwis-medium.onnx (63MB) utilisé
 
-### 2.3 LUXA_TTS/tts_handler_coqui.py (50min)
-*[Même méthodologie appliquée]*
+**❌ STOP si échec → Fallback architecture actuelle**
 
-### 2.4 Orchestrator/fallback_manager.py (50min)
-*[Même méthodologie appliquée]*
-
-### 2.5 STT/vad_manager_optimized.py (50min)
-*[Même méthodologie appliquée]*
-
-### 2.6 TTS/tts_handler_coqui.py (50min)
-*[Même méthodologie appliquée]*
-
-### 2.7 TTS/tts_handler_piper_native.py (50min)
-*[Même méthodologie appliquée]*
-
-### Modules Core Supplémentaires
-
-### 2.8 STT/stt_manager_robust.py (50min)
-*[Même méthodologie appliquée - Focus sur STT robuste]*
-
-### 2.9 STT/vad_manager.py (50min)
-*[Même méthodologie appliquée - Focus sur VAD]*
-
-### 2.10 TTS/tts_handler_piper_espeak.py (50min)
-*[Même méthodologie appliquée - Focus sur TTS eSpeak]*
-
-### 2.11 TTS/tts_handler_piper_fixed.py (50min)
-*[Même méthodologie appliquée - Focus sur TTS Piper fixé]*
-
-### 2.12 TTS/tts_handler_piper_french.py (50min)
-*[Même méthodologie appliquée - Focus sur TTS français]*
-
-### 2.13 utils/gpu_manager.py (50min)
-*[Même méthodologie appliquée - CRITIQUE pour gestion GPU système]*
-
-### Template de Validation par Module
-```python
-def validate_module_correction(module_name):
-    """Template validation pour chaque module core avec compréhension factuelle"""
-    
-    print(f"🔍 VALIDATION - {module_name}")
-    print("=" * 50)
-    
-    # ÉTAPE 0: Vérification compréhension factuelle IA
-    print("🧠 VÉRIFICATION COMPRÉHENSION FACTUELLE IA:")
-    print("   - GPU 0 physique = RTX 5060 Ti ❌ INTERDITE")
-    print("   - GPU 1 physique = RTX 3090 ✅ CIBLE")
-    print("   - CUDA_VISIBLE_DEVICES='1' masque GPU 0")
-    print("   - PyTorch cuda:0 = RTX 3090 après remapping")
-    
-    # ÉTAPE 1: Script diagnostic OBLIGATOIRE
-    import subprocess
-    result = subprocess.run([
-        "python", "C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py"
-    ], capture_output=True, text=True)
-    assert result.returncode == 0, "Script diagnostic échoué"
-    print("✅ Script diagnostic RTX 3090 validé")
-    
-    # ÉTAPE 2: Configuration GPU complète
-    test_gpu_configuration_complete()
-    
-    # ÉTAPE 3: RTX 3090 détectée
-    test_rtx3090_detected()
-    
-    # ÉTAPE 4: Import et instanciation
-    test_module_import()
-    
-    # ÉTAPE 5: Fonctionnalités principales
-    test_core_functionalities()
-    
-    # ÉTAPE 6: Performance
-    test_performance_regression()
-    
-    # ÉTAPE 7: Mémoire
-    test_memory_leaks()
-    
-    print(f"✅ {module_name} - VALIDATION RÉUSSIE AVEC COMPRÉHENSION FACTUELLE")
-```
-
-### Livrables Phase 2
-- ✅ 13 modules core avec configuration GPU complète
-- ✅ 13 validations de compréhension factuelle IA
-- ✅ 13 validations avec script diagnostic RTX 3090
-- ✅ 13 rapports de validation détaillés
-- ✅ Tests automatisés fonctionnels
-- ✅ Performance maintenue ou améliorée
+### **✅ Livrables Phase 1 :**
+- [x] PiperNativeHandler fonctionnel
+- [x] Tests performance <120ms
+- [x] Validation VRAM ≤10%
+- [x] Benchmarks automatisés
 
 ---
 
-## 🧪 PHASE 3 : CORRECTION SCRIPTS TEST (15h)
+## 📋 **PHASE 2 : UNIFIEDTTSMANAGER COMPLET (2 JOURS)**
 
-### Objectifs
-Corriger les **27 scripts de test/validation** (15 initiaux + 12 supplémentaires) avec configuration GPU complète et validation fonctionnelle.
+### **🕒 Timing :** J3-J4 - 09h00 → 17h00 (16h)
 
-### Stratégie Optimisée
-- **Vérification compréhension factuelle IA** OBLIGATOIRE pour chaque lot
-- **Traitement par lot** : 3-4 scripts similaires ensemble
-- **Focus sur configuration GPU** : Beaucoup ont déjà CUDA_VISIBLE_DEVICES='1'
-- **Ajouter CUDA_DEVICE_ORDER** manquant
-- **Validation script diagnostic** pour chaque lot
+#### **2.1 - Configuration YAML Centralisée (J3 - 2h) :**
 
-### 3.1 Batch 1 : Scripts test_cuda_* (60min)
+```yaml
+# config/tts.yaml
+# Configuration unifiée TTS SuperWhisper V6
 
-#### Vérification Compréhension Factuelle IA (5min) - OBLIGATOIRE
-```python
-print("🧠 COMPRÉHENSION FACTUELLE AVANT BATCH 1:")
-print("1. GPU 0 physique = RTX 5060 Ti ❌ INTERDITE") 
-print("2. GPU 1 physique = RTX 3090 ✅ CIBLE")
-print("3. CUDA_VISIBLE_DEVICES='1' masque GPU 0")
-print("4. PyTorch cuda:0 = RTX 3090 après remapping")
-print("5. Script: python C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py")
+# ===================================================================
+# SECTION PRINCIPALE
+# ===================================================================
+enable_piper_native: true
+
+# ===================================================================
+# CONFIGURATION BACKENDS
+# ===================================================================
+backends:
+  # Priorité 1: Performance optimale GPU
+  piper_native:
+    enabled: true
+    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+    model_config_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx.json"
+    device: "cuda:0"  # Pointera RTX 3090 après CUDA_VISIBLE_DEVICES
+    speaker_id: 0
+    target_latency_ms: 120
+
+  # Priorité 2: Fallback robuste CPU
+  piper_cli:
+    enabled: true
+    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+    executable_path: "piper/piper.exe"
+    speaker_id: 0
+    target_latency_ms: 1000
+
+  # Priorité 3: Fallback système Windows
+  sapi_french:
+    enabled: true
+    voice_name: "Microsoft Hortense Desktop"
+    rate: 0
+    volume: 100
+    target_latency_ms: 2000
+
+  # Priorité 4: Sécurité ultime
+  silent_emergency:
+    enabled: true
+    log_level: "CRITICAL"
+    alert_webhook: null
+    target_latency_ms: 5
+
+# ===================================================================
+# COMPOSANTS ROBUSTESSE
+# ===================================================================
+cache:
+  enabled: true
+  max_size_mb: 100
+  ttl_seconds: 3600
+  eviction_policy: "LRU"
+
+circuit_breaker:
+  failure_threshold: 3
+  reset_timeout_seconds: 30
+
+monitoring:
+  prometheus_enabled: true
+  prometheus_port: 9090
+  log_performance_metrics: true
+  alert_on_fallback: true
+
+# ===================================================================
+# PARAMÈTRES AVANCÉS
+# ===================================================================
+advanced:
+  gpu_memory_fraction: 0.1
+  async_workers: 2
+  max_text_length: 1000
+  sanitize_text: true
+
+# ===================================================================
+# FEATURE FLAGS
+# ===================================================================
+feature_flags:
+  use_unified_tts: true
+  enable_legacy_mode: false
 ```
 
-Fichiers :
-- `test_cuda_debug.py`
-- `test_cuda.py`
-- `test_gpu_correct.py`
+#### **2.2 - Composants Robustesse (J3 - 6h) :**
 
-Points d'attention :
-- Vérifier si CUDA_DEVICE_ORDER est présent
-- S'assurer que le code utilise cuda:0 après configuration
-- Valider RTX 3090 détectée avec script diagnostic
-
-### 3.2 Batch 2 : Scripts TTS (60min)
-
-#### Vérification Compréhension Factuelle IA (5min) - OBLIGATOIRE
+##### **Circuit Breaker :**
 ```python
-print("🧠 COMPRÉHENSION FACTUELLE AVANT BATCH 2:")
-print("1. GPU 0 physique = RTX 5060 Ti ❌ INTERDITE") 
-print("2. GPU 1 physique = RTX 3090 ✅ CIBLE")
-print("3. CUDA_VISIBLE_DEVICES='1' masque GPU 0")
-print("4. PyTorch cuda:0 = RTX 3090 après remapping")
-print("5. Script: python C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py")
+# TTS/components/circuit_breaker.py
+import time
+import logging
+from enum import Enum
+
+class CircuitState(Enum):
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+class CircuitBreaker:
+    """Isolation handlers défaillants"""
+    
+    def __init__(self, failure_threshold: int = 3, reset_timeout: float = 30):
+        self.failure_threshold = failure_threshold
+        self.reset_timeout = reset_timeout
+        self.failure_count = 0
+        self.last_failure_time = 0
+        self.state = CircuitState.CLOSED
+        
+    def is_open(self) -> bool:
+        """Vérifie si circuit ouvert"""
+        if self.state == CircuitState.OPEN:
+            if time.time() - self.last_failure_time > self.reset_timeout:
+                self.state = CircuitState.HALF_OPEN
+                logging.info("Circuit breaker passage en semi-ouvert")
+                return False
+            return True
+        return False
+        
+    def record_success(self):
+        """Enregistre succès"""
+        self.failure_count = 0
+        if self.state == CircuitState.HALF_OPEN:
+            self.state = CircuitState.CLOSED
+            logging.info("Circuit breaker refermé")
+            
+    def record_failure(self):
+        """Enregistre échec"""
+        self.failure_count += 1
+        if self.failure_count >= self.failure_threshold:
+            if self.state != CircuitState.OPEN:
+                self.state = CircuitState.OPEN
+                self.last_failure_time = time.time()
+                logging.warning(f"Circuit breaker ouvert pour {self.reset_timeout}s")
 ```
 
-Fichiers :
-- `test_tts_fixed.py`
-- `test_tts_long_feedback.py`
-- `TTS/tts_handler_piper_rtx3090.py`
-
-### 3.3 Batch 3 : Scripts spécialisés (60min)
-Fichiers :
-- `test_espeak_french.py`
-- `test_french_voice.py`
-- `test_piper_native.py`
-- `test_upmc_model.py`
-
-### 3.4 Batch 4 : Scripts de validation initiaux (60min)
-Fichiers :
-- `tests/test_double_check_corrections.py`
-- `tests/test_double_check_validation_simple.py`
-- `test_validation_decouverte.py`
-
-### Scripts Supplémentaires
-
-### 3.5 Batch 5 : Tests supplémentaires (60min)
-Fichiers :
-- `tests/test_llm_handler.py`
-- `tests/test_stt_handler.py`
-
-### 3.6 Batch 6 : Scripts de validation exhaustifs - Partie 1 (90min)
-Fichiers :
-- `test_correction_validation_1.py`
-- `test_correction_validation_2.py`
-- `test_correction_validation_3.py`
-- `test_correction_validation_4.py`
-- `test_rtx3090_detection.py`
-- `test_tts_rtx3090_performance.py`
-
-### 3.7 Batch 7 : Scripts de validation exhaustifs - Partie 2 (90min)
-Fichiers :
-- `test_validation_globale_finale.py`
-- `test_validation_mvp_settings.py`
-- `test_validation_rtx3090_detection.py`
-- `test_validation_stt_manager_robust.py`
-- `test_validation_tts_performance.py`
-- `validate_gpu_config.py`
-
-### Validation Groupée Scripts Test
+##### **Cache LRU :**
 ```python
-def validate_test_scripts_batch():
-    """Validation en lot des scripts de test avec diagnostic systématique"""
+# TTS/components/cache.py
+import hashlib
+import time
+from typing import Dict, Optional, Any
+from collections import OrderedDict
+
+class TTSCache:
+    """Cache LRU pour synthèses fréquentes"""
     
-    results = {}
-    
-    for script in test_scripts:
-        print(f"🔍 VALIDATION - {script}")
+    def __init__(self, max_size_mb: int = 100, ttl_seconds: int = 3600):
+        self.max_size = max_size_mb * 1024 * 1024  # Conversion MB
+        self.ttl = ttl_seconds
+        self.cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+        self.current_size = 0
         
-        # TEST 0: Script diagnostic OBLIGATOIRE POUR CHAQUE SCRIPT
-        import subprocess
-        diag_result = subprocess.run([
-            "python", "C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py"
-        ], capture_output=True, text=True)
+    def generate_key(self, text: str, config: Dict) -> str:
+        """Génère clé cache"""
+        key_str = f"{text}_{config.get('voice', 'default')}_{config.get('speed', 1.0)}"
+        return hashlib.sha256(key_str.encode()).hexdigest()
         
-        diagnostic_ok = (diag_result.returncode == 0 and 
-                        "RTX 3090 détecté: ✅ OUI" in diag_result.stdout)
-        print(f"✅ Diagnostic RTX 3090: {'OK' if diagnostic_ok else 'ÉCHEC'}")
+    async def get(self, key: str) -> Optional[bytes]:
+        """Récupère du cache"""
+        if key in self.cache:
+            entry = self.cache[key]
+            # Vérification TTL
+            if time.time() - entry['timestamp'] < self.ttl:
+                # Déplacement en fin (LRU)
+                self.cache.move_to_end(key)
+                return entry['audio_data']
+            else:
+                # Expiration TTL
+                self._remove_entry(key)
+        return None
         
-        # Test configuration GPU complète
-        gpu_config_ok = test_script_gpu_config_complete(script)
+    async def set(self, key: str, audio_data: bytes):
+        """Stocke en cache"""
+        size = len(audio_data)
         
-        # Test RTX 3090 détectée
-        rtx3090_ok = test_script_rtx3090_detected(script)
-        
-        # Test execution
-        exec_ok = test_script_execution(script)
-        
-        # Test outputs
-        output_ok = test_script_outputs(script)
-        
-        results[script] = {
-            'diagnostic': diagnostic_ok,
-            'gpu_config': gpu_config_ok,
-            'rtx3090': rtx3090_ok,
-            'execution': exec_ok,
-            'outputs': output_ok,
-            'overall': diagnostic_ok and gpu_config_ok and rtx3090_ok and exec_ok and output_ok
-        }
-    
-    return results
+        # Éviction si nécessaire
+        while self.current_size + size > self.max_size and self.cache:
+            self._evict_lru()
+            
+        # Stockage
+        if self.current_size + size <= self.max_size:
+            self.cache[key] = {
+                'audio_data': audio_data,
+                'timestamp': time.time(),
+                'size': size
+            }
+            self.current_size += size
+            
+    def _evict_lru(self):
+        """Éviction LRU"""
+        if self.cache:
+            key, entry = self.cache.popitem(last=False)
+            self.current_size -= entry['size']
+            
+    def _remove_entry(self, key: str):
+        """Supprime entrée"""
+        if key in self.cache:
+            entry = self.cache.pop(key)
+            self.current_size -= entry['size']
 ```
 
-### Livrables Phase 3
-- ✅ 27 scripts test/validation avec configuration GPU complète
-- ✅ 27 validations script diagnostic "C:\Dev\SuperWhisper_V6\test_diagnostic_rtx3090.py"
-- ✅ Validation RTX 3090 réussie sur tous les scripts
-- ✅ Rapports de correction groupés par batch
-- ✅ Automatisation testée et documentée
+#### **2.3 - UnifiedTTSManager Principal (J4 - 8h) :**
 
----
-
-## ✅ PHASE 4 : VALIDATION SYSTÈME (3h)
-
-### Objectifs
-Validation globale du système avec configuration GPU homogène.
-
-### 4.1 Tests d'Intégration (60min)
-
-#### Test Global GPU
 ```python
-def test_system_wide_gpu_usage():
-    """Test que TOUT le système utilise RTX 3090"""
-    
-    # TEST 0: Script diagnostic système OBLIGATOIRE
-    import subprocess
-    print("🔍 DIAGNOSTIC SYSTÈME RTX 3090:")
-    result = subprocess.run([
-        "python", "C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py"
-    ], capture_output=True, text=True)
-    
-    print(result.stdout)
-    assert result.returncode == 0, "Script diagnostic système échoué"
-    assert "RTX 3090 détecté: ✅ OUI" in result.stdout, "RTX 3090 non détectée système"
-    print("✅ Diagnostic système RTX 3090 validé")
-    
-    # Configuration système
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-    
-    # Scanner tous les processus GPU actifs
-    gpu_processes = get_gpu_processes()
-    
-    for process in gpu_processes:
-        # Après configuration, cuda:0 = RTX 3090
-        assert process.gpu_id == 0
-        assert "RTX 3090" in process.gpu_name
-    
-    print("✅ Système entier utilise RTX 3090 exclusivement")
-```
+# TTS/tts_manager_unified.py
+#!/usr/bin/env python3
+"""
+UnifiedTTSManager - Gestionnaire TTS Enterprise
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
 
-#### Test Workflow Complet
-```python
-def test_complete_superwhisper_workflow():
-    """Test workflow STT → LLM → TTS complet"""
-    
-    # Configuration GPU globale
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-    
-    # 1. Test STT avec RTX 3090
-    stt_result = run_stt_with_audio(test_audio)
-    assert stt_result.gpu_used == "RTX 3090"
-    
-    # 2. Test LLM avec RTX 3090
-    llm_result = run_llm_processing(stt_result.text)
-    assert llm_result.gpu_used == "RTX 3090"
-    
-    # 3. Test TTS avec RTX 3090
-    tts_result = run_tts_synthesis(llm_result.response)
-    assert tts_result.gpu_used == "RTX 3090"
-    
-    print("✅ Workflow complet validé sur RTX 3090")
-```
+import os
+import sys
 
-### 4.2 Benchmarks Performance (30min)
-```python
-def benchmark_system_performance():
-    """Comparer performance avant/après corrections"""
-    
-    # Benchmark STT
-    stt_perf = benchmark_stt_performance()
-    assert stt_perf.improvement >= 0  # Pas de régression
-    
-    # Benchmark LLM  
-    llm_perf = benchmark_llm_performance()
-    assert llm_perf.improvement >= 0
-    
-    # Benchmark TTS
-    tts_perf = benchmark_tts_performance()
-    assert tts_perf.improvement >= 0
-    
-    print(f"✅ Performance système maintenue/améliorée")
-```
-
-### 4.3 Test Stabilité (30min)
-```python
-def test_system_stability():
-    """Test stabilité sur durée prolongée"""
-    
-    start_time = time.time()
-    end_time = start_time + 1800  # 30 minutes
-    
-    while time.time() < end_time:
-        # Cycle complet STT→LLM→TTS
-        run_complete_cycle()
-        
-        # Vérifier mémoire GPU stable
-        gpu_memory = get_gpu_memory_usage()
-        assert gpu_memory < max_memory_threshold
-        
-        # Vérifier toujours RTX 3090
-        assert "RTX 3090" in torch.cuda.get_device_name(0)
-        
-        time.sleep(10)
-    
-    print("✅ Système stable sur 30 minutes")
-```
-
-### Livrables Phase 4
-- ✅ Tests d'intégration globaux réussis
-- ✅ Validation diagnostic système RTX 3090 complète
-- ✅ Benchmarks performance validés
-- ✅ Stabilité système confirmée
-- ✅ Rapport final de validation
-
----
-
-## 📚 PHASE 5 : DOCUMENTATION (2h)
-
-### Objectifs
-Documenter standards et processus pour développements futurs.
-
-### 5.1 Standards GPU Définitifs (30min)
-```markdown
-# STANDARDS GPU SUPERWHISPER V6
-
-## Configuration Obligatoire
-- RTX 3090 (Bus PCI 1) : SEULE GPU AUTORISÉE
-- RTX 5060 Ti (Bus PCI 0) : STRICTEMENT INTERDITE
-
-## Configuration Requise
-```python
-# OBLIGATOIRE en début de chaque script utilisant GPU
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-# Après cette config : cuda:0 = RTX 3090
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+import asyncio
+import time
+import logging
+import yaml
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, Optional, List
+from pathlib import Path
+
+from TTS.handlers.piper_native import PiperNativeHandler
+from TTS.handlers.piper_cli import PiperCliHandler  
+from TTS.handlers.sapi_french import SapiFrenchHandler
+from TTS.handlers.silent_emergency import SilentEmergencyHandler
+from TTS.components.circuit_breaker import CircuitBreaker
+from TTS.components.cache import TTSCache
+
+class TTSBackendType(Enum):
+    PIPER_NATIVE = "piper_native"
+    PIPER_CLI = "piper_cli"
+    SAPI_FRENCH = "sapi_french"
+    SILENT_EMERGENCY = "silent_emergency"
+    CACHE = "cache"
+
+@dataclass
+class TTSResult:
+    success: bool
+    backend_used: str
+    latency_ms: float
+    audio_data: Optional[bytes] = None
+    error: Optional[str] = None
+
+class UnifiedTTSManager:
+    """Gestionnaire TTS Enterprise avec fallback 4 niveaux"""
+    
+    def __init__(self, config_path: str = "config/tts.yaml"):
+        self.config = self._load_config(config_path)
+        self._validate_rtx3090_configuration()
+        
+        # Initialisation composants
+        self.cache = TTSCache(
+            max_size_mb=self.config['cache']['max_size_mb'],
+            ttl_seconds=self.config['cache']['ttl_seconds']
+        )
+        
+        cb_config = self.config['circuit_breaker']
+        self.circuit_breakers = {
+            backend: CircuitBreaker(
+                failure_threshold=cb_config['failure_threshold'],
+                reset_timeout=cb_config['reset_timeout_seconds']
+            )
+            for backend in TTSBackendType
+        }
+        
+        self.handlers: Dict[TTSBackendType, Any] = {}
+        self._initialize_handlers()
+        
+        logging.info("✅ UnifiedTTSManager initialisé")
+        
+    def _load_config(self, config_path: str) -> dict:
+        """Charge configuration YAML"""
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+            
+    def _validate_rtx3090_configuration(self):
+        """Validation GPU RTX 3090 obligatoire"""
+        import torch
+        
+        if not torch.cuda.is_available():
+            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+            
+        device_name = torch.cuda.get_device_name(0)
+        if "3090" not in device_name:
+            raise RuntimeError(f"🚫 GPU invalide: {device_name} - RTX 3090 requise")
+            
+        # Allocation VRAM limitée
+        gpu_mem_fraction = self.config['advanced']['gpu_memory_fraction']
+        torch.cuda.set_per_process_memory_fraction(gpu_mem_fraction, 0)
+        
+        logging.info(f"✅ RTX 3090 validée: {device_name}")
+        
+    def _initialize_handlers(self):
+        """Initialise handlers selon configuration"""
+        handler_map = {
+            TTSBackendType.PIPER_NATIVE: PiperNativeHandler,
+            TTSBackendType.PIPER_CLI: PiperCliHandler,
+            TTSBackendType.SAPI_FRENCH: SapiFrenchHandler,
+            TTSBackendType.SILENT_EMERGENCY: SilentEmergencyHandler
+        }
+        
+        for backend_type, handler_class in handler_map.items():
+            backend_name = backend_type.value
+            backend_config = self.config['backends'].get(backend_name, {})
+            
+            if backend_config.get('enabled', False):
+                try:
+                    # Vérification feature flag pour piper_native
+                    if (backend_type == TTSBackendType.PIPER_NATIVE and 
+                        not self.config.get('enable_piper_native', True)):
+                        continue
+                        
+                    self.handlers[backend_type] = handler_class(backend_config)
+                    logging.info(f"✅ Handler {backend_name} initialisé")
+                    
+                except Exception as e:
+                    logging.error(f"❌ Échec initialisation {backend_name}: {e}")
+                    
+    async def synthesize(self, text: str, voice: Optional[str] = None,
+                        speed: Optional[float] = None, 
+                        reuse_cache: bool = True) -> TTSResult:
+        """
+        Synthèse TTS unifiée avec fallback automatique
+        
+        Args:
+            text: Texte à synthétiser
+            voice: Voix optionnelle
+            speed: Vitesse optionnelle
+            reuse_cache: Utiliser cache si disponible
+            
+        Returns:
+            TTSResult avec succès, backend utilisé, latence et audio
+        """
+        start_time_total = time.perf_counter()
+        
+        # 1. Validation input
+        max_len = self.config['advanced']['max_text_length']
+        if not text or len(text) > max_len:
+            return TTSResult(
+                success=False, 
+                backend_used="none", 
+                latency_ms=0,
+                error=f"Texte invalide (vide ou > {max_len} chars)"
+            )
+            
+        # 2. Vérification cache
+        cache_key = self.cache.generate_key(text, {'voice': voice, 'speed': speed})
+        if reuse_cache and (cached_audio := await self.cache.get(cache_key)):
+            latency_ms = (time.perf_counter() - start_time_total) * 1000
+            return TTSResult(
+                success=True,
+                backend_used=TTSBackendType.CACHE.value,
+                latency_ms=latency_ms,
+                audio_data=cached_audio
+            )
+            
+        # 3. Fallback hiérarchique
+        backend_priority = {
+            TTSBackendType.PIPER_NATIVE: 1,
+            TTSBackendType.PIPER_CLI: 2,
+            TTSBackendType.SAPI_FRENCH: 3,
+            TTSBackendType.SILENT_EMERGENCY: 4
+        }
+        
+        sorted_backends = sorted(
+            self.handlers.keys(), 
+            key=lambda x: backend_priority[x]
+        )
+        
+        for backend_type in sorted_backends:
+            # Vérification circuit breaker
+            if self.circuit_breakers[backend_type].is_open():
+                logging.warning(f"Circuit breaker ouvert: {backend_type.value}")
+                continue
+                
+            try:
+                start_time_handler = time.perf_counter()
+                handler = self.handlers[backend_type]
+                
+                # Synthèse
+                audio_data = await handler.synthesize(text, voice, speed)
+                latency_ms = (time.perf_counter() - start_time_handler) * 1000
+                
+                # Succès
+                self.circuit_breakers[backend_type].record_success()
+                await self.cache.set(cache_key, audio_data)
+                
+                # Validation performance
+                target_latency = self.config['backends'][backend_type.value]['target_latency_ms']
+                if latency_ms > target_latency:
+                    logging.warning(
+                        f"Performance dégradée: {backend_type.value} "
+                        f"{latency_ms:.0f}ms > {target_latency}ms"
+                    )
+                    
+                return TTSResult(
+                    success=True,
+                    backend_used=backend_type.value,
+                    latency_ms=latency_ms,
+                    audio_data=audio_data
+                )
+                
+            except Exception as e:
+                logging.error(f"Échec {backend_type.value}: {e}")
+                self.circuit_breakers[backend_type].record_failure()
+                continue
+                
+        # Tous handlers échoué
+        return TTSResult(
+            success=False,
+            backend_used="none",
+            latency_ms=0,
+            error="Tous backends TTS échoué"
+        )
 ```
 
-## Script de Diagnostic OBLIGATOIRE
+### **🚨 Checkpoint 2 - UnifiedTTSManager :**
+- [ ] 4 handlers intégrés et fonctionnels
+- [ ] Fallback automatique testé
+- [ ] Configuration YAML opérationnelle
+- [ ] Tests unitaires 100% passants
+- [ ] **TEST FALLBACK RÉEL :** `python test_fallback_real.py` → 4 niveaux validés
+- [ ] **ÉCOUTE COMPARATIVE :** Audio de chaque backend (piper_native vs piper_cli vs sapi)
+- [ ] **BENCHMARK PERFORMANCE :** `python test_performance_real.py` → P95 <120ms confirmé
+
+### **✅ Livrables Phase 2 :**
+- [x] Configuration YAML centralisée
+- [x] Circuit Breakers + Cache LRU
+- [x] UnifiedTTSManager complet
+- [x] Tests unitaires + intégration
+
+---
+
+## 📋 **PHASE 3 : DÉPLOIEMENT & VALIDATION (1 JOUR)**
+
+### **🕒 Timing :** J5 - 09h00 → 17h00 (8h)
+
+#### **3.1 - Tests Validation Complète (4h) :**
+
+##### **Tests Programmatiques :**
 ```python
-# OBLIGATOIRE pour chaque développement/correction
-import subprocess
-result = subprocess.run([
-    "python", "C:\\Dev\\SuperWhisper_V6\\test_diagnostic_rtx3090.py"
-], capture_output=True, text=True)
-assert result.returncode == 0, "Diagnostic RTX 3090 échoué"
-assert "RTX 3090 détecté: ✅ OUI" in result.stdout, "RTX 3090 non détectée"
+# tests/test_unified_tts_manager.py
+import pytest
+import asyncio
+from unittest.mock import patch, MagicMock
+from TTS.tts_manager_unified import UnifiedTTSManager, TTSResult
+
+@pytest.mark.asyncio
+async def test_fallback_automatique():
+    """Test fallback automatique complet"""
+    manager = UnifiedTTSManager("config/tts.yaml")
+    
+    # Simulation panne PiperNative
+    with patch.object(manager.handlers[TTSBackendType.PIPER_NATIVE], 
+                     'synthesize', side_effect=Exception("GPU failed")):
+        result = await manager.synthesize("Test fallback")
+        
+        # Doit utiliser PiperCLI
+        assert result.success == True
+        assert result.backend_used == "piper_cli"
+        assert result.latency_ms < 1000
+
+@pytest.mark.asyncio
+async def test_circuit_breaker():
+    """Test circuit breaker isolation"""
+    manager = UnifiedTTSManager("config/tts.yaml")
+    
+    # 3 échecs consécutifs
+    for i in range(3):
+        with patch.object(manager.handlers[TTSBackendType.PIPER_NATIVE],
+                         'synthesize', side_effect=Exception("Fail")):
+            await manager.synthesize(f"Test échec {i+1}")
+    
+    # Circuit breaker doit être ouvert
+    assert manager.circuit_breakers[TTSBackendType.PIPER_NATIVE].is_open()
+
+@pytest.mark.asyncio
+async def test_cache_performance():
+    """Test performance cache"""
+    manager = UnifiedTTSManager("config/tts.yaml")
+    
+    # Premier appel (mise en cache)
+    result1 = await manager.synthesize("Test cache")
+    
+    # Deuxième appel (depuis cache)
+    result2 = await manager.synthesize("Test cache")
+    
+    assert result2.backend_used == "cache"
+    assert result2.latency_ms < 5  # <5ms depuis cache
+
+@pytest.mark.asyncio
+async def test_performance_regression():
+    """Test absence régression performance"""
+    manager = UnifiedTTSManager("config/tts.yaml")
+    
+    # Benchmark 10 synthèses
+    latencies = []
+    for i in range(10):
+        result = await manager.synthesize(f"Test performance {i}")
+        latencies.append(result.latency_ms)
+    
+    # P95 doit respecter targets
+    p95_latency = sorted(latencies)[int(0.95 * len(latencies))]
+    assert p95_latency < 120  # Target PiperNative
 ```
 
-## Template Code Standard
-[Code template avec validation obligatoire + diagnostic]
-
-## Processus de Validation
-[Étapes de validation pour nouveaux développements incluant diagnostic]
-```
-
-### 5.2 Guide Développement (20min)
-- Checklist développeur
-- Templates de code
-- Processus de validation
-- Exemples concrets
-- Erreurs communes à éviter
-
-### 5.3 Rapport Final (10min)
-```markdown
-# RAPPORT FINAL - HOMOGÉNISATION GPU
-
-## Résumé Exécutif
-- 40 fichiers corrigés avec succès (20 initiaux + 20 supplémentaires)
-- Configuration GPU complète appliquée
-- 40 validations script diagnostic "C:\Dev\SuperWhisper_V6\test_diagnostic_rtx3090.py"
-- RTX 3090 utilisée exclusivement
-- 0 régression détectée
-- Performance maintenue ou améliorée
-- Standards GPU établis avec diagnostic systématique
-
-## Points Clés
-- CUDA_VISIBLE_DEVICES='1' + CUDA_DEVICE_ORDER='PCI_BUS_ID' obligatoires
-- Après configuration : cuda:0 = RTX 3090
-
-## Métriques de Succès
-- [Détail des métriques atteintes]
-
-## Recommandations Futures
-- [Recommandations pour maintenir les standards]
-```
-
-### Livrables Phase 5
-- ✅ Standards GPU documentés
-- ✅ Guide développement créé
-- ✅ Rapport final publié
-- ✅ Templates de code disponibles
-
----
-
-## 📊 PLANNING ET RESSOURCES
-
-### Calendrier Détaillé
-| Phase | Durée | Dépendances | Livrables |
-|-------|-------|-------------|-----------|
-| Phase 1 | 3h | - | Setup + Analyse |
-| Phase 2 | 10h | Phase 1 | 13 modules core corrigés |
-| Phase 3 | 15h | Phase 2 | 27 scripts test/validation corrigés |
-| Phase 4 | 3h | Phase 3 | Validation système |
-| Phase 5 | 2h | Phase 4 | Documentation exhaustive |
-
-### Ressources Requises
-- **Développeur senior** avec expérience GPU/PyTorch
-- **Accès complet** au code SuperWhisper V6
-- **Hardware** : RTX 3090 et RTX 5060 Ti disponibles
-- **Outils** : Git, Python 3.8+, TaskMaster
-
-### Points de Contrôle
-- ✅ **Checkpoint 1** (après Phase 1) : Configuration GPU comprise
-- ✅ **Checkpoint 2** (après Phase 2) : Modules critiques OK
-- ✅ **Checkpoint 3** (après Phase 3) : Tous scripts corrigés
-- ✅ **Checkpoint 4** (après Phase 4) : Système validé
-- ✅ **Checkpoint 5** (après Phase 5) : Documentation complète
-
----
-
-## ⚠️ GESTION DES RISQUES
-
-### Risques Majeurs et Mitigation
-| Risque | Probabilité | Impact | Mitigation |
-|--------|-------------|--------|------------|
-| Configuration incomplète | 30% | CRITICAL | Vérifier CUDA_VISIBLE_DEVICES + CUDA_DEVICE_ORDER |
-| Mauvaise compréhension | 25% | HIGH | Documentation claire + exemples |
-| Régression critique | 15% | CRITICAL | Tests exhaustifs + rollback Git |
-| Performance dégradée | 10% | HIGH | Benchmarks continus |
-
-### Plan de Rollback
+##### **🎧 Tests Réels Pratiques OBLIGATOIRES :**
 ```bash
-# En cas de problème critique
-git checkout main
-git reset --hard v-before-gpu-correction
-git push --force-with-lease
+# 1. VALIDATION MODÈLES DISPONIBLES
+Get-ChildItem "D:\TTS_Voices\piper" -Name
+# ✅ Confirmer : fr_FR-siwis-medium.onnx (63MB) + .json
+
+# 2. TEST FONCTIONNEL RÉEL
+python test_tts_real.py
+# ✅ Génère 4 fichiers audio dans test_output/
+# ✅ Écouter manuellement chaque fichier
+# ✅ Valider qualité voix française
+
+# 3. TEST FALLBACK RÉEL  
+python test_fallback_real.py
+# ✅ Valide 4 niveaux fallback avec audio généré
+# ✅ Confirmer basculement automatique
+
+# 4. BENCHMARK PERFORMANCE RÉEL
+python test_performance_real.py
+# ✅ 10 mesures par cas (court/moyen/long)
+# ✅ Validation P95 <120ms pour piper_native
+# ✅ Statistiques détaillées
+
+# 5. ÉCOUTE VALIDATION MANUELLE
+start test_output\test_1_piper_native.wav
+start test_output\test_2_piper_cli.wav
+start test_output\test_3_sapi_french.wav
+# ✅ Confirmer audio audible et compréhensible
 ```
 
-### Monitoring Continu
-- Tests automatisés après chaque correction
-- Validation RTX 3090 systématique
-- Monitoring GPU en temps réel
-- Validation performance continue
+##### **🚨 Critères d'Acceptation Pratiques :**
+- ✅ **Audio généré audible** : 4 fichiers test écoutés
+- ✅ **Qualité voix française** : Compréhensible et naturelle
+- ✅ **Performance mesurée** : <120ms P95 confirmé
+- ✅ **Fallback fonctionnel** : 4 niveaux testés avec audio
+- ✅ **Aucune régression** : Comparaison avant/après
+
+#### **3.2 - Intégration run_assistant.py (2h) :**
+
+```python
+# Modification run_assistant.py
+from TTS.tts_manager_unified import UnifiedTTSManager
+
+# Remplacement handler TTS
+# OLD: from TTS.tts_handler import TTSHandler
+# NEW: tts_manager = UnifiedTTSManager("config/tts.yaml")
+
+async def process_tts(text: str):
+    """Traitement TTS unifié"""
+    result = await tts_manager.synthesize(text)
+    
+    if result.success:
+        # Lecture audio
+        play_audio(result.audio_data)
+        
+        # Métriques
+        print(f"✅ TTS: {result.backend_used} ({result.latency_ms:.0f}ms)")
+    else:
+        print(f"❌ TTS échec: {result.error}")
+```
+
+#### **3.3 - Feature Flags & Monitoring (2h) :**
+
+```python
+# Feature flag activation progressive
+if config['feature_flags']['use_unified_tts']:
+    tts_manager = UnifiedTTSManager("config/tts.yaml")
+else:
+    # Fallback ancien système
+    tts_manager = LegacyTTSHandler()
+
+# Métriques Prometheus basiques
+from prometheus_client import Counter, Histogram
+
+tts_requests_total = Counter('tts_requests_total', 'Total TTS requests', ['backend', 'status'])
+tts_duration_seconds = Histogram('tts_duration_seconds', 'TTS latency', ['backend'])
+
+# Export métriques
+def record_tts_metrics(result: TTSResult):
+    status = 'success' if result.success else 'error'
+    tts_requests_total.labels(backend=result.backend_used, status=status).inc()
+    tts_duration_seconds.labels(backend=result.backend_used).observe(result.latency_ms / 1000)
+```
+
+### **🚨 Checkpoint 3 - Déploiement :**
+- [ ] Feature flag activation réussie
+- [ ] Métriques Prometheus fonctionnelles
+- [ ] Performance ≥ baseline
+- [ ] Archivage sécurisé + rollback testé
+
+### **✅ Livrables Phase 3 :**
+- [x] Tests validation 100% passants
+- [x] Intégration run_assistant.py
+- [x] Feature flags opérationnels
+- [x] Monitoring Prometheus basique
 
 ---
 
-## 🎯 DÉFINITION DU SUCCÈS
+## 🎖️ **CRITÈRES D'ACCEPTATION FINALE**
 
-### Critères de Réussite
-1. ✅ **100% des 40 fichiers** avec configuration GPU complète
-2. ✅ **RTX 3090 utilisée exclusivement** (validation factuelle)
-3. ✅ **Code utilise cuda:0** de manière cohérente
-4. ✅ **0 régression fonctionnelle** détectée
-5. ✅ **Performance maintenue** (±2% maximum)
-6. ✅ **Standards documentés** et adoptés
-7. ✅ **Validation automatisée** en place
+### **✅ Performance :**
+- [ ] Latence PiperNative <120ms (P95)
+- [ ] Latence PiperCLI <1000ms
+- [ ] Latence SAPI <2000ms
+- [ ] Cache hit <5ms
 
-### Métriques Quantifiables
-- **Taux de correction** : 40/40 fichiers (100%)
-- **Configuration complète** : CUDA_VISIBLE_DEVICES + CUDA_DEVICE_ORDER
-- **GPU correcte** : RTX 3090 détectée dans 100% des cas
-- **Taux de réussite tests** : 100%
-- **Amélioration performance** : ≥0%
-- **Couverture documentation** : 100%
+### **✅ Robustesse :**
+- [ ] Disponibilité 99.9% (fallback)
+- [ ] Circuit breakers fonctionnels
+- [ ] Recovery automatique
+- [ ] Monitoring temps réel
+
+### **✅ Qualité Code :**
+- [ ] Type hints 100%
+- [ ] Docstrings complètes
+- [ ] Tests coverage >90%
+- [ ] Configuration externalisée
+
+### **✅ Validation Pratique :**
+- [ ] **Tests réels exécutés** : test_tts_real.py, test_fallback_real.py, test_performance_real.py
+- [ ] **Audio généré audible** : 4 fichiers test écoutés et validés
+- [ ] **Qualité voix française** : Compréhensible et acceptable
+- [ ] **Performance mesurée** : <120ms P95 pour piper_native confirmé
+- [ ] **Fallback testé** : 4 niveaux validés avec audio généré
+- [ ] **Modèles D:\ validés** : fr_FR-siwis-medium.onnx (63MB) utilisé
+
+### **✅ Déploiement :**
+- [ ] Feature flags opérationnels
+- [ ] Rollback script testé
+- [ ] Documentation complète
+- [ ] Métriques exportées
 
 ---
 
-**Ce plan de développement garantit une approche structurée, méthodique et sans risque pour l'homogénéisation du mapping GPU, avec configuration complète obligatoire et validation factuelle à chaque étape.** 
+## 📊 **MÉTRIQUES DE SUCCÈS**
+
+### **🎯 KPIs Post-Déploiement :**
+
+#### **Performance :**
+- **Latence moyenne** : <120ms (vs <1000ms)
+- **P95 latence** : <150ms
+- **Cache hit rate** : >80%
+- **Throughput** : >10 synthèses/s
+
+#### **Robustesse :**
+- **Uptime** : >99.9%
+- **MTBF** : >168h
+- **MTTR** : <5s
+- **Fallback rate** : <1%
+
+#### **Maintenance :**
+- **Complexité code** : -87% fichiers
+- **Time to fix** : -50%
+- **Deployment time** : <5min
+- **Rollback time** : <2min
+
+---
+
+## 🚀 **COMMANDES DE DÉMARRAGE**
+
+```bash
+# Phase 0 - Préparation
+git checkout -b feature/tts-enterprise-consolidation
+git tag pre-tts-enterprise-consolidation
+./scripts/rollback_tts_enterprise.sh --test
+
+# Phase 1 - PiperNativeHandler
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0)}')"
+Get-ChildItem "D:\TTS_Voices\piper" -Name
+pytest tests/test_piper_native_performance.py -v
+
+# Phase 2 - UnifiedTTSManager
+pytest tests/test_unified_tts_manager.py -v
+python -m TTS.tts_manager_unified --test
+
+# Phase 3 - Tests Réels Pratiques
+python test_tts_real.py
+python test_fallback_real.py  
+python test_performance_real.py
+start test_output\test_1_piper_native.wav
+
+# Phase 3 - Déploiement
+pytest tests/ -v --cov=TTS --cov-report=html
+python run_assistant.py --feature-flag=unified_tts
+
+echo "🚀 Phase 2 Enterprise - Consolidation TTS terminée !"
+```
+
+**🎯 Prêt pour implémentation architecture enterprise UnifiedTTSManager !** 

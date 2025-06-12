@@ -1,0 +1,90 @@
+# config/tts.yaml
+# Configuration unifiée du système TTS SuperWhisper V6
+
+# ===================================================================
+# SECTION PRINCIPALE
+# ===================================================================
+# Activation du handler Piper natif (performance optimale <120ms)
+# Mettre à `false` pour forcer l'utilisation du fallback Piper CLI.
+enable_piper_native: true
+
+# ===================================================================
+# CONFIGURATION DES BACKENDS
+# ===================================================================
+backends:
+  # Priorité 1: Le plus rapide (GPU)
+  piper_native:
+    enabled: true
+    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+    model_config_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx.json"
+    device: "cuda:0"  # Pointera vers RTX 3090 après CUDA_VISIBLE_DEVICES
+    speaker_id: 0
+    target_latency_ms: 120
+
+  # Priorité 2: Fallback fonctionnel (CPU)
+  piper_cli:
+    enabled: true
+    model_path: "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx"
+    executable_path: "piper/piper.exe" # Chemin vers l'exécutable
+    speaker_id: 0
+    target_latency_ms: 1000
+
+  # Priorité 3: Fallback Windows natif (CPU)
+  sapi_french:
+    enabled: true
+    voice_name: "Microsoft Hortense Desktop"
+    rate: 0      # Vitesse de -10 (lent) à 10 (rapide)
+    volume: 100  # Volume de 0 à 100
+    target_latency_ms: 2000
+
+  # Priorité 4: Ultime filet de sécurité
+  silent_emergency:
+    enabled: true
+    log_level: "CRITICAL"
+    alert_webhook: null # Optionnel: URL d'un webhook pour recevoir les alertes
+    target_latency_ms: 5
+
+# ===================================================================
+# CONFIGURATION DES COMPOSANTS
+# ===================================================================
+# Cache pour les phrases récurrentes
+cache:
+  enabled: true
+  max_size_mb: 100
+  ttl_seconds: 3600 # 1 heure
+  eviction_policy: "LRU" # Least Recently Used
+
+# Disjoncteur pour isoler les backends défaillants
+circuit_breaker:
+  failure_threshold: 3 # Nombre d'échecs avant d'ouvrir le circuit
+  reset_timeout_seconds: 30 # Temps avant de retenter un appel
+
+# Monitoring via Prometheus
+monitoring:
+  prometheus_enabled: true
+  prometheus_port: 9090
+  log_performance_metrics: true
+  alert_on_fallback: true # Log une alerte si un fallback est utilisé
+
+# ===================================================================
+# PARAMÈTRES AVANCÉS
+# ===================================================================
+advanced:
+  # Fraction de VRAM allouée au processus TTS sur le GPU.
+  # Laisser ~90% pour le LLM.
+  gpu_memory_fraction: 0.1
+  # Nombre de workers pour traiter les requêtes TTS en parallèle
+  async_workers: 2
+  # Limite de la longueur du texte pour éviter les abus
+  max_text_length: 1000
+  # Nettoyage automatique du texte (caractères non supportés, etc.)
+  sanitize_text: true
+
+# ===================================================================
+# FEATURE FLAGS (Pour déploiement progressif)
+# ===================================================================
+feature_flags:
+  # Flag principal pour activer le nouveau manager
+  use_unified_tts: true
+  # Flag pour forcer l'ancien mode (si un handler unique était utilisé)
+  enable_legacy_mode: false 

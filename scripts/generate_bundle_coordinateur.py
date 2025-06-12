@@ -235,9 +235,21 @@ def get_gpu_files() -> List[Dict[str, Any]]:
 
 def read_existing_code_source() -> str:
     """Lit le contenu existant du CODE-SOURCE.md"""
-    code_source_path = Path("docs/CODE-SOURCE.md")
+    # Nouveau chemin principal dans zip/
+    code_source_path = Path("docs/Transmission_Coordinateur/zip/CODE-SOURCE.md")
     if code_source_path.exists():
         return code_source_path.read_text(encoding='utf-8')
+    
+    # Fallback vers l'ancien emplacement docs/
+    alt_path = Path("docs/CODE-SOURCE.md")
+    if alt_path.exists():
+        return alt_path.read_text(encoding='utf-8')
+    
+    # Fallback vers Transmission_Coordinateur/
+    alt_path2 = Path("docs/Transmission_Coordinateur/CODE-SOURCE.md")
+    if alt_path2.exists():
+        return alt_path2.read_text(encoding='utf-8')
+    
     return ""
 
 def generate_gpu_mission_section(git_info: Dict, gpu_files: List) -> str:
@@ -565,7 +577,10 @@ def main():
     if args.backup:
         existing_content = read_existing_code_source()
         if existing_content:
-            backup_path = Path(f"docs/CODE-SOURCE.md.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+            # Créer le répertoire zip s'il n'existe pas
+            zip_dir = Path("docs/Transmission_Coordinateur/zip")
+            zip_dir.mkdir(parents=True, exist_ok=True)
+            backup_path = zip_dir / f"CODE-SOURCE.md.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             backup_path.write_text(existing_content, encoding='utf-8')
             print(f"💾 Sauvegarde créée: {backup_path}")
     
@@ -594,8 +609,10 @@ def main():
 {gpu_section}"""
         mode_desc = "ENRICHISSEMENT"
     
-    # Écrire le fichier final
-    code_source_path = Path("docs/CODE-SOURCE.md")
+    # Écrire le fichier final dans le répertoire zip
+    zip_dir = Path("docs/Transmission_Coordinateur/zip")
+    zip_dir.mkdir(parents=True, exist_ok=True)
+    code_source_path = zip_dir / "CODE-SOURCE.md"
     code_source_path.write_text(final_content, encoding='utf-8')
     
     print(f"\n🎉 CODE-SOURCE.md {mode_desc} AVEC SUCCÈS")
@@ -607,7 +624,7 @@ def main():
         print(f"   🛡️ Contenu existant: PRÉSERVÉ")
     
     print("\n🚀 PROCHAINES ÉTAPES:")
-    print("   1. Vérifier: docs/CODE-SOURCE.md")
+    print("   1. Vérifier: docs/Transmission_Coordinateur/zip/CODE-SOURCE.md")
     print("   2. Valider: Contenu complet et précis")
     
     print(f"\n✅ {mode_desc} TERMINÉ")

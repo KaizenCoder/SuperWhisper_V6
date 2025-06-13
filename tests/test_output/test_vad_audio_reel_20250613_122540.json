@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-06-13T12:25:40.179170",
+  "correction_vad": "APPLIQUÉE",
+  "tests_realises": 3,
+  "ameliorations": 2,
+  "succes": 1,
+  "echecs": 0,
+  "resultats": [
+    {
+      "test": "Validation Utilisateur Complet",
+      "fichier": "test_output/validation_utilisateur_complet.wav",
+      "duree_audio": 79.3835625,
+      "texte_transcrit": "Bonjour, ceci est un test de validation pour Super WISP 2.  Je vais maintenant énoncer plusieurs phrases de complexité croissante  pour évaluer la précision de transcription.  Premièrement, des mots simples.  Chat, chien, maison, voiture, ordinateur, téléphone.  Deuxièmement, des phrases courtes.  Il fait beau aujourd'hui.  Le café est délicieux.  J'aime la musique classique.  Troisièmement, des phrases plus complexes.  L'intelligence artificielle transforme notre manière de travailler  et de communiquer dans le monde moderne.  Quatrièmement, des termes techniques.  Cinquièmement, des nombres et dates.  Sixièmement, des mots difficiles.  Cacémono, yaourt.  Septièmement, une phrase longue et complexe.  Fin du test de validation.",
+      "mots_transcrits": 97,
+      "latence_ms": 4167.391777038574,
+      "rtf": 0.05247844350703742,
+      "confiance": 0.7372395060104838,
+      "backend_used": "prism_large-v2",
+      "statut": "AMÉLIORATION",
+      "performance": "ACCEPTABLE",
+      "timestamp": "2025-06-13T12:25:38.444638"
+    },
+    {
+      "test": "Demo Batch Long",
+      "fichier": "test_output/demo_batch_long_20250612_151733.wav",
+      "duree_audio": 17.4111875,
+      "texte_transcrit": "L'intelligence artificielle conversationnelle représente une révolution dans les interactions  aux machines.  SuperWisp V6 intègre des technologies de pointe pour offrir une expérience utilisateur  exceptionnelle.  Avec des temps de réponse optimisés et une qualité audio remarquable.",
+      "mots_transcrits": 35,
+      "latence_ms": 1112.5304698944092,
+      "rtf": 0.06377354215690514,
+      "confiance": 0.7586050698722618,
+      "backend_used": "prism_large-v2",
+      "statut": "AMÉLIORATION",
+      "performance": "BONNE",
+      "timestamp": "2025-06-13T12:25:39.623841"
+    },
+    {
+      "test": "Demo Batch Moyen",
+      "fichier": "test_output/demo_batch_moyen_20250612_151733.wav",
+      "duree_audio": 7.316875,
+      "texte_transcrit": "SuperWisp V6 utilise l'intelligence artificielle pour offrir une synthèse vocale de haute qualité.",
+      "mots_transcrits": 13,
+      "latence_ms": 520.3204154968262,
+      "rtf": 0.07089819082774065,
+      "confiance": 0.7573939646993364,
+      "backend_used": "prism_large-v2",
+      "statut": "PARTIEL",
+      "performance": "EXCELLENTE",
+      "timestamp": "2025-06-13T12:25:40.176173"
+    }
+  ]
+}

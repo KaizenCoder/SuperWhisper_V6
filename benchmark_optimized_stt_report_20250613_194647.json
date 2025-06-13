@@ -1,0 +1,33 @@
+{
+  "timestamp": "20250613_194647",
+  "gpu_config": {
+    "device": "NVIDIA GeForce RTX 3090",
+    "memory_gb": 23.99951171875,
+    "cuda_version": "12.6"
+  },
+  "results": {
+    "post_processor": {
+      "wer_before": 35.37373737373737,
+      "wer_after": 10.944444444444445,
+      "improvement": 24.429292929292927,
+      "corrections": 20,
+      "avg_time": 2.4003982543945312,
+      "success": true
+    },
+    "backend": {
+      "success": false,
+      "error": "unsupported device cuda:1"
+    },
+    "manager": {
+      "initialization_time_ms": 1200,
+      "cache_hit_rate": 0.0,
+      "fallback_rate": 0.0,
+      "success": true
+    }
+  },
+  "summary": {
+    "total_tests": 2,
+    "successful_tests": 2,
+    "overall_success": false
+  }
+}

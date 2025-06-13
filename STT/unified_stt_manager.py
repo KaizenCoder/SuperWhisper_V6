@@ -199,93 +199,64 @@ class PrometheusSTTMetrics:
         return DummyMetric()
 
 class UnifiedSTTManager:
-    """Manager STT unifié pour SuperWhisper V6 sur RTX 3090"""
-    
+    """Manager STT unifié avec fallback, cache, et circuit breaker"""
+
+    _instance = None
+    _lock = asyncio.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(UnifiedSTTManager, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """
-        Initialise le manager STT unifié.
-        
-        Args:
-            config: Configuration optionnelle (sinon utilise les valeurs par défaut)
-        """
-        # Validation GPU obligatoire
+        if hasattr(self, '_initialized') and self._initialized:
+            return
+            
         validate_rtx3090_mandatory()
-        
-        self.config = config or {
-            'cache_size_mb': 200,
-            'cache_ttl': 7200,  # 2 heures
-            'timeout_per_minute': 5.0,
-            'max_retries': 3
-        }
-        
-        # Initialisation des backends avec fallback
-        self.backends = {}
-        self._initialize_backends()
-        
-        # Ordre de fallback optimisé RTX 3090
-        self.fallback_chain = ['prism_large', 'prism_medium', 'prism_small']
-        
-        # Cache LRU (cohérent avec TTS Phase 3)
-        cache_size = self.config['cache_size_mb'] * 1024 * 1024  # Conversion en bytes
-        self.cache = STTCache(max_size=cache_size, ttl=self.config['cache_ttl'])
-        
-        # Circuit breakers par backend
-        self.circuit_breakers = {
-            name: CircuitBreaker() for name in self.fallback_chain
-        }
-        
-        # Métriques Prometheus
-        self.metrics = PrometheusSTTMetrics()
-        
         print("✅ UnifiedSTTManager initialisé sur RTX 3090")
-    
+
+        self.config = config or {}
+        self.backends: Dict[str, PrismSTTBackend] = {}
+        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.cache = STTCache()
+        self.metrics = PrometheusSTTMetrics()
+        self.forced_backend: Optional[str] = None
+        self.fallback_chain: List[str] = self.config.get('fallback_chain', [])
+
+        self._initialize_backends()
+        self._initialized = True
+
     def _initialize_backends(self):
-        """Initialise les backends STT avec gestion d'erreur"""
-        try:
-            # Backend principal Prism
-            self.backends['prism_large'] = PrismSTTBackend({
-                'model': 'large-v2',
-                'compute_type': 'float16'
-            })
-            
-            self.backends['prism_medium'] = PrismSTTBackend({
-                'model': 'medium',
-                'compute_type': 'float16'
-            })
-            
-            self.backends['prism_small'] = PrismSTTBackend({
-                'model': 'small',
-                'compute_type': 'float16'
-            })
-            
-            print("✅ Backends STT initialisés")
-            
-        except Exception as e:
-            print(f"⚠️ Erreur initialisation backends: {e}")
-            # Fallback minimal pour tests
-            self.backends = {
-                'prism_large': None,
-                'prism_medium': None,
-                'prism_small': None
-            }
-    
-    def _generate_cache_key(self, audio: np.ndarray) -> str:
-        """
-        Génère une clé de cache unique pour l'audio.
+        """Initialise les backends STT à partir de la configuration."""
+        backend_configs = self.config.get('backends', [])
         
-        Args:
-            audio: Données audio numpy
-            
-        Returns:
-            Clé de cache unique
-        """
+        # Pré-charger les modèles dans le pool pour un contrôle centralisé
+        from STT.model_pool import model_pool
+        print("Pre-loading models into the pool...")
+        for backend_config in backend_configs:
+            if backend_config['type'] == 'prism':
+                model_size = backend_config.get('model', 'large-v2')
+                model_pool.get_model(model_size) # Charge si non présent
+        print("✅ All models pre-loaded or verified in the pool.")
+
+        for backend_config in backend_configs:
+            backend_name = backend_config['name']
+            if backend_name not in self.backends:
+                if backend_config['type'] == 'prism':
+                    self.backends[backend_name] = PrismSTTBackend(backend_config)
+                    self.circuit_breakers[backend_name] = CircuitBreaker()
+        print(f"✅ Backends STT initialisés: {list(self.backends.keys())}")
+
+    def _generate_cache_key(self, audio: np.ndarray) -> str:
+        """Génère une clé de cache unique pour un np.array audio."""
         # Hash MD5 des données audio
         audio_hash = hashlib.md5(audio.tobytes()).hexdigest()
         return f"stt_{audio_hash}_{len(audio)}"
     
     @asynccontextmanager
     async def _memory_management_context(self):
-        """Context manager pour la gestion mémoire RTX 3090"""
+        """Contexte pour gestion mémoire GPU."""
         try:
             # Nettoyage mémoire avant traitement
             if torch.cuda.is_available():
@@ -376,6 +347,26 @@ class UnifiedSTTManager:
             cached=False,
             error="Tous les backends STT ont échoué"
         )
+
+    async def transcribe_pcm(self, pcm_bytes: bytes, sr: int) -> str:
+        """
+        Helper pour StreamingMicrophoneManager - transcrit PCM bytes directement.
+        
+        Args:
+            pcm_bytes: Données PCM en bytes (int16)
+            sr: Sample rate (doit être 16000 pour compatibilité)
+            
+        Returns:
+            str: Texte transcrit
+        """
+        # Convertir PCM bytes en numpy array float32
+        pcm_array = np.frombuffer(pcm_bytes, dtype=np.int16)
+        audio_float = pcm_array.astype(np.float32) / 32768.0  # Normaliser int16 → float32
+        
+        # Transcription via méthode principale
+        result = await self.transcribe(audio_float)
+        
+        return result.text if result.success else ""
     
     def get_backend_status(self) -> Dict[str, str]:
         """Retourne le statut des backends"""

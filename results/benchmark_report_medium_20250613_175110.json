@@ -1,0 +1,20 @@
+{
+    "metadata": {
+        "model_used": "medium",
+        "test_date": "2025-06-13T15:52:46Z"
+    },
+    "reference_text": "bonjour, ceci est un test de validation pour superwhisper 2.\nje vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription.\npremièrement, des mots simples : chat, chien, maison, voiture, ordinateur, téléphone.\ndeuxièmement, des phrases courtes : il fait beau aujourd'hui. le café est délicieux. j'aime la musique classique.\ntroisièmement, des phrases plus complexes : l'intelligence artificielle transforme notre manière de travailler et de communiquer dans le monde moderne.\nquatrièmement, des termes techniques : algorithme, machine learning, gpu rtx 3090, faster-whisper, quantification int8, latence de transcription.\ncinquièmement, des nombres et dates : vingt-trois, quarante-sept, mille neuf cent quatre-vingt-quinze, le quinze janvier deux mille vingt-quatre.\nsixièmement, des mots difficiles : chrysanthème, anticonstitutionnellement, prestidigitateur, kakémono, yaourt.\nseptièmement, une phrase longue et complexe : l'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitement, et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final.\nfin du test de validation.",
+    "transcribed_text": "bonjour, ceci est un test de validation pour super whispers 2, je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de la transcription.  premièrement des mots simples, char à chien, maison, voiture, ordinateur, téléphone.  deuxièmement des phrases courtes.  il fait bon aujourd'hui, le café est délicieux, j'aime la musique classique.  troisièmement des phrases plus complexes.  la tige artificielle transforme notre manière de travailler et de communiquer dans le monde monarme.  quatrième mot des termes techniques.  agorique, machine learning, gpu, rtx 3090, faster whispers, quantification, identifiant, latence de construction.  sacrement des mauvais dates.  23-47-1995, le 15 janvier 2024.  dixièmement des modificieurs.  dixièmement des phrases longues et complexes.  l'optimisation des performances de transcription vocale.  l'accessibilité d'une approche méthodique.  problème de la sélection appropriée des modèles.  l'ajustement des paramètres de traitement.  et l'implémentation des anonymes de post-traitement.  pour améliorer la qualité du résultat final.  sainte vitesse de validation.  sainte vitesse de validation.",
+    "performance_metrics": {
+        "word_error_rate_percent": 51.95
+    },
+    "operational_metrics": {
+        "chunks_processed": 2251,
+        "chunks_with_voice": 1569,
+        "chunks_filtered_noise": 682,
+        "hallucinations_detected": 0,
+        "transcribed_segments": 1,
+        "average_rms": 0.008657179772853851,
+        "vad_efficiency_percent": 69.70235450910707
+    }
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "test": "Test Phrase Courte",
+    "phrase_reelle": "'Ok, ceci est un test d'enregistrement 1, 2, 3, 4, 5\"",
+    "texte_transcrit": "Ok, ceci est un test d'enregistrement 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 40, 41, 42, 42, 43, 43, 44, 45, 46, 47, 48, 49, 50, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 67, 68, 69, 70, 70, 71, 71, 72, 72, 73, 74, 75, 75, 76, 77, 78, 78, 79, 78, 79, 79, 78, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79,",
+    "latence_ms": 3873.7077713012695,
+    "rtf": 1.2908835333267537,
+    "confiance": 0.6511111068725586,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "insuffisant",
+    "precision_calculee": 81.81818181818183,
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "à_corriger",
+    "timestamp": "2025-06-13T10:04:03.137358"
+  },
+  {
+    "test": "Test Phrase Longue",
+    "phrase_reelle": "'Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de la transcription.'",
+    "texte_transcrit": "Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la  précision de la transcription.",
+    "latence_ms": 732.7253818511963,
+    "rtf": 0.09145777500089025,
+    "confiance": 0.7638020858168602,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "excellent",
+    "precision_calculee": 75.0,
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "validé",
+    "timestamp": "2025-06-13T10:07:57.096214"
+  },
+  {
+    "test": "Test Mots Techniques",
+    "phrase_reelle": "'Intelligence Artificielle, Apprentissage Automatique.'",
+    "texte_transcrit": "Intelligence Artificielle, Apprentissage Automatique.",
+    "latence_ms": 672.8332042694092,
+    "rtf": 0.13452016000519507,
+    "confiance": 0.42500002384185787,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "excellent",
+    "precision_calculee": 50.0,
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "validé",
+    "timestamp": "2025-06-13T10:10:09.826941"
+  }
+]

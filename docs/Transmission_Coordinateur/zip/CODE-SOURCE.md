@@ -1,8 +1,8 @@
 # 💻 CODE SOURCE COMPLET - SuperWhisper V6
 
-**Générée** : 2025-06-12 15:44:29 CET
+**Générée** : 2025-06-13 13:56:26 CET  
 **Mode** : Régénération Complète - TOUT le code source scanné  
-**Commit** : 9f691e2 (main)  
+**Commit** : d2c2331 (main)  
 **Auteur** : VOTRE_VRAI_NOM <modeles@example.com>  
 
 ---
@@ -10,19 +10,19 @@
 ## 📊 RÉSUMÉ PROJET SUPERWHISPER V6
 
 ### **Architecture Complète**
-- **Total fichiers scannés** : 423 fichiers
-- **Mission GPU RTX 3090** : 97 fichiers avec configuration GPU
+- **Total fichiers scannés** : 517 fichiers
+- **Mission GPU RTX 3090** : 123 fichiers avec configuration GPU
 - **Modules principaux** : STT, LLM, TTS, Orchestrator
 - **Infrastructure** : Tests, Config, Scripts, Utils
 
 ### **Informations Git**
-- **Hash** : `9f691e28a95805ac6a91c89b25f45c99634bce6f`
-- **Message** : feat(tts): Consolidation TTS Phase 2 Enterprise - Mission TERMINÃ‰E avec SUCCÃˆS EXCEPTIONNEL - 15+ handlers fragmentÃ©s â†’ 1 UnifiedTTSManager enterprise-grade - Architecture 4-niveaux: PiperNative â†’ PiperCLI â†’ SAPI â†’ SilentEmergency - Performance validÃ©e: Cache 12351x accÃ©lÃ©ration, fallback <5ms - 9/9 fichiers tests validation complexes gÃ©nÃ©rÃ©s (100% succÃ¨s) - 6.6 minutes audio professionnel, 16.63 MB WAV valide - Correction PCMâ†’WAV validÃ©e par ChatGPT et tests utilisateur - SuperWhisper V6 architecture TTS enterprise-grade opÃ©rationnelle
-- **Date** : 2025-06-12 14:41:30 +0200
+- **Hash** : `d2c23315fc1d01ca7cb6907f778585e4bbb72e02`
+- **Message** : docs: Mise Ã  jour documentation Phase 4 STT - Correction VAD rÃ©ussie, test microphone live requis
+- **Date** : 2025-06-13 13:56:04 +0200
 
 ---
 
-## 🔧 STT (11 fichiers)
+## 🔧 STT (37 fichiers)
 
 ### **benchmark_stt_results.json**
 - **Taille** : 74 octets (4 lignes)
@@ -33,6 +33,47 @@
   "insanely_fast": Infinity,
   "faster_whisper": 358.99511973063153
 }
+```
+
+### **requirements_prism_stt.txt**
+- **Taille** : 616 octets (40 lignes)
+- **Type** : .txt
+
+```
+# Dpendances Prism STT - SuperWhisper V6
+# Configuration RTX 3090 (CUDA:1) obligatoire
+
+# Core ML/Audio
+torch>=2.0.0
+torchaudio>=2.0.0
+numpy>=1.21.0
+scipy>=1.7.0
+
+# STT Engine
+faster-whisper>=0.9.0
+ctranslate2>=3.20.0
+
+# Audio Processing
+librosa>=0.9.0
+soundfile>=0.12.0
+pyaudio>=0.2.11
+ffmpeg-python>=0.2.0
+pydub>=0.25.0
+webrtcvad>=2.0.10
+noisereduce>=3.0.0
+
+# Async/Performance
+asyncio
+aiofiles>=23.0.0
+
+# Monitoring
+prometheus-client>=0.17.0
+psutil>=5.9.0
+GPUtil>=1.4.0
+
+# Testing
+pytest>=7.0.0
+py...
 ```
 
 ### **benchmarks\benchmark_stt_realistic.py**
@@ -56,6 +97,83 @@ import sys
 # =============================================================================
 # 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
 # =====================================================...
+```
+
+### **docs\suivi_stt_phase4.md**
+- **Taille** : 16481 octets (371 lignes)
+- **Type** : .md
+
+```markdown
+# 📊 **SUIVI CONSOLIDÉ - PHASE 4 STT SUPERWHISPER V6**
+
+**Date de création** : 12 Juin 2025  
+**Dernière mise à jour** : 13 Juin 2025 - 11:45  
+**Phase** : 4 - Speech-to-Text (STT) Integration  
+**Statut** : 🟡 **CORRECTION VAD RÉUSSIE - TEST MICROPHONE LIVE REQUIS**  
+**Responsable** : Assistant IA Claude  
+
+---
+
+## 🎯 **OBJECTIFS PHASE 4 STT**
+
+### **🔴 OBJECTIFS CRITIQUES**
+- ✅ **Intégration faster-whisper** comme backend principal STT
+- 🟡 **Pipeline voix-à-voix complet** : Correction VAD réussie...
+```
+
+### **scripts\diagnostic_stt_simple.py**
+- **Taille** : 11749 octets (330 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Diagnostic STT Simple - SuperWhisper V6 Phase 4
+🔧 DIAGNOSTIC: Identifier le problème VAD avec méthode synchrone
+
+Mission: Identifier précisément où se bloque la transcription
+"""
+
+import os
+import sys
+import time
+import numpy as np
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+o...
+```
+
+### **STT\cache_manager.py**
+- **Taille** : 11090 octets (330 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Cache Manager STT - SuperWhisper V6 Phase 4
+Cache LRU pour résultats de transcription avec TTL et métriques
+"""
+
+import time
+import hashlib
+import numpy as np
+from typing import Dict, Any, Optional, Tuple, List
+from collections import OrderedDict
+from dataclasses import dataclass
+
+@dataclass
+class CacheEntry:
+    """Entrée de cache avec métadonnées"""
+    value: Dict[str, Any]
+    timestamp: float
+    size: int
+    access_count: int = 0
+    last_access: float = 0.0
+
+cl...
 ```
 
 ### **STT\stt_handler.py**
@@ -98,6 +216,33 @@ import sys
 # 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
 # =============================================================================
 # RTX 5060 Ti (CUDA:0) = INTERDITE ...
+```
+
+### **STT\unified_stt_manager.py**
+- **Taille** : 17268 octets (453 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+UnifiedSTTManager - SuperWhisper V6 Phase 4
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+from typing import Dict, Any, Optional, List
+import asyncio
+import time
+import hashlib
+import numpy as np
+import torch
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from collections import OrderedDict
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 30...
 ```
 
 ### **STT\vad_manager.py**
@@ -145,14 +290,436 @@ import sys
 ```
 
 ### **STT\__init__.py**
-- **Taille** : 13 octets (1 lignes)
+- **Taille** : 764 octets (23 lignes)
 - **Type** : .py
 
-```
-# STT Module 
+```python
+#!/usr/bin/env python3
+"""
+Module STT - SuperWhisper V6 Phase 4
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+# Configuration GPU obligatoire pour tout le module STT
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎤 Module STT - Configuration GPU RTX 3090 (CUDA:1) forcée")
+print(f"...
 ```
 
-### **tests\test_stt_handler.py**
+### **docs\!Phase_4_STT\prism_whisper2_analysis.md**
+- **Taille** : 6105 octets (191 lignes)
+- **Type** : .md
+
+```markdown
+# 📊 **ANALYSE PRISM_WHISPER2 - INTÉGRATION SUPERWHISPER V6**
+
+## 🎯 **RÉSUMÉ EXÉCUTIF**
+
+**Prism_Whisper2** est votre projet de transcription vocale Windows optimisé RTX, avec des performances exceptionnelles de **4.5s** pour la transcription (vs 7-8s baseline = **-40% latence**).
+
+### **🏆 POINTS FORTS IDENTIFIÉS**
+- ✅ **Architecture mature** : Phase 1 terminée avec succès
+- ✅ **Optimisations RTX** : GPU Memory Optimizer, buffers pinned
+- ✅ **faster-whisper** : Intégration native avec compute_typ...
+```
+
+### **docs\!Phase_4_STT\prompt_transmission_phase4.md**
+- **Taille** : 24248 octets (562 lignes)
+- **Type** : .md
+
+```markdown
+# 🚀 **PROMPT TRANSMISSION PHASE 4 STT - SUPERWHISPER V6**
+
+**Date de transmission** : 13 Juin 2025 - 11:45  
+**Phase** : 4 - Speech-to-Text (STT) Integration  
+**Statut** : 🎯 **CORRECTION VAD RÉUSSIE - VALIDATION FINALE REQUISE**  
+**Mission** : Finalisation STT après correction technique VAD (+492% amélioration)  
+
+---
+
+## 🎯 **MISSION IMMÉDIATE - PHASE 4 STT**
+
+### **🔴 OBJECTIF PRINCIPAL**
+Intégrer **Prism_Whisper2** comme backend STT principal pour créer un **pipeline voix-à-voix complet** (ST...
+```
+
+### **docs\!Phase_4_STT\prompt_transmission_phase4_correction_vad.md**
+- **Taille** : 14000 octets (375 lignes)
+- **Type** : .md
+
+```markdown
+# 🚀 **PROMPT TRANSMISSION PHASE 4 STT - CORRECTION VAD CRITIQUE**
+
+**Date de transmission** : 13 Juin 2025 - 10:30  
+**Phase** : 4 - Speech-to-Text (STT) - CORRECTION VAD OBLIGATOIRE  
+**Statut** : 🚨 **PROBLÈME CRITIQUE IDENTIFIÉ - CORRECTION IMMÉDIATE REQUISE**  
+**Mission** : Corriger Voice Activity Detection (VAD) pour transcription complète  
+
+---
+
+## 🚨 **PROBLÈME CRITIQUE IDENTIFIÉ - BLOCAGE MAJEUR**
+
+### **❌ SYMPTÔME PRINCIPAL**
+- **Transcription incomplète** : STT s'arrête après seulement...
+```
+
+### **docs\!Phase_4_STT\resume_mise_a_jour.md**
+- **Taille** : 4671 octets (115 lignes)
+- **Type** : .md
+
+```markdown
+# 📋 MISE À JOUR DOCUMENTATION COMPLÈTE - PHASE 4 STT
+
+**Date de mise à jour** : 13 Juin 2025 - 11:45  
+**Statut** : ✅ TOUS DOCUMENTS MIS À JOUR  
+**Raison** : Intégration des résultats de la correction VAD critique réussie  
+
+---
+
+## 🎯 RÉSUMÉ DES RÉSULTATS PHASE 4
+
+### **🏆 SUCCÈS TECHNIQUE MAJEUR**
+- **Problème critique résolu** : Transcription partielle (25/155 mots → 148/155 mots)
+- **Amélioration spectaculaire** : +492% d'amélioration de performance
+- **Qualité transcription** : 107.2% de cou...
+```
+
+### **docs\01_phase_1\ROBUST_STT_MANAGER_SYNTHESIS.md**
+- **Taille** : 10444 octets (269 lignes)
+- **Type** : .md
+
+```markdown
+# RobustSTTManager - Synthèse Technique Complète
+## Projet LUXA - SuperWhisper_V6 - Phase 1 Tâche 2
+
+**Date**: 2025-01-09  
+**Statut**: ✅ COMPLÉTÉ - Toutes sous-tâches validées  
+**Conformité**: 100% Plan de Développement LUXA Final  
+
+---
+
+## 🎯 Résumé Exécutif
+
+### Objectif Accompli
+Remplacement réussi du handler STT MVP par un gestionnaire robuste production-ready avec validation obligatoire en conditions réelles. Migration complète de `stt_handler.py` vers `stt_manager_robust.py` en utilisant...
+```
+
+### **docs\!Phase_4_STT\!correction_VAD\bilan_final_correction_vad.md**
+- **Taille** : 5572 octets (148 lignes)
+- **Type** : .md
+
+```markdown
+# 🎊 **BILAN FINAL - CORRECTION VAD SUPERWHISPER V6 PHASE 4**
+
+## 📋 **MISSION ACCOMPLIE**
+
+### **Problème Original Résolu ✅**
+- **Issue** : STT s'arrêtait après 25 mots sur 155 mots fournis (16% seulement)
+- **Cause identifiée** : Paramètres VAD par défaut trop agressifs
+- **Solution appliquée** : Paramètres VAD optimisés dans `prism_stt_backend.py`
+
+### **Date/Heure Correction**
+- **Intervention** : 2025-06-13 11:03:07 → 11:40:42
+- **Durée totale** : ~37 minutes
+- **Agent** : Claude Sonnet 4 (Cu...
+```
+
+### **docs\!Phase_4_STT\!correction_VAD\correction_vad_resume.md**
+- **Taille** : 6263 octets (183 lignes)
+- **Type** : .md
+
+```markdown
+# 🔧 **RÉSUMÉ CORRECTION VAD - SUPERWHISPER V6 PHASE 4**
+
+## 📋 **ÉTAT MISSION**
+
+### **Problème EN COURS** ❌
+- **Issue critique** : Transcription incomplète (25 mots sur 155)
+- **Cause identifiée** : Paramètres VAD incompatibles avec faster-whisper
+- **Tentative correction** : Paramètres VAD ajustés mais erreur technique détectée
+- **Status actuel** : **BLOCAGE TECHNIQUE - Correction requise**
+
+### **Date/Heure Dernière Intervention**
+- **Timestamp** : 2025-06-13 11:30:00
+- **Durée investigation*...
+```
+
+### **docs\!Phase_4_STT\!correction_VAD\demande_aide_technique_vad.md**
+- **Taille** : 11119 octets (336 lignes)
+- **Type** : .md
+
+```markdown
+# 🆘 **DEMANDE AIDE TECHNIQUE - PROBLÈME VAD SUPERWHISPER V6**
+
+**Date :** 13 Juin 2025 - 11:50  
+**Projet :** SuperWhisper V6 Phase 4 STT  
+**Problème :** 🚨 **BLOCAGE TECHNIQUE VAD - CORRECTION REQUISE**  
+**Urgence :** **CRITIQUE** - Bloque validation finale Phase 4  
+**Configuration :** RTX 3090 (CUDA:1) exclusive, Windows 10  
+
+---
+
+## 🎯 **RÉSUMÉ PROBLÈME CRITIQUE**
+
+### **Symptôme Principal**
+- **Transcription incomplète** : STT s'arrête après **25 mots sur 155** (16% seulement)
+- **Validati...
+```
+
+### **STT\backends\base_stt_backend.py**
+- **Taille** : 5231 octets (153 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Interface de base pour tous les backends STT - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Dict, Any, Optional, List
+import numpy as np
+import time
+
+# Configuration GPU RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des ...
+```
+
+### **STT\backends\prism_stt_backend.py**
+- **Taille** : 17278 octets (437 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Backend STT utilisant Prism_Whisper2 - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Intégration du projet Prism_Whisper2 optimisé pour RTX 3090
+Performance cible: 4.5s → < 400ms avec optimisations SuperWhisper V6
+"""
+
+import os
+import sys
+import time
+import asyncio
+import numpy as np
+import logging
+from typing import Dict, Any, Optional
+from pathlib import Path
+
+# =============================================================================
+# 🚨 C...
+```
+
+### **STT\backends\__init__.py**
+- **Taille** : 561 octets (19 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Module STT Backends - SuperWhisper V6 Phase 4
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Backends STT avec fallback intelligent :
+1. PrismSTTBackend (Principal) - Prism_Whisper2 RTX 3090
+2. WhisperDirectBackend (Fallback 1) - faster-whisper direct
+3. WhisperCPUBackend (Fallback 2) - CPU whisper
+4. OfflineSTTBackend (Urgence) - Windows Speech API
+"""
+
+from .base_stt_backend import BaseSTTBackend
+from .prism_stt_backend import PrismSTTBackend
+
+__all__ = [
+    'B...
+```
+
+### **STT\config\stt_config.py**
+- **Taille** : 7256 octets (196 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Configuration STT principale - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Configuration centralisée pour tous les backends STT
+"""
+
+import os
+from dataclasses import dataclass, field
+from typing import Dict, Any, List, Optional
+from pathlib import Path
+
+@dataclass
+class BackendConfig:
+    """Configuration pour un backend STT spécifique"""
+    name: str
+    enabled: bool = True
+    priority: int = 1  # Plus bas = plus prioritaire
+    config: Dic...
+```
+
+### **STT\config\__init__.py**
+- **Taille** : 316 octets (15 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Configuration STT - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Gestion centralisée de la configuration STT
+"""
+
+from .stt_config import STTConfig, BackendConfig, CacheConfig
+
+__all__ = [
+    'STTConfig',
+    'BackendConfig', 
+    'CacheConfig'
+] 
+```
+
+### **STT\utils\audio_utils.py**
+- **Taille** : 6226 octets (191 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Utilitaires de traitement audio - SuperWhisper V6 STT
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Traitement et validation audio pour STT
+"""
+
+import numpy as np
+import logging
+from typing import Tuple, Optional
+import hashlib
+
+logger = logging.getLogger(__name__)
+
+class AudioProcessor:
+    """Processeur audio optimisé pour STT SuperWhisper V6"""
+    
+    TARGET_SAMPLE_RATE = 16000  # Whisper standard
+    TARGET_CHANNELS = 1  # Mono
+    
+    @staticmethod
+    d...
+```
+
+### **STT\utils\__init__.py**
+- **Taille** : 411 octets (18 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Utilitaires STT - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Utilitaires communs pour le module STT
+"""
+
+from .audio_utils import AudioProcessor, validate_audio_format
+from .cache_utils import STTCache
+from .metrics_utils import STTMetrics
+
+__all__ = [
+    'AudioProcessor',
+    'validate_audio_format',
+    'STTCache',
+    'STTMetrics'
+] 
+```
+
+### **tests\STT\test_prism_backend.py**
+- **Taille** : 7233 octets (199 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Tests PrismSTTBackend - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Tests unitaires pour le backend Prism STT
+"""
+
+import os
+import sys
+import unittest
+import numpy as np
+import asyncio
+from unittest.mock import Mock, patch
+
+# Configuration GPU RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+# Ajouter le chemin du module...
+```
+
+### **tests\STT\test_prism_integration.py**
+- **Taille** : 16527 octets (446 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Tests d'intégration PrismSTTBackend avec faster-whisper - RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'P...
+```
+
+### **tests\STT\test_prism_simple.py**
+- **Taille** : 6914 octets (200 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test simple intégration faster-whisper - RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ord...
+```
+
+### **tests\STT\test_stt_handler.py**
 - **Taille** : 22127 octets (495 lignes)
 - **Type** : .py
 
@@ -181,7 +748,77 @@ class TestSTTHandler:
         """Co...
 ```
 
-### **tests\test_validation_stt_manager_robust.py**
+### **tests\STT\test_stt_performance.py**
+- **Taille** : 11436 octets (307 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Tests Performance STT - SuperWhisper V6 Phase 4
+Validation objectif < 400ms latence avec RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.en...
+```
+
+### **tests\STT\test_unified_stt_manager.py**
+- **Taille** : 14324 octets (388 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Tests UnifiedSTTManager - SuperWhisper V6 Phase 4
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ord...
+```
+
+### **tests\STT\test_vad_manager.py**
+- **Taille** : 24778 octets (593 lignes)
+- **Type** : .py
+
+```python
+import pytest
+import numpy as np
+import torch
+import time
+import asyncio
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
+import sys
+from pathlib import Path
+
+# Ajouter le répertoire parent au path pour les imports
+sys.path.append(str(Path(__file__).parent.parent))
+
+from STT.vad_manager import OptimizedVADManager
+
+class TestOptimizedVADManager:
+    """Tests unitaires pour STT/vad_manager.py avec coverage 85%"""
+    
+    @pytest.fixture
+    def vad_manager(self):
+        """Fixture VAD...
+```
+
+### **tests\STT\test_validation_stt_manager_robust.py**
 - **Taille** : 5129 octets (151 lignes)
 - **Type** : .py
 
@@ -208,7 +845,7 @@ def test_stt_manager_gpu_config():
     if 'CUDA_VISIBLE_DEVICES...
 ```
 
-### **tests\test_workflow_stt_llm_tts_rtx3090.py**
+### **tests\STT\test_workflow_stt_llm_tts_rtx3090.py**
 - **Taille** : 16378 octets (381 lignes)
 - **Type** : .py
 
@@ -235,24 +872,18 @@ from typing import Dict, List, Any, Optional
 # 🚨 CONFIGURATIO...
 ```
 
-### **docs\01_phase_1\ROBUST_STT_MANAGER_SYNTHESIS.md**
-- **Taille** : 10444 octets (269 lignes)
-- **Type** : .md
+### **tests\STT\__init__.py**
+- **Taille** : 145 octets (7 lignes)
+- **Type** : .py
 
-```markdown
-# RobustSTTManager - Synthèse Technique Complète
-## Projet LUXA - SuperWhisper_V6 - Phase 1 Tâche 2
+```
+#!/usr/bin/env python3
+"""
+Tests STT - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 
-**Date**: 2025-01-09  
-**Statut**: ✅ COMPLÉTÉ - Toutes sous-tâches validées  
-**Conformité**: 100% Plan de Développement LUXA Final  
-
----
-
-## 🎯 Résumé Exécutif
-
-### Objectif Accompli
-Remplacement réussi du handler STT MVP par un gestionnaire robuste production-ready avec validation obligatoire en conditions réelles. Migration complète de `stt_handler.py` vers `stt_manager_robust.py` en utilisant...
+Tests pour le module STT
+""" 
 ```
 
 ---
@@ -312,7 +943,7 @@ import sys
 # LLM Module 
 ```
 
-### **tests\demo_enhanced_llm_interface.py**
+### **tests\test_llm_handler\demo_enhanced_llm_interface.py**
 - **Taille** : 9452 octets (242 lignes)
 - **Type** : .py
 
@@ -337,7 +968,7 @@ async def demo_conversation_interface():
     """Démonstration interactive de l'interface conversationnel...
 ```
 
-### **tests\test_enhanced_llm_manager.py**
+### **tests\test_llm_handler\test_enhanced_llm_manager.py**
 - **Taille** : 9432 octets (247 lignes)
 - **Type** : .py
 
@@ -364,7 +995,7 @@ logger = logging.getLogger(__name__)
 sys.path.insert(0, str(Path(__file__).resolve().pare...
 ```
 
-### **tests\test_llm_handler.py**
+### **tests\test_llm_handler\test_llm_handler.py**
 - **Taille** : 2827 octets (78 lignes)
 - **Type** : .py
 
@@ -389,105 +1020,7 @@ def test_llm_handler_initialization(mock_llama, mock_config):
 
 ---
 
-## 🔧 TTS (51 fichiers)
-
-### **CONSOLIDATION_TTS_RAPPORT_FINAL.md**
-- **Taille** : 6367 octets (188 lignes)
-- **Type** : .md
-
-```markdown
-# 🏆 RAPPORT FINAL - CONSOLIDATION TTS SUPERWHISPER V6
-
-## 📋 RÉSUMÉ EXÉCUTIF
-
-**Mission accomplie avec succès !** La consolidation TTS de SuperWhisper V6 est **TERMINÉE** avec un résultat exceptionnel dépassant toutes les attentes.
-
-### 🎯 OBJECTIFS ATTEINTS
-
-✅ **Consolidation complète** : 15+ handlers TTS fragmentés → 1 UnifiedTTSManager enterprise  
-✅ **Architecture 4-niveaux** : PiperNative → PiperCLI → SAPI → SilentEmergency  
-✅ **Performance validée** : Fallback automatique <5ms, cache 12351x...
-```
-
-### **test_tts_handler.py**
-- **Taille** : 2832 octets (82 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test du TTSHandler avec le modèle fr_FR-siwis-medium
-"""
-
-import yaml
-import sys
-from pathlib import Path
-
-# Ajouter le répertoire courant au PYTHONPATH
-sys.path.append(str(Path(__file__).parent))
-
-def test_tts_handler():
-    """Test du TTSHandler avec le modèle siwis"""
-    
-    print("🧪 Test du TTSHandler avec modèle fr_FR-siwis-medium")
-    print("=" * 60)
-    
-    try:
-        # Charger la configuration
-        with open("Config/mvp_settings.yaml", 'r') as f:
-     ...
-```
-
-### **test_tts_module.py**
-- **Taille** : 2882 octets (76 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test du module TTS/ - Synthèse vocale française
-🎵 Test de validation du module TTS principal
-"""
-
-import sys
-import os
-sys.path.append('.')
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_B...
-```
-
-### **test_tts_real.py**
-- **Taille** : 2430 octets (69 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Script de test pratique pour validation manuelle pendant l'implémentation.
-Génère des fichiers audio réels pour écoute et validation.
-"""
-
-import asyncio
-import time
-import yaml
-from pathlib import Path
-import os
-import sys
-
-# Configuration GPU RTX 3090 obligatoire
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Import du manager unifié
-sys.path.append('.')
-from TTS.tts_manager import UnifiedTTSManager
-
-async def test_real_tts...
-```
+## 🔧 TTS (82 fichiers)
 
 ### **config\tts.yaml**
 - **Taille** : 5522 octets (135 lignes)
@@ -507,68 +1040,6 @@ enable_piper_native: true
 # ===================================================================
 # CONFIGURATION DES BACKENDS
 # ===...
-```
-
-### **docs\suivi_consolidation_tts_phase2.md**
-- **Taille** : 12693 octets (258 lignes)
-- **Type** : .md
-
-```markdown
-# 📋 SUIVI CONSOLIDATION TTS PHASE 2 ENTERPRISE
-
-**Date de début :** 2025-06-12  
-**Date de fin :** 2025-06-12  
-**Mission :** Consolidation 15→4 handlers TTS avec UnifiedTTSManager enterprise-grade  
-**Référence :** docs/prompt.md (code expert obligatoire)  
-**Plan :** docs/dev_plan.md (5.5 jours)  
-**PRD :** docs/prd.md (spécifications techniques)  
-
----
-
-## 🏆 **MISSION TERMINÉE AVEC SUCCÈS EXCEPTIONNEL**
-
-### **✅ TOUTES LES PHASES COMPLÉTÉES**
-- ✅ **Phase 0 TERMINÉE** : Archivage sécurisé + Gi...
-```
-
-### **Echange_autres_ia\20250612_1430_v1_tts_consolidation.md**
-- **Taille** : 58924 octets (1276 lignes)
-- **Type** : .md
-
-```markdown
-# 🎯 CONSULTATION AVIS ALTERNATIF - CONSOLIDATION TTS SUPERWHISPER V6
-
-**Timestamp :** 2025-06-12 14:30  
-**Version :** v1  
-**Phase :** TTS Consolidation  
-**Objectif :** Solliciter avis alternatif sur stratégie consolidation TTS
-
----
-
-## 📋 PARTIE 1 : CONTEXTE COMPLET
-
-### 🎯 **VISION GLOBALE**
-
-**SuperWhisper V6 (LUXA)** est un **assistant vocal intelligent 100% local** avec une architecture modulaire STT → LLM → TTS. L'objectif est de créer une expérience voix-à-voix naturelle sans dépendance c...
-```
-
-### **Echange_autres_ia\20251212_1332_v1_consolidation_tts_phase2.md**
-- **Taille** : 6617 octets (160 lignes)
-- **Type** : .md
-
-```markdown
-# 🤖 DEMANDE D'AVIS TIERS - CONSOLIDATION TTS SUPERWHISPER V6 PHASE 2 ENTERPRISE
-
-**Date :** 2025-12-12 13:32  
-**Version :** v1  
-**Phase :** Consolidation TTS Phase 2 Enterprise  
-**Objectif :** Obtenir un avis alternatif sur l'architecture et l'implémentation  
-
----
-
-## 📋 **CONTEXTE DE LA DEMANDE**
-
-Nous sollicitons un **avis technique externe** sur notre projet de consolidation TTS pour SuperWhisper V6. Le projet a été mené avec succès mais nous souhaitons une **perspective alternative** pour...
 ```
 
 ### **scripts\demo_tts.py**
@@ -593,280 +1064,6 @@ from pathlib import Path
 # 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
 # =============================================================================
 os.environ['CUDA_VISI...
-```
-
-### **tests\test_luxa_edge_tts_francais.py**
-- **Taille** : 3963 octets (118 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST LUXA_TTS - Microsoft Edge TTS FRANÇAIS
-🚨 RTX 3090 (CUDA:1) - VOIX FRANÇAISE PREMIUM MICROSOFT
-"""
-
-import os
-import sys
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU RTX 3090 configurée")
-print("🇫🇷 TEST LUXA_TTS - MICROSOFT EDGE TTS FRANÇAIS")
-
-def test_luxa_edge_tts():
-    """Test LUXA_TTS avec Microsoft Ed...
-```
-
-### **tests\test_tts_fixed.py**
-- **Taille** : 3322 octets (98 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test du handler TTS Piper corrigé avec phonémisation correcte
-"""
-
-import sys
-import os
-import time
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_tts_fixed():
-    """Test du handler TTS corrigé"""
-    
-    print("🔧 TEST TTS PIPER CORRIGÉ")
-    print(...
-```
-
-### **tests\test_tts_fonctionnel.py**
-- **Taille** : 5455 octets (155 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test fonctionnel complet du système TTS Piper
-Synthèse vocale réelle avec modèle français
-"""
-
-import sys
-import os
-import time
-import traceback
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_piper_synthesis():
-    """Test de synthèse vocale complète avec Piper"""
-    
-    print("🎯 Test fonctionnel TTS Piper")
-    print("=" * 50)
-    
-    # Configuration du test
-    config = {
-  ...
-```
-
-### **tests\test_tts_handler.py**
-- **Taille** : 4758 octets (116 lignes)
-- **Type** : .py
-
-```python
-import pytest
-from unittest.mock import patch, MagicMock, mock_open
-import numpy as np
-import json
-
-# Since the module sets environment variables on import, 
-# we need to patch os.environ BEFORE importing the module.
-with patch('os.environ', return_value={}) as mock_env:
-    from TTS.tts_handler_piper_fixed import TTSHandlerPiperFixed
-
-@pytest.fixture
-def mock_tts_config():
-    """Provides a mock configuration for the TTS Handler."""
-    return {
-        'model_path': 'D:\\TTS_Voices\\piper\\fr_...
-```
-
-### **tests\test_tts_long_feedback.py**
-- **Taille** : 7847 octets (164 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test TTS Piper avec textes longs pour feedback qualité vocale
-Évaluation complète de la compréhensibilité et prosodie
-"""
-
-import sys
-import os
-import time
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_tts_feedback_long():
-    """Test TTS avec textes...
-```
-
-### **tests\test_tts_manager_integration.py**
-- **Taille** : 19335 octets (485 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Tests d'Intégration TTS Manager - SuperWhisper V6
-Tests automatisés pytest pour validation complète du système TTS
-🚀 Phase 3 - Validation format WAV, latence et stress
-"""
-
-import os
-import sys
-import pytest
-import asyncio
-import time
-import io
-import wave
-import logging
-from pathlib import Path
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =======================================...
-```
-
-### **tests\test_tts_mvp_final.py**
-- **Taille** : 4898 octets (137 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test final TTS MVP avec voix française Windows (Microsoft Hortense)
-"""
-
-import sys
-import os
-import time
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_tts_mvp_final():
-    """Test final TTS MVP français"""
-    
-    print("🇫🇷 TEST FINAL TTS MVP FRANÇAIS")
-    print("=" * 60)
-    print("🎯 Objectif: Valider le handler MVP avec Microsoft Hortense")
-    print("📋 Contexte: Voix franç...
-```
-
-### **tests\test_tts_piper_direct_BUG.py**
-- **Taille** : 3610 octets (110 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test fonctionnel du nouveau handler TTS Piper Direct
-"""
-
-import sys
-import os
-import time
-import traceback
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_piper_direct():
-    """Test complet du handler TTS Piper Direct"""
-    
-    print("🎯 TEST TTS PIPER DIRECT")
-    print("=" * 50)
-    
-    # Configuration du test
-    config = {
-        'model_path': 'D:\\TTS_Voices\\piper\\fr_F...
-```
-
-### **tests\test_tts_rtx3090_performance.py**
-- **Taille** : 6406 octets (162 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test de performance TTS Piper avec RTX 3090
-- Configuration GPU correcte
-- Résolution DLLs CUDA
-- Benchmark de performance
-"""
-
-import sys
-import os
-import time
-import traceback
-
-# Configuration RTX 3090 AVANT tous les imports
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire PyTorch au PATH pour les DLLs CUDA
-torch_lib_path = os.path.join(os.getcwd(), 'venv_piper312...
-```
-
-### **tests\test_validation_tts_performance.py**
-- **Taille** : 4748 octets (140 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-VALIDATION FACTUELLE - test_tts_rtx3090_performance.py
-Test pour vérifier que le script utilise RTX 3090 (CUDA:0)
-"""
-
-import os
-import torch
-import subprocess
-import sys
-
-def test_tts_performance_config():
-    """Test factuel de la configuration dans le script de performance"""
-    print("🔍 VALIDATION - test_tts_rtx3090_performance.py")
-    print("="*50)
-    
-    # Lire le contenu du fichier
-    script_path = "test_tts_rtx3090_performance.py"
-    
-    try:
-        wit...
 ```
 
 ### **TTS\test_unified_tts.py**
@@ -1173,6 +1370,24 @@ Implémenter l'architecture **UnifiedTTSManager enterprise-grade** en utilisant 
 ### **🔥 INSTRUC...
 ```
 
+### **docs\01_phase_1\CONSOLIDATION_TTS_RAPPORT_FINAL.md**
+- **Taille** : 6367 octets (188 lignes)
+- **Type** : .md
+
+```markdown
+# 🏆 RAPPORT FINAL - CONSOLIDATION TTS SUPERWHISPER V6
+
+## 📋 RÉSUMÉ EXÉCUTIF
+
+**Mission accomplie avec succès !** La consolidation TTS de SuperWhisper V6 est **TERMINÉE** avec un résultat exceptionnel dépassant toutes les attentes.
+
+### 🎯 OBJECTIFS ATTEINTS
+
+✅ **Consolidation complète** : 15+ handlers TTS fragmentés → 1 UnifiedTTSManager enterprise  
+✅ **Architecture 4-niveaux** : PiperNative → PiperCLI → SAPI → SilentEmergency  
+✅ **Performance validée** : Fallback automatique <5ms, cache 12351x...
+```
+
 ### **docs\01_phase_1\DEBUG_TTS_FRENCH_VOICE_ISSUE.md**
 - **Taille** : 15483 octets (417 lignes)
 - **Type** : .md
@@ -1192,6 +1407,1226 @@ Implémenter l'architecture **UnifiedTTSManager enterprise-grade** en utilisant 
 
 **Contexte critique**:
 - Le ...
+```
+
+### **docs\01_phase_1\suivi_consolidation_tts_phase2.md**
+- **Taille** : 12693 octets (258 lignes)
+- **Type** : .md
+
+```markdown
+# 📋 SUIVI CONSOLIDATION TTS PHASE 2 ENTERPRISE
+
+**Date de début :** 2025-06-12  
+**Date de fin :** 2025-06-12  
+**Mission :** Consolidation 15→4 handlers TTS avec UnifiedTTSManager enterprise-grade  
+**Référence :** docs/prompt.md (code expert obligatoire)  
+**Plan :** docs/dev_plan.md (5.5 jours)  
+**PRD :** docs/prd.md (spécifications techniques)  
+
+---
+
+## 🏆 **MISSION TERMINÉE AVEC SUCCÈS EXCEPTIONNEL**
+
+### **✅ TOUTES LES PHASES COMPLÉTÉES**
+- ✅ **Phase 0 TERMINÉE** : Archivage sécurisé + Gi...
+```
+
+### **docs\01_phase_1\TESTS_COMPLETION_REPORT_TTS.md**
+- **Taille** : 6700 octets (189 lignes)
+- **Type** : .md
+
+```markdown
+# 🧪 **RAPPORT DE COMPLÉTION DES TESTS TTS - SUPERWHISPER V6**
+
+**Date**: 12 Décembre 2025  
+**Phase**: 3 - Optimisation et Tests Complets  
+**Statut**: ✅ **COMPLÉTÉ AVEC SUCCÈS**
+
+---
+
+## 📋 **RÉSUMÉ EXÉCUTIF**
+
+Suite à votre demande de compléter les tests avec la proposition d'automatisation pytest, nous avons créé une **suite complète de tests professionnelle** pour le système TTS SuperWhisper V6. L'implémentation couvre tous les aspects critiques : validation format WAV, tests de latence, stre...
+```
+
+### **docs\Echange_autres_ia\20250612_1430_v1_tts_consolidation.md**
+- **Taille** : 58924 octets (1276 lignes)
+- **Type** : .md
+
+```markdown
+# 🎯 CONSULTATION AVIS ALTERNATIF - CONSOLIDATION TTS SUPERWHISPER V6
+
+**Timestamp :** 2025-06-12 14:30  
+**Version :** v1  
+**Phase :** TTS Consolidation  
+**Objectif :** Solliciter avis alternatif sur stratégie consolidation TTS
+
+---
+
+## 📋 PARTIE 1 : CONTEXTE COMPLET
+
+### 🎯 **VISION GLOBALE**
+
+**SuperWhisper V6 (LUXA)** est un **assistant vocal intelligent 100% local** avec une architecture modulaire STT → LLM → TTS. L'objectif est de créer une expérience voix-à-voix naturelle sans dépendance c...
+```
+
+### **docs\Echange_autres_ia\20251212_1332_v1_consolidation_tts_phase2.md**
+- **Taille** : 6617 octets (160 lignes)
+- **Type** : .md
+
+```markdown
+# 🤖 DEMANDE D'AVIS TIERS - CONSOLIDATION TTS SUPERWHISPER V6 PHASE 2 ENTERPRISE
+
+**Date :** 2025-12-12 13:32  
+**Version :** v1  
+**Phase :** Consolidation TTS Phase 2 Enterprise  
+**Objectif :** Obtenir un avis alternatif sur l'architecture et l'implémentation  
+
+---
+
+## 📋 **CONTEXTE DE LA DEMANDE**
+
+Nous sollicitons un **avis technique externe** sur notre projet de consolidation TTS pour SuperWhisper V6. Le projet a été mené avec succès mais nous souhaitons une **perspective alternative** pour...
+```
+
+### **docs\Transmission_Coordinateur\TRANSMISSION_PHASE3_TTS_COMPLETE.md**
+- **Taille** : 10747 octets (291 lignes)
+- **Type** : .md
+
+```markdown
+# 🚀 TRANSMISSION COORDINATEUR - PHASE 3 TTS COMPLÉTÉE AVEC SUCCÈS
+
+**Projet** : SuperWhisper V6 - Assistant IA Conversationnel  
+**Phase** : Phase 3 - Optimisation et Déploiement TTS  
+**Date Transmission** : 12 Juin 2025 - 15:35  
+**Statut** : ✅ **PHASE 3 TERMINÉE AVEC SUCCÈS EXCEPTIONNEL**  
+**Responsable** : Assistant IA Claude  
+
+---
+
+## 🎯 **RÉSUMÉ EXÉCUTIF**
+
+### **Mission Accomplie**
+La Phase 3 TTS de SuperWhisper V6 a été **complétée avec un succès exceptionnel**, dépassant tous les objec...
+```
+
+### **tests\TTS_test_de_vois\test_4_handlers_validation.py**
+- **Taille** : 8875 octets (220 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test de validation des 4 handlers TTS candidats
+🎯 Objectif: Valider fonctionnalité avant consolidation 15→4
+"""
+
+import os
+import sys
+import time
+import asyncio
+import importlib.util
+from pathlib import Path
+
+# 🚨 CONFIGURATION GPU RTX 3090 OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 GPU Configuration: RTX 3090 (CUD...
+```
+
+### **tests\TTS_test_de_vois\test_correction_format_audio.py**
+- **Taille** : 8232 octets (231 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test immédiat des corrections format audio - SuperWhisper V6 TTS
+Valide que les fichiers Piper génèrent maintenant des WAV valides
+"""
+
+import os
+import sys
+import asyncio
+import yaml
+import time
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = ...
+```
+
+### **tests\TTS_test_de_vois\test_correction_validation_1.py**
+- **Taille** : 3030 octets (79 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION CORRECTION 1 : tests/test_stt_handler.py
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
+"""
+
+import os
+import sys
+import torch
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
+print("🎮 Test Validation: RTX 3090 (CUDA:0) forcé...
+```
+
+### **tests\TTS_test_de_vois\test_correction_validation_2.py**
+- **Taille** : 4262 octets (106 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION CORRECTION 2 : utils/gpu_manager.py
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
+"""
+
+import os
+import sys
+import torch
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
+print("🎮 Test Validation: RTX 3090 (CUDA:0) forcée")
+p...
+```
+
+### **tests\TTS_test_de_vois\test_correction_validation_3.py**
+- **Taille** : 3034 octets (78 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION CORRECTION 3 : tests/test_llm_handler.py
+🚨 CONFIGURATION GPU: RTX 3090 (INDEX 0) OBLIGATOIRE
+"""
+
+import os
+import sys
+import torch
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
+print("🎮 Test Validation: RTX 3090 (CUDA:0) forc...
+```
+
+### **tests\TTS_test_de_vois\test_correction_validation_4.py**
+- **Taille** : 3167 octets (83 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION CORRECTION 4 : STT/vad_manager.py
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
+"""
+
+import os
+import sys
+import torch
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
+print("🎮 Test Validation: RTX 3090 (CUDA:0) forcée")
+pri...
+```
+
+### **tests\TTS_test_de_vois\test_diagnostic_rtx3090.py**
+- **Taille** : 3813 octets (109 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test détection GPU RTX 3090 - Configuration double GPU
+Vérifier si CUDA_VISIBLE_DEVICES='1' fonctionne correctement
+"""
+
+import os
+import sys
+
+# Configuration RTX 3090 (comme dans tous les autres scripts)
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+def test_gpu_detection():
+    """Test détection GPU avec configuration RTX 3090"""
+    print("🔍 TEST DÉTECTION GPU RTX 3090")
+    print("=" * 40)
+    
+    # Test ...
+```
+
+### **tests\TTS_test_de_vois\test_espeak_french.py**
+- **Taille** : 3568 octets (102 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test voix française avec espeak-ng authentique
+"""
+
+import sys
+import os
+import time
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_espeak_french():
+    """Test voix française avec espeak-ng"""
+    
+    print("🇫🇷 TEST VOIX FRANÇAISE ESPEAK-NG")
+    pr...
+```
+
+### **tests\TTS_test_de_vois\test_fallback_real.py**
+- **Taille** : 2205 octets (55 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test pratique du système de fallback avec simulation de pannes.
+"""
+
+import asyncio
+import yaml
+import os
+import sys
+
+# Configuration GPU RTX 3090 obligatoire
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Import du manager unifié
+sys.path.append('.')
+from TTS.tts_manager import UnifiedTTSManager
+
+async def test_fallback_simulation():
+    print("🔧 TEST FALLBACK RÉEL - Simulation pannes")
+    
+    with open('config/tts.yaml', ...
+```
+
+### **tests\TTS_test_de_vois\test_format_audio_validation.py**
+- **Taille** : 6229 octets (158 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Tests de validation format audio - SuperWhisper V6 TTS
+Vérifie que tous les backends produisent des fichiers WAV valides
+"""
+
+import os
+import sys
+import pytest
+import asyncio
+import yaml
+from pathlib import Path
+
+# Configuration GPU RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Import du système TTS
+sys.path.append(str(Path(__file__).parent.parent))
+from TTS.tts_manager import UnifiedTTSManager, TTSBackendType
+from...
+```
+
+### **tests\TTS_test_de_vois\test_french_voice.py**
+- **Taille** : 3632 octets (103 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test rapide de la voix française avec phonémisation IPA correcte
+"""
+
+import sys
+import os
+import time
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_french_voice():
+    """Test de la voix française corrigée"""
+    
+    print("🇫🇷 TEST VOIX FRANÇAISE C...
+```
+
+### **tests\TTS_test_de_vois\test_luxa_edge_tts_francais.py**
+- **Taille** : 3963 octets (118 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST LUXA_TTS - Microsoft Edge TTS FRANÇAIS
+🚨 RTX 3090 (CUDA:1) - VOIX FRANÇAISE PREMIUM MICROSOFT
+"""
+
+import os
+import sys
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 GPU RTX 3090 configurée")
+print("🇫🇷 TEST LUXA_TTS - MICROSOFT EDGE TTS FRANÇAIS")
+
+def test_luxa_edge_tts():
+    """Test LUXA_TTS avec Microsoft Ed...
+```
+
+### **tests\TTS_test_de_vois\test_performance_phase3.py**
+- **Taille** : 19097 octets (446 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test de Performance Phase 3 - SuperWhisper V6 TTS
+Test réel avec UnifiedTTSManager et texte long (5000+ chars)
+🚀 Validation des optimisations en conditions réelles
+"""
+
+import os
+import sys
+import asyncio
+import logging
+import time
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+o...
+```
+
+### **tests\TTS_test_de_vois\test_performance_real.py**
+- **Taille** : 3106 octets (85 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Benchmark de performance avec mesures réelles et validation des KPI.
+"""
+
+import asyncio
+import time
+import statistics
+import yaml
+import os
+import sys
+
+# Configuration GPU RTX 3090 obligatoire
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Import du manager unifié
+sys.path.append('.')
+from TTS.tts_manager import UnifiedTTSManager
+
+async def benchmark_performance():
+    print("⚡ BENCHMARK PERFORMANCE RÉEL")
+    print("=" * 50...
+```
+
+### **tests\TTS_test_de_vois\test_performance_simple.py**
+- **Taille** : 9306 octets (217 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test de Performance Phase 3 Simplifié - SuperWhisper V6 TTS
+Test avec gestion correcte du TTSResult
+🚀 Validation des optimisations Phase 3
+"""
+
+import os
+import sys
+import asyncio
+import logging
+import time
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_D...
+```
+
+### **tests\TTS_test_de_vois\test_phase3_optimisations.py**
+- **Taille** : 21153 octets (507 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test des Optimisations Phase 3 - SuperWhisper V6 TTS
+Validation complète des 5 axes d'optimisation implémentés
+🚀 Performance cible: <100ms par appel, textes 5000+ chars
+"""
+
+import os
+import sys
+import asyncio
+import logging
+import time
+import yaml
+from pathlib import Path
+from typing import Dict, Any, List
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# ===========================...
+```
+
+### **tests\TTS_test_de_vois\test_piper_native.py**
+- **Taille** : 3905 octets (107 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test du modèle français avec Piper CLI natif
+"""
+
+import sys
+import os
+import time
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_piper_native():
+    """Test du modèle français avec CLI natif Piper"""
+    
+    print("🇫🇷 TEST MODÈLE FRANÇAIS PIPER NATI...
+```
+
+### **tests\TTS_test_de_vois\test_piper_simple.py**
+- **Taille** : 1876 octets (68 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test simple du handler TTS Piper
+"""
+
+import sys
+import os
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_imports():
+    """Test des importations nécessaires"""
+    try:
+        import piper
+        print("✅ piper importé avec succès")
+    except ImportError as e:
+        print(f"❌ Erreur import piper: {e}")
+        return False
+    
+    try:
+        import sounddevice
+        pr...
+```
+
+### **tests\TTS_test_de_vois\test_realtime_audio_pipeline.py**
+- **Taille** : 8850 octets (254 lignes)
+- **Type** : .py
+
+```python
+# tests/test_realtime_audio_pipeline.py
+"""
+Test d'intégration du RobustSTTManager avec microphone réel
+Conforme aux exigences PRD v3.1 - Validation obligatoire en conditions réelles
+"""
+import pytest
+import asyncio
+import yaml
+import sounddevice as sd
+import numpy as np
+import soundfile as sf
+import io
+from pathlib import Path
+import sys
+import time
+import logging
+import torch
+
+# Configuration logging pour debug
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Ajo...
+```
+
+### **tests\TTS_test_de_vois\test_sapi_french.py**
+- **Taille** : 3241 octets (96 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test voix française avec SAPI Windows natif
+"""
+
+import sys
+import os
+import time
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_sapi_french():
+    """Test voix française avec SAPI Windows"""
+    
+    print("🇫🇷 TEST VOIX FRANÇAISE SAPI WINDOWS")
+    print("=" * 50)
+    
+    # Configuration
+    config = {
+        'sample_rate': 22050
+    }
+    
+    try:
+        # Import du handler...
+```
+
+### **tests\TTS_test_de_vois\test_sapi_simple.py**
+- **Taille** : 3126 octets (92 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test voix française Windows SAPI directe
+"""
+
+import sys
+import os
+
+def test_sapi_simple():
+    """Test voix française Windows SAPI"""
+    
+    print("🇫🇷 TEST VOIX FRANÇAISE WINDOWS SAPI")
+    print("=" * 50)
+    
+    try:
+        # Import win32com si disponible
+        import win32com.client
+        print("✅ win32com disponible")
+        
+        # Initialiser SAPI
+        print("\\n1. 🔧 Initialisation SAPI...")
+        sapi = win32com.client.D...
+```
+
+### **tests\TTS_test_de_vois\test_simple_validation.py**
+- **Taille** : 4291 octets (132 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test Simple de Validation TTS - SuperWhisper V6
+Script de test basique sans emojis pour éviter les problèmes d'encodage
+"""
+
+import os
+import sys
+import asyncio
+import time
+from pathlib import Path
+
+# Configuration GPU RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("GPU Configuration: RTX 3090 (CUDA:1) forcee")
+print(f"CUDA_V...
+```
+
+### **tests\TTS_test_de_vois\test_son_simple_luxa.py**
+- **Taille** : 1224 octets (47 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST SON SIMPLE LUXA - Juste faire parler l'assistant
+🚨 RTX 3090 (CUDA:1) - SON AUDIBLE GARANTI
+"""
+
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
+
+def test_son_simple():
+    """Test ultra-simple pour entendre la voix"""
+    
+    print("🎤 TEST SON SIMPLE LUXA")
+    print("=" * 30)
+    
+    try:
+        # Import simple
+        import sys
+        sys.path.append('TTS')
+        from tts_handler_mvp import TTSHandlerMVP
+        
+        # Config minimale
+ ...
+```
+
+### **tests\TTS_test_de_vois\test_tts_fixed.py**
+- **Taille** : 3322 octets (98 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test du handler TTS Piper corrigé avec phonémisation correcte
+"""
+
+import sys
+import os
+import time
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_tts_fixed():
+    """Test du handler TTS corrigé"""
+    
+    print("🔧 TEST TTS PIPER CORRIGÉ")
+    print(...
+```
+
+### **tests\TTS_test_de_vois\test_tts_fonctionnel.py**
+- **Taille** : 5455 octets (155 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test fonctionnel complet du système TTS Piper
+Synthèse vocale réelle avec modèle français
+"""
+
+import sys
+import os
+import time
+import traceback
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_piper_synthesis():
+    """Test de synthèse vocale complète avec Piper"""
+    
+    print("🎯 Test fonctionnel TTS Piper")
+    print("=" * 50)
+    
+    # Configuration du test
+    config = {
+  ...
+```
+
+### **tests\TTS_test_de_vois\test_tts_handler.py**
+- **Taille** : 2832 octets (82 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test du TTSHandler avec le modèle fr_FR-siwis-medium
+"""
+
+import yaml
+import sys
+from pathlib import Path
+
+# Ajouter le répertoire courant au PYTHONPATH
+sys.path.append(str(Path(__file__).parent))
+
+def test_tts_handler():
+    """Test du TTSHandler avec le modèle siwis"""
+    
+    print("🧪 Test du TTSHandler avec modèle fr_FR-siwis-medium")
+    print("=" * 60)
+    
+    try:
+        # Charger la configuration
+        with open("Config/mvp_settings.yaml", 'r') as f:
+     ...
+```
+
+### **tests\TTS_test_de_vois\test_tts_long_feedback.py**
+- **Taille** : 7847 octets (164 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test TTS Piper avec textes longs pour feedback qualité vocale
+Évaluation complète de la compréhensibilité et prosodie
+"""
+
+import sys
+import os
+import time
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_tts_feedback_long():
+    """Test TTS avec textes...
+```
+
+### **tests\TTS_test_de_vois\test_tts_manager_integration.py**
+- **Taille** : 19335 octets (485 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Tests d'Intégration TTS Manager - SuperWhisper V6
+Tests automatisés pytest pour validation complète du système TTS
+🚀 Phase 3 - Validation format WAV, latence et stress
+"""
+
+import os
+import sys
+import pytest
+import asyncio
+import time
+import io
+import wave
+import logging
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =======================================...
+```
+
+### **tests\TTS_test_de_vois\test_tts_module.py**
+- **Taille** : 2882 octets (76 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test du module TTS/ - Synthèse vocale française
+🎵 Test de validation du module TTS principal
+"""
+
+import sys
+import os
+sys.path.append('.')
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_B...
+```
+
+### **tests\TTS_test_de_vois\test_tts_mvp_final.py**
+- **Taille** : 4898 octets (137 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test final TTS MVP avec voix française Windows (Microsoft Hortense)
+"""
+
+import sys
+import os
+import time
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_tts_mvp_final():
+    """Test final TTS MVP français"""
+    
+    print("🇫🇷 TEST FINAL TTS MVP FRANÇAIS")
+    print("=" * 60)
+    print("🎯 Objectif: Valider le handler MVP avec Microsoft Hortense")
+    print("📋 Contexte: Voix franç...
+```
+
+### **tests\TTS_test_de_vois\test_tts_piper_direct_BUG.py**
+- **Taille** : 3610 octets (110 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test fonctionnel du nouveau handler TTS Piper Direct
+"""
+
+import sys
+import os
+import time
+import traceback
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_piper_direct():
+    """Test complet du handler TTS Piper Direct"""
+    
+    print("🎯 TEST TTS PIPER DIRECT")
+    print("=" * 50)
+    
+    # Configuration du test
+    config = {
+        'model_path': 'D:\\TTS_Voices\\piper\\fr_F...
+```
+
+### **tests\TTS_test_de_vois\test_tts_real.py**
+- **Taille** : 2430 octets (69 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Script de test pratique pour validation manuelle pendant l'implémentation.
+Génère des fichiers audio réels pour écoute et validation.
+"""
+
+import asyncio
+import time
+import yaml
+from pathlib import Path
+import os
+import sys
+
+# Configuration GPU RTX 3090 obligatoire
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Import du manager unifié
+sys.path.append('.')
+from TTS.tts_manager import UnifiedTTSManager
+
+async def test_real_tts...
+```
+
+### **tests\TTS_test_de_vois\test_tts_rtx3090_performance.py**
+- **Taille** : 6406 octets (162 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test de performance TTS Piper avec RTX 3090
+- Configuration GPU correcte
+- Résolution DLLs CUDA
+- Benchmark de performance
+"""
+
+import sys
+import os
+import time
+import traceback
+
+# Configuration RTX 3090 AVANT tous les imports
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire PyTorch au PATH pour les DLLs CUDA
+torch_lib_path = os.path.join(os.getcwd(), 'venv_piper312...
+```
+
+### **tests\TTS_test_de_vois\test_upmc_model.py**
+- **Taille** : 5431 octets (140 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test du nouveau modèle Piper français fr_FR-upmc-medium
+"""
+
+import sys
+import os
+import time
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
+# Ajouter le répertoire courant au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def test_upmc_model():
+    """Test du nouveau modèle fr_FR-upmc-medium"""
+    
+    print("🇫🇷 TEST NOUVEAU MODÈLE PIPER ...
+```
+
+### **tests\TTS_test_de_vois\test_validation_tts_performance.py**
+- **Taille** : 4748 octets (140 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION FACTUELLE - test_tts_rtx3090_performance.py
+Test pour vérifier que le script utilise RTX 3090 (CUDA:0)
+"""
+
+import os
+import torch
+import subprocess
+import sys
+
+def test_tts_performance_config():
+    """Test factuel de la configuration dans le script de performance"""
+    print("🔍 VALIDATION - test_tts_rtx3090_performance.py")
+    print("="*50)
+    
+    # Lire le contenu du fichier
+    script_path = "test_tts_rtx3090_performance.py"
+    
+    try:
+        wit...
+```
+
+### **tests\TTS_test_de_vois\test_voix_francaise_project_config.py**
+- **Taille** : 4748 octets (127 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST VOIX FRANÇAISE CONFIGURATION PROJET - LUXA SuperWhisper V6
+🚨 UTILISE LA VRAIE CONFIG mvp_settings.yaml QUI MARCHE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'       ...
+```
+
+### **tests\TTS_test_de_vois\test_voix_francaise_qui_marche.py**
+- **Taille** : 5281 octets (133 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test VOIX FRANÇAISE QUI MARCHE - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) + VRAIE CONFIG TTS
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 ...
+```
+
+### **tests\TTS_test_de_vois\test_voix_francaise_vraie_solution.py**
+- **Taille** : 5278 octets (137 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST VOIX FRANÇAISE VRAIE SOLUTION - LUXA SuperWhisper V6
+🚨 UTILISE LA VRAIE CONFIG DOCUMENTÉE QUI MARCHE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 2...
+```
+
+### **tests\TTS_test_de_vois\test_voix_naturelles_luxa.py**
+- **Taille** : 6087 octets (186 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST VOIX NATURELLES LUXA - Voix neurales de qualité
+🚨 RTX 3090 (CUDA:1) - VOIX NATURELLES GARANTIES
+"""
+
+import os
+import sys
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 GPU RTX 3090 configurée")
+
+def test_piper_naturel():
+    """Test voix Piper naturelle (fr_FR-siwis-medium)"""
+    
+    print("\n🎭 TEST PIPER VOIX...
+```
+
+### **tests\TTS_test_de_vois\test_voix_naturelle_luxa.py**
+- **Taille** : 10079 octets (249 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test voix naturelle LUXA - SuperWhisper V6
+🎮 RTX 3090 (CUDA:1) - VOIX NATURELLE QUI MARCHE
+"""
+
+import os
+import sys
+import time
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB...
+```
+
+### **tests\TTS_test_de_vois\test_voix_piper_vraie_francaise_BUG.py**
+- **Taille** : 4237 octets (128 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST VOIX PIPER FRANÇAISE - VRAI CHEMIN D:\TTS_Voices
+🚨 RTX 3090 (CUDA:1) - VRAIES VOIX FRANÇAISES
+"""
+
+import os
+import sys
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 GPU RTX 3090 configurée")
+print("🇫🇷 TEST VRAIES VOIX FRANÇAISES PIPER")
+
+def test_piper_siwis_francais():
+    """Test voix Piper fr_FR-siwis-medium...
+```
+
+### **tests\TTS_test_de_vois\test_vraies_voix_francaises.py**
+- **Taille** : 8342 octets (241 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST VRAIES VOIX FRANÇAISES - Solutions alternatives
+🚨 RTX 3090 (CUDA:1) - RECHERCHE VOIX FRANÇAISE QUI MARCHE VRAIMENT
+"""
+
+import os
+import sys
+
+# Configuration RTX 3090
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 GPU RTX 3090 configurée")
+print("🇫🇷 RECHERCHE VRAIE VOIX FRANÇAISE")
+
+def test_windows_sapi_francais():
+    """Test voix SAPI ...
 ```
 
 ### **TTS\components\cache_optimized.py**
@@ -1898,7 +3333,7 @@ def audio_float_to_int16(
 
 ---
 
-## 🔧 TESTS (112 fichiers)
+## 🔧 TESTS (97 fichiers)
 
 ### **generer_tests_validation_complexes.py**
 - **Taille** : 11399 octets (287 lignes)
@@ -2052,6 +3487,14 @@ from datetime import datetime
  ...
 ```
 
+### **temp_test_installation.py**
+- **Taille** : 0 octets (1 lignes)
+- **Type** : .py
+
+```
+
+```
+
 ### **Test-PiperVoice.ps1**
 - **Taille** : 5717 octets (145 lignes)
 - **Type** : .ps1
@@ -2072,263 +3515,6 @@ $BaseURL = "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/up
 # Noms complets des fichiers requis
 $OnnxFileName = "$ModelName.onnx"
 $JsonFileNam...
-```
-
-### **TESTS_COMPLETION_REPORT.md**
-- **Taille** : 6700 octets (189 lignes)
-- **Type** : .md
-
-```markdown
-# 🧪 **RAPPORT DE COMPLÉTION DES TESTS TTS - SUPERWHISPER V6**
-
-**Date**: 12 Décembre 2025  
-**Phase**: 3 - Optimisation et Tests Complets  
-**Statut**: ✅ **COMPLÉTÉ AVEC SUCCÈS**
-
----
-
-## 📋 **RÉSUMÉ EXÉCUTIF**
-
-Suite à votre demande de compléter les tests avec la proposition d'automatisation pytest, nous avons créé une **suite complète de tests professionnelle** pour le système TTS SuperWhisper V6. L'implémentation couvre tous les aspects critiques : validation format WAV, tests de latence, stre...
-```
-
-### **test_4_handlers_validation.py**
-- **Taille** : 8875 octets (220 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de validation des 4 handlers TTS candidats
-🎯 Objectif: Valider fonctionnalité avant consolidation 15→4
-"""
-
-import os
-import sys
-import time
-import asyncio
-import importlib.util
-from pathlib import Path
-
-# 🚨 CONFIGURATION GPU RTX 3090 OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 EXCLUSIVEMENT
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU Configuration: RTX 3090 (CUD...
-```
-
-### **test_avec_audio.py**
-- **Taille** : 5371 octets (151 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test TTS avec Lecture Audio Automatique - SuperWhisper V6
-Script qui génère ET joue l'audio pour validation auditive immédiate
-"""
-
-import os
-import sys
-import asyncio
-import time
-import subprocess
-from pathlib import Path
-
-# Configuration GPU RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU Configuration: RTX 3090 (CUDA...
-```
-
-### **test_benchmark_performance_rtx3090.py**
-- **Taille** : 15975 octets (368 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-🏆 BENCHMARK PERFORMANCE RTX 3090 - SUPERWHISPER V6
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-
-Benchmark performance RTX 3090 vs simulation RTX 5060 Ti
-Phase 4.3 - Benchmarks Performance
-"""
-
-import os
-import sys
-import time
-import json
-import statistics
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Any, Tuple
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU -...
-```
-
-### **test_correction_format_audio.py**
-- **Taille** : 8232 octets (231 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test immédiat des corrections format audio - SuperWhisper V6 TTS
-Valide que les fichiers Piper génèrent maintenant des WAV valides
-"""
-
-import os
-import sys
-import asyncio
-import yaml
-import time
-from pathlib import Path
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = ...
-```
-
-### **test_fallback_real.py**
-- **Taille** : 2205 octets (55 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test pratique du système de fallback avec simulation de pannes.
-"""
-
-import asyncio
-import yaml
-import os
-import sys
-
-# Configuration GPU RTX 3090 obligatoire
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Import du manager unifié
-sys.path.append('.')
-from TTS.tts_manager import UnifiedTTSManager
-
-async def test_fallback_simulation():
-    print("🔧 TEST FALLBACK RÉEL - Simulation pannes")
-    
-    with open('config/tts.yaml', ...
-```
-
-### **test_performance_phase3.py**
-- **Taille** : 19097 octets (446 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de Performance Phase 3 - SuperWhisper V6 TTS
-Test réel avec UnifiedTTSManager et texte long (5000+ chars)
-🚀 Validation des optimisations en conditions réelles
-"""
-
-import os
-import sys
-import asyncio
-import logging
-import time
-from pathlib import Path
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-o...
-```
-
-### **test_performance_real.py**
-- **Taille** : 3106 octets (85 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Benchmark de performance avec mesures réelles et validation des KPI.
-"""
-
-import asyncio
-import time
-import statistics
-import yaml
-import os
-import sys
-
-# Configuration GPU RTX 3090 obligatoire
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Import du manager unifié
-sys.path.append('.')
-from TTS.tts_manager import UnifiedTTSManager
-
-async def benchmark_performance():
-    print("⚡ BENCHMARK PERFORMANCE RÉEL")
-    print("=" * 50...
-```
-
-### **test_performance_simple.py**
-- **Taille** : 9306 octets (217 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de Performance Phase 3 Simplifié - SuperWhisper V6 TTS
-Test avec gestion correcte du TTSResult
-🚀 Validation des optimisations Phase 3
-"""
-
-import os
-import sys
-import asyncio
-import logging
-import time
-from pathlib import Path
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_D...
-```
-
-### **test_phase3_optimisations.py**
-- **Taille** : 21153 octets (507 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test des Optimisations Phase 3 - SuperWhisper V6 TTS
-Validation complète des 5 axes d'optimisation implémentés
-🚀 Performance cible: <100ms par appel, textes 5000+ chars
-"""
-
-import os
-import sys
-import asyncio
-import logging
-import time
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# ===========================...
 ```
 
 ### **test_report_complete_20250612_151507.json**
@@ -2358,33 +3544,6 @@ from typing import Dict, Any, List
           "available": true
         },
    ...
-```
-
-### **test_simple_validation.py**
-- **Taille** : 4291 octets (132 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test Simple de Validation TTS - SuperWhisper V6
-Script de test basique sans emojis pour éviter les problèmes d'encodage
-"""
-
-import os
-import sys
-import asyncio
-import time
-from pathlib import Path
-
-# Configuration GPU RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("GPU Configuration: RTX 3090 (CUDA:1) forcee")
-print(f"CUDA_V...
 ```
 
 ### **workflow_test_report_rtx3090.json**
@@ -2432,6 +3591,58 @@ import sys
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24...
 ```
 
+### **luxa\test.py**
+- **Taille** : 217 octets (10 lignes)
+- **Type** : .py
+
+```
+def hello_world():
+    """
+    Fonction simple qui affiche Hello World
+    """
+    print("Bonjour, monde !")
+    return "Bonjour, monde !"
+
+# Appel de la fonction
+if __name__ == "__main__":
+    hello_world() 
+```
+
+### **luxa\test_continue.py**
+- **Taille** : 494 octets (16 lignes)
+- **Type** : .py
+
+```python
+# Test Continue - Fichier d'exemple pour tester l'assistant IA
+
+def hello_world():
+    """Fonction simple pour tester Continue"""
+    print("Hello World!")
+
+# TODO: Utiliser Continue pour améliorer ce code
+# 1. Sélectionner cette fonction et appuyer Ctrl+L
+# 2. Demander à Continue : "Améliore cette fonction avec des paramètres et documentation"
+# 3. Tester l'autocomplétion en tapant : def calculate_
+
+def main():
+    hello_world()
+
+if __name__ == "__main__":
+    main() 
+```
+
+### **luxa\test_request.json**
+- **Taille** : 122 octets (5 lignes)
+- **Type** : .json
+
+```json
+{
+  "model": "deepseek-coder:6.7b",
+  "prompt": "Écris une fonction Python hello world simple:",
+  "stream": false
+} 
+```
+
 ### **luxa\test_simple_mcp.py**
 - **Taille** : 2802 octets (94 lignes)
 - **Type** : .py
@@ -2460,52 +3671,219 @@ def handle_message(message):
               ...
 ```
 
-### **tests\gpu_memory_logs_20250611_181600.json**
-- **Taille** : 22197 octets (626 lignes)
-- **Type** : .json
+### **scripts\test_correction_vad.py**
+- **Taille** : 9529 octets (246 lignes)
+- **Type** : .py
 
-```json
-[
-  {
-    "timestamp": "2025-06-11T18:15:59.631010",
-    "event_type": "test_complete",
-    "test_name": "test_model_loading",
-    "data": {
-      "duration_s": 0.07352018356323242,
-      "memory_diff_gb": 0.0079345703125,
-      "reserved_diff_gb": 0.01953125,
-      "fragmentation_gb": 0.0115966796875,
-      "fragmentation_pct": 0.04832048178063519,
-      "stats_before": {
-        "allocated_gb": 0.0,
-        "reserved_gb": 0.0,
-        "max_allocated_gb": 0.0,
-        "max_reserved_gb": 0.0,
-  ...
+```python
+#!/usr/bin/env python3
+"""
+Test Correction VAD - SuperWhisper V6 Phase 4
+🔧 VALIDATION: Transcription complète avec paramètres VAD corrigés
+
+Mission: Valider que la correction VAD permet de transcrire
+le texte complet fourni (155 mots) au lieu de s'arrêter à 25 mots.
+"""
+
+import os
+import sys
+import time
+import asyncio
+import numpy as np
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+#...
 ```
 
-### **tests\gpu_memory_logs_20250611_183104.json**
-- **Taille** : 22194 octets (626 lignes)
-- **Type** : .json
+### **scripts\test_correction_vad_expert.py**
+- **Taille** : 7843 octets (197 lignes)
+- **Type** : .py
 
-```json
-[
-  {
-    "timestamp": "2025-06-11T18:31:04.290009",
-    "event_type": "test_complete",
-    "test_name": "test_model_loading",
-    "data": {
-      "duration_s": 0.06999778747558594,
-      "memory_diff_gb": 0.0079345703125,
-      "reserved_diff_gb": 0.01953125,
-      "fragmentation_gb": 0.0115966796875,
-      "fragmentation_pct": 0.04832048178063519,
-      "stats_before": {
-        "allocated_gb": 0.0,
-        "reserved_gb": 0.0,
-        "max_allocated_gb": 0.0,
-        "max_reserved_gb": 0.0,
-  ...
+```python
+#!/usr/bin/env python3
+"""
+Test de Validation Correction VAD - Solution Experte
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24G...
+```
+
+### **scripts\test_enregistrement_reference_rode.py**
+- **Taille** : 9510 octets (228 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test Enregistrement Référence Microphone Rode - Validation Correction VAD
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH...
+```
+
+### **scripts\test_final_correction_vad.py**
+- **Taille** : 14289 octets (336 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test Final Correction VAD - SuperWhisper V6 Phase 4
+🎯 VALIDATION FINALE: Correction VAD avec vraie voix humaine
+
+Mission: Valider que la correction VAD permet la transcription complète 
+du texte de 155 mots fourni sans s'arrêter à 25 mots
+"""
+
+import os
+import sys
+import time
+import asyncio
+import json
+import sounddevice as sd
+import numpy as np
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION C...
+```
+
+### **scripts\test_microphone_optimise.py**
+- **Taille** : 9970 octets (269 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test Microphone Optimisé - SuperWhisper V6 Phase 4
+🎯 VALIDATION: Transcription VAD avec gestion robuste erreurs
+
+Mission: Tester transcription complète avec timeout adapté pour texte long
+"""
+
+import os
+import sys
+import time
+import asyncio
+import json
+import sounddevice as sd
+import numpy as np
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# ==============...
+```
+
+### **scripts\test_microphone_reel.py**
+- **Taille** : 13231 octets (319 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test STT avec microphone réel - VALIDATION HUMAINE OBLIGATOIRE
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_B...
+```
+
+### **scripts\test_rapide_vad.py**
+- **Taille** : 7278 octets (194 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test Rapide Validation VAD - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_spl...
+```
+
+### **scripts\test_vad_avec_audio_existant.py**
+- **Taille** : 12060 octets (307 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test Correction VAD avec Fichier Audio Existant - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['PYTORCH_CUDA_AL...
+```
+
+### **scripts\test_validation_texte_fourni.py**
+- **Taille** : 15105 octets (365 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test Validation Texte Fourni Complet - SuperWhisper V6 Phase 4
+🔧 VALIDATION: Texte complet 155 mots pour vérifier correction VAD
+
+Mission: Valider que la correction VAD permet de transcrire
+le texte fourni COMPLET (155 mots) au lieu de s'arrêter à 25 mots.
+"""
+
+import os
+import sys
+import time
+import asyncio
+import json
+import sounddevice as sd
+import numpy as np
+from pathlib import Path
+
+# =============================================================================
+#...
 ```
 
 ### **tests\test_api_integration.py**
@@ -2534,375 +3912,31 @@ from config.security_config import SecurityConfig
 # ----------------------------------------------...
 ```
 
-### **tests\test_correction_validation_1.py**
-- **Taille** : 3030 octets (79 lignes)
+### **tests\test_benchmark_performance_rtx3090.py**
+- **Taille** : 15975 octets (368 lignes)
 - **Type** : .py
 
 ```python
 #!/usr/bin/env python3
 """
-VALIDATION CORRECTION 1 : tests/test_stt_handler.py
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
-"""
-
-import os
-import sys
-import torch
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
-print("🎮 Test Validation: RTX 3090 (CUDA:0) forcé...
-```
-
-### **tests\test_correction_validation_2.py**
-- **Taille** : 4262 octets (106 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-VALIDATION CORRECTION 2 : utils/gpu_manager.py
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
-"""
-
-import os
-import sys
-import torch
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
-print("🎮 Test Validation: RTX 3090 (CUDA:0) forcée")
-p...
-```
-
-### **tests\test_correction_validation_3.py**
-- **Taille** : 3034 octets (78 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-VALIDATION CORRECTION 3 : tests/test_llm_handler.py
-🚨 CONFIGURATION GPU: RTX 3090 (INDEX 0) OBLIGATOIRE
-"""
-
-import os
-import sys
-import torch
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
-print("🎮 Test Validation: RTX 3090 (CUDA:0) forc...
-```
-
-### **tests\test_correction_validation_4.py**
-- **Taille** : 3167 octets (83 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-VALIDATION CORRECTION 4 : STT/vad_manager.py
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
-"""
-
-import os
-import sys
-import torch
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
-print("🎮 Test Validation: RTX 3090 (CUDA:0) forcée")
-pri...
-```
-
-### **tests\test_cuda.py**
-- **Taille** : 4651 octets (106 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test de détection CUDA avec PyTorch
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RT...
-```
-
-### **tests\test_cuda_debug.py**
-- **Taille** : 4430 octets (109 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test DEBUG COMPLET - Configuration GPU RTX 3090
+🏆 BENCHMARK PERFORMANCE RTX 3090 - SUPERWHISPER V6
 🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 
-Objectif: Valider configuration GPU RTX 3090 exclusive avec diagnostic complet
+Benchmark performance RTX 3090 vs simulation RTX 5060 Ti
+Phase 4.3 - Benchmarks Performance
 """
 
 import os
 import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1...
-```
-
-### **tests\test_diagnostic_rtx3090.py**
-- **Taille** : 3813 octets (109 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test détection GPU RTX 3090 - Configuration double GPU
-Vérifier si CUDA_VISIBLE_DEVICES='1' fonctionne correctement
-"""
-
-import os
-import sys
-
-# Configuration RTX 3090 (comme dans tous les autres scripts)
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-def test_gpu_detection():
-    """Test détection GPU avec configuration RTX 3090"""
-    print("🔍 TEST DÉTECTION GPU RTX 3090")
-    print("=" * 40)
-    
-    # Test ...
-```
-
-### **tests\test_double_check_corrections.py**
-- **Taille** : 13369 octets (283 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de validation des corrections critiques du double contrôle GPU
-Vérifie que les vulnérabilités découvertes ont été corrigées efficacement.
-
-Corrections testées :
-1. Fallback sécurisé vers RTX 3090 (GPU 1) même en single-GPU
-2. Target GPU inconditionnel (toujours index 1)  
-3. Validation VRAM inconditionnelle (24GB requis)
-4. Protection absolue contre RTX 5060 (CUDA:0)
-"""
-
-import unittest
-import torch
-from unittest.mock import patch, MagicMock
-import sys
-import os
-...
-```
-
-### **tests\test_double_check_validation_simple.py**
-- **Taille** : 8802 octets (238 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de validation simplifié des corrections critiques du double contrôle GPU
-Vérifie directement dans le code source que les vulnérabilités ont été corrigées.
-
-Corrections validées :
-1. Fallback sécurisé vers RTX 3090 (GPU 1) même en single-GPU
-2. Target GPU inconditionnel (toujours index 1)  
-3. Validation VRAM inconditionnelle (24GB requis)
-4. Protection absolue contre RTX 5060 (CUDA:0)
-"""
-
-import os
-import re
-import sys
-
-def validate_stt_manager_corrections():
-   ...
-```
-
-### **tests\test_espeak_french.py**
-- **Taille** : 3568 octets (102 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test voix française avec espeak-ng authentique
-"""
-
-import sys
-import os
 import time
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_espeak_french():
-    """Test voix française avec espeak-ng"""
-    
-    print("🇫🇷 TEST VOIX FRANÇAISE ESPEAK-NG")
-    pr...
-```
-
-### **tests\test_format_audio_validation.py**
-- **Taille** : 6229 octets (158 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Tests de validation format audio - SuperWhisper V6 TTS
-Vérifie que tous les backends produisent des fichiers WAV valides
-"""
-
-import os
-import sys
-import pytest
-import asyncio
-import yaml
+import json
+import statistics
 from pathlib import Path
-
-# Configuration GPU RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Import du système TTS
-sys.path.append(str(Path(__file__).parent.parent))
-from TTS.tts_manager import UnifiedTTSManager, TTSBackendType
-from...
-```
-
-### **tests\test_french_voice.py**
-- **Taille** : 3632 octets (103 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test rapide de la voix française avec phonémisation IPA correcte
-"""
-
-import sys
-import os
-import time
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_french_voice():
-    """Test de la voix française corrigée"""
-    
-    print("🇫🇷 TEST VOIX FRANÇAISE C...
-```
-
-### **tests\test_gpu_correct.py**
-- **Taille** : 14159 octets (320 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-🏆 VALIDATEUR COMPLET SUPERWHISPER V6 - MISSION GPU RTX 3090
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-
-Teste tous les modules du projet SuperWhisper V6 et indique leur statut fonctionnel
-après homogénéisation GPU RTX 3090.
-"""
-
-import os
-import sys
-import importlib.util
-import traceback
-from pathlib import Path
-from typing import Dict, List, Tuple
+from datetime import datetime
+from typing import Dict, List, Any, Tuple
 
 # =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - ...
-```
-
-### **tests\test_gpu_final_verification.py**
-- **Taille** : 1685 octets (47 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Vérification finale de la configuration GPU
-"""
-
-import os
-import torch
-
-print("=== TEST SANS CONFIGURATION ===")
-# Test sans rien
-if 'CUDA_VISIBLE_DEVICES' in os.environ:
-    del os.environ['CUDA_VISIBLE_DEVICES']
-if 'CUDA_DEVICE_ORDER' in os.environ:
-    del os.environ['CUDA_DEVICE_ORDER']
-
-# Recharger torch
-import importlib
-importlib.reload(torch.cuda)
-
-print(f"Nombre de GPU: {torch.cuda.device_count()}")
-for i in range(torch.cuda.device_count()):
-    print(f"GPU {i...
-```
-
-### **tests\test_gpu_verification.py**
-- **Taille** : 5347 octets (123 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de vérification GPU RTX 3090
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-...
+# 🚨 CONFIGURATION CRITIQUE GPU -...
 ```
 
 ### **tests\test_integration.py**
@@ -2933,32 +3967,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 from Orchestrator.master_handler_robust import RobustMasterHandle...
 ```
 
-### **tests\test_integration_gpu_rtx3090.py**
-- **Taille** : 12382 octets (313 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-🏆 TEST INTÉGRATION GPU RTX 3090 - SUPERWHISPER V6
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-
-Test d'intégration des modules fonctionnels SuperWhisper V6 avec RTX 3090
-Phase 4.1 - Validation système intégrée
-"""
-
-import os
-import sys
-import time
-import json
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Any
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX...
-```
-
 ### **tests\test_performance.py**
 - **Taille** : 20114 octets (479 lignes)
 - **Type** : .py
@@ -2983,229 +3991,6 @@ import logging
 sys.path.append(str(Path(__file__).parent.parent))
 from Orchestrator.master_handler_robust import RobustMasterHandler
 from config.security_conf...
-```
-
-### **tests\test_piper_native.py**
-- **Taille** : 3905 octets (107 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test du modèle français avec Piper CLI natif
-"""
-
-import sys
-import os
-import time
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_piper_native():
-    """Test du modèle français avec CLI natif Piper"""
-    
-    print("🇫🇷 TEST MODÈLE FRANÇAIS PIPER NATI...
-```
-
-### **tests\test_piper_simple.py**
-- **Taille** : 1876 octets (68 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test simple du handler TTS Piper
-"""
-
-import sys
-import os
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_imports():
-    """Test des importations nécessaires"""
-    try:
-        import piper
-        print("✅ piper importé avec succès")
-    except ImportError as e:
-        print(f"❌ Erreur import piper: {e}")
-        return False
-    
-    try:
-        import sounddevice
-        pr...
-```
-
-### **tests\test_ram_64gb_verification.py**
-- **Taille** : 9455 octets (257 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST VÉRIFICATION RAM 64GB - SuperWhisper V6
-🎯 Objectif: Vérifier l'accès complet aux 64GB de RAM pour parallélisation
-"""
-
-import os
-import sys
-import gc
-import time
-import numpy as np
-from typing import List, Dict
-
-def get_memory_info() -> Dict[str, float]:
-    """Obtenir les informations mémoire détaillées"""
-    try:
-        import psutil
-        memory = psutil.virtual_memory()
-        return {
-            'total_gb': memory.total / (1024**3),
-            'availab...
-```
-
-### **tests\test_realtime_audio_pipeline.py**
-- **Taille** : 8850 octets (254 lignes)
-- **Type** : .py
-
-```python
-# tests/test_realtime_audio_pipeline.py
-"""
-Test d'intégration du RobustSTTManager avec microphone réel
-Conforme aux exigences PRD v3.1 - Validation obligatoire en conditions réelles
-"""
-import pytest
-import asyncio
-import yaml
-import sounddevice as sd
-import numpy as np
-import soundfile as sf
-import io
-from pathlib import Path
-import sys
-import time
-import logging
-import torch
-
-# Configuration logging pour debug
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Ajo...
-```
-
-### **tests\test_rtx3090_access.py**
-- **Taille** : 4714 octets (116 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test d'accès RTX 3090
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-os.environ['...
-```
-
-### **tests\test_rtx3090_detection.py**
-- **Taille** : 6441 octets (163 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test détection GPU RTX 3090 - Configuration double GPU
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 309...
-```
-
-### **tests\test_sapi_french.py**
-- **Taille** : 3241 octets (96 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test voix française avec SAPI Windows natif
-"""
-
-import sys
-import os
-import time
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_sapi_french():
-    """Test voix française avec SAPI Windows"""
-    
-    print("🇫🇷 TEST VOIX FRANÇAISE SAPI WINDOWS")
-    print("=" * 50)
-    
-    # Configuration
-    config = {
-        'sample_rate': 22050
-    }
-    
-    try:
-        # Import du handler...
-```
-
-### **tests\test_sapi_simple.py**
-- **Taille** : 3126 octets (92 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test voix française Windows SAPI directe
-"""
-
-import sys
-import os
-
-def test_sapi_simple():
-    """Test voix française Windows SAPI"""
-    
-    print("🇫🇷 TEST VOIX FRANÇAISE WINDOWS SAPI")
-    print("=" * 50)
-    
-    try:
-        # Import win32com si disponible
-        import win32com.client
-        print("✅ win32com disponible")
-        
-        # Initialiser SAPI
-        print("\\n1. 🔧 Initialisation SAPI...")
-        sapi = win32com.client.D...
 ```
 
 ### **tests\test_security.py**
@@ -3236,36 +4021,6 @@ from config.security_config import SecurityConfig, SecurityException, get_securi
 from api.secure_api impo...
 ```
 
-### **tests\test_son_simple_luxa.py**
-- **Taille** : 1224 octets (47 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST SON SIMPLE LUXA - Juste faire parler l'assistant
-🚨 RTX 3090 (CUDA:1) - SON AUDIBLE GARANTI
-"""
-
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
-
-def test_son_simple():
-    """Test ultra-simple pour entendre la voix"""
-    
-    print("🎤 TEST SON SIMPLE LUXA")
-    print("=" * 30)
-    
-    try:
-        # Import simple
-        import sys
-        sys.path.append('TTS')
-        from tts_handler_mvp import TTSHandlerMVP
-        
-        # Config minimale
- ...
-```
-
 ### **tests\test_stabilite_30min_rtx3090.py**
 - **Taille** : 14474 octets (318 lignes)
 - **Type** : .py
@@ -3293,130 +4048,6 @@ from typing import Dict, List, Any
 # 🚨 CONFIGURATION...
 ```
 
-### **tests\test_toutes_voix_disponibles_BUG.py**
-- **Taille** : 12173 octets (303 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test de toutes les voix disponibles - SuperWhisper V6
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24...
-```
-
-### **tests\test_upmc_model.py**
-- **Taille** : 5431 octets (140 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Test du nouveau modèle Piper français fr_FR-upmc-medium
-"""
-
-import sys
-import os
-import time
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090 24GB
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-def test_upmc_model():
-    """Test du nouveau modèle fr_FR-upmc-medium"""
-    
-    print("🇫🇷 TEST NOUVEAU MODÈLE PIPER ...
-```
-
-### **tests\test_vad_manager.py**
-- **Taille** : 24778 octets (593 lignes)
-- **Type** : .py
-
-```python
-import pytest
-import numpy as np
-import torch
-import time
-import asyncio
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-import sys
-from pathlib import Path
-
-# Ajouter le répertoire parent au path pour les imports
-sys.path.append(str(Path(__file__).parent.parent))
-
-from STT.vad_manager import OptimizedVADManager
-
-class TestOptimizedVADManager:
-    """Tests unitaires pour STT/vad_manager.py avec coverage 85%"""
-    
-    @pytest.fixture
-    def vad_manager(self):
-        """Fixture VAD...
-```
-
-### **tests\test_validation_decouverte.py**
-- **Taille** : 5939 octets (157 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-VALIDATION FACTUELLE - DÉCOUVERTE CRITIQUE GPU
-Test pour vérifier la configuration GPU réelle du système
-"""
-
-import os
-import torch
-import subprocess
-import sys
-
-def test_gpu_configuration():
-    """Test factuel de la configuration GPU"""
-    print("🔍 VALIDATION FACTUELLE - CONFIGURATION GPU RÉELLE")
-    print("="*60)
-    
-    # Test 1: Configuration sans CUDA_VISIBLE_DEVICES
-    print("\n📊 TEST 1: Configuration GPU native")
-    if 'CUDA_VISIBLE_DEVICES' in os.environ...
-```
-
-### **tests\test_validation_globale_finale.py**
-- **Taille** : 6010 octets (150 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-VALIDATION GLOBALE FINALE - TOUTES CORRECTIONS GPU
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) EXCLUSIVE
-"""
-
-import os
-import sys
-import torch
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
-print("🎮 VALIDATION GLOBALE: RTX 3090 (CUDA:0) forcé...
-```
-
 ### **tests\test_validation_mvp_settings.py**
 - **Taille** : 3465 octets (105 lignes)
 - **Type** : .py
@@ -3442,216 +4073,6 @@ def test_mvp_settings_config():
     
     try:
         with op...
-```
-
-### **tests\test_validation_rtx3090_detection.py**
-- **Taille** : 10291 octets (259 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-🏆 VALIDATION COMPLÈTE RTX 3090 - Script de Test
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
-
-Script de validation pour vérifier la configuration GPU RTX 3090 dans SuperWhisper V6
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 ...
-```
-
-### **tests\test_voix_francaise_project_config.py**
-- **Taille** : 4748 octets (127 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST VOIX FRANÇAISE CONFIGURATION PROJET - LUXA SuperWhisper V6
-🚨 UTILISE LA VRAIE CONFIG mvp_settings.yaml QUI MARCHE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'       ...
-```
-
-### **tests\test_voix_francaise_qui_marche.py**
-- **Taille** : 5281 octets (133 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test VOIX FRANÇAISE QUI MARCHE - SuperWhisper V6
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) + VRAIE CONFIG TTS
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 ...
-```
-
-### **tests\test_voix_francaise_vraie_solution.py**
-- **Taille** : 5278 octets (137 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST VOIX FRANÇAISE VRAIE SOLUTION - LUXA SuperWhisper V6
-🚨 UTILISE LA VRAIE CONFIG DOCUMENTÉE QUI MARCHE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 2...
-```
-
-### **tests\test_voix_naturelles_luxa.py**
-- **Taille** : 6087 octets (186 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST VOIX NATURELLES LUXA - Voix neurales de qualité
-🚨 RTX 3090 (CUDA:1) - VOIX NATURELLES GARANTIES
-"""
-
-import os
-import sys
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU RTX 3090 configurée")
-
-def test_piper_naturel():
-    """Test voix Piper naturelle (fr_FR-siwis-medium)"""
-    
-    print("\n🎭 TEST PIPER VOIX...
-```
-
-### **tests\test_voix_naturelle_luxa.py**
-- **Taille** : 10079 octets (249 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-Test voix naturelle LUXA - SuperWhisper V6
-🎮 RTX 3090 (CUDA:1) - VOIX NATURELLE QUI MARCHE
-"""
-
-import os
-import sys
-import time
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB...
-```
-
-### **tests\test_voix_piper_vraie_francaise_BUG.py**
-- **Taille** : 4237 octets (128 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST VOIX PIPER FRANÇAISE - VRAI CHEMIN D:\TTS_Voices
-🚨 RTX 3090 (CUDA:1) - VRAIES VOIX FRANÇAISES
-"""
-
-import os
-import sys
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU RTX 3090 configurée")
-print("🇫🇷 TEST VRAIES VOIX FRANÇAISES PIPER")
-
-def test_piper_siwis_francais():
-    """Test voix Piper fr_FR-siwis-medium...
-```
-
-### **tests\test_vraies_voix_francaises.py**
-- **Taille** : 8342 octets (241 lignes)
-- **Type** : .py
-
-```python
-#!/usr/bin/env python3
-"""
-TEST VRAIES VOIX FRANÇAISES - Solutions alternatives
-🚨 RTX 3090 (CUDA:1) - RECHERCHE VOIX FRANÇAISE QUI MARCHE VRAIMENT
-"""
-
-import os
-import sys
-
-# Configuration RTX 3090
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'  # RTX 3090
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
-
-print("🎮 GPU RTX 3090 configurée")
-print("🇫🇷 RECHERCHE VRAIE VOIX FRANÇAISE")
-
-def test_windows_sapi_francais():
-    """Test voix SAPI ...
-```
-
-### **test_output\enterprise_metrics.json**
-- **Taille** : 299 octets (17 lignes)
-- **Type** : .json
-
-```json
-{
-  "total_requests": 5,
-  "cache_hits": 1,
-  "cache_misses": 4,
-  "backend_usage": {
-    "piper_native": 4,
-    "cache": 1
-  },
-  "latencies": [
-    305.50590000348166,
-    419.48370001045987,
-    702.310499997111,
-    424.120599986054,
-    0.031400006264448166
-  ],
-  "errors": 0
-}
 ```
 
 ### **docs\01_phase_1\HELP_REQUEST_O3_INTEGRATION_TESTS.md**
@@ -4239,9 +4660,525 @@ jobs:
     ...
 ```
 
+### **tests\test_configuration\gpu_memory_logs_20250611_181600.json**
+- **Taille** : 22197 octets (626 lignes)
+- **Type** : .json
+
+```json
+[
+  {
+    "timestamp": "2025-06-11T18:15:59.631010",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.07352018356323242,
+      "memory_diff_gb": 0.0079345703125,
+      "reserved_diff_gb": 0.01953125,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0,
+        "reserved_gb": 0.0,
+        "max_allocated_gb": 0.0,
+        "max_reserved_gb": 0.0,
+  ...
+```
+
+### **tests\test_configuration\gpu_memory_logs_20250611_183104.json**
+- **Taille** : 22194 octets (626 lignes)
+- **Type** : .json
+
+```json
+[
+  {
+    "timestamp": "2025-06-11T18:31:04.290009",
+    "event_type": "test_complete",
+    "test_name": "test_model_loading",
+    "data": {
+      "duration_s": 0.06999778747558594,
+      "memory_diff_gb": 0.0079345703125,
+      "reserved_diff_gb": 0.01953125,
+      "fragmentation_gb": 0.0115966796875,
+      "fragmentation_pct": 0.04832048178063519,
+      "stats_before": {
+        "allocated_gb": 0.0,
+        "reserved_gb": 0.0,
+        "max_allocated_gb": 0.0,
+        "max_reserved_gb": 0.0,
+  ...
+```
+
+### **tests\test_configuration\test_double_check_corrections.py**
+- **Taille** : 13369 octets (283 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test de validation des corrections critiques du double contrôle GPU
+Vérifie que les vulnérabilités découvertes ont été corrigées efficacement.
+
+Corrections testées :
+1. Fallback sécurisé vers RTX 3090 (GPU 1) même en single-GPU
+2. Target GPU inconditionnel (toujours index 1)  
+3. Validation VRAM inconditionnelle (24GB requis)
+4. Protection absolue contre RTX 5060 (CUDA:0)
+"""
+
+import unittest
+import torch
+from unittest.mock import patch, MagicMock
+import sys
+import os
+...
+```
+
+### **tests\test_configuration\test_double_check_validation_simple.py**
+- **Taille** : 8802 octets (238 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test de validation simplifié des corrections critiques du double contrôle GPU
+Vérifie directement dans le code source que les vulnérabilités ont été corrigées.
+
+Corrections validées :
+1. Fallback sécurisé vers RTX 3090 (GPU 1) même en single-GPU
+2. Target GPU inconditionnel (toujours index 1)  
+3. Validation VRAM inconditionnelle (24GB requis)
+4. Protection absolue contre RTX 5060 (CUDA:0)
+"""
+
+import os
+import re
+import sys
+
+def validate_stt_manager_corrections():
+   ...
+```
+
+### **tests\test_configuration\test_gpu_correct.py**
+- **Taille** : 14159 octets (320 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🏆 VALIDATEUR COMPLET SUPERWHISPER V6 - MISSION GPU RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Teste tous les modules du projet SuperWhisper V6 et indique leur statut fonctionnel
+après homogénéisation GPU RTX 3090.
+"""
+
+import os
+import sys
+import importlib.util
+import traceback
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - ...
+```
+
+### **tests\test_configuration\test_gpu_final_verification.py**
+- **Taille** : 1685 octets (47 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Vérification finale de la configuration GPU
+"""
+
+import os
+import torch
+
+print("=== TEST SANS CONFIGURATION ===")
+# Test sans rien
+if 'CUDA_VISIBLE_DEVICES' in os.environ:
+    del os.environ['CUDA_VISIBLE_DEVICES']
+if 'CUDA_DEVICE_ORDER' in os.environ:
+    del os.environ['CUDA_DEVICE_ORDER']
+
+# Recharger torch
+import importlib
+importlib.reload(torch.cuda)
+
+print(f"Nombre de GPU: {torch.cuda.device_count()}")
+for i in range(torch.cuda.device_count()):
+    print(f"GPU {i...
+```
+
+### **tests\test_configuration\test_gpu_verification.py**
+- **Taille** : 5347 octets (123 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test de vérification GPU RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+...
+```
+
+### **tests\test_configuration\test_integration_gpu_rtx3090.py**
+- **Taille** : 12382 octets (313 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🏆 TEST INTÉGRATION GPU RTX 3090 - SUPERWHISPER V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Test d'intégration des modules fonctionnels SuperWhisper V6 avec RTX 3090
+Phase 4.1 - Validation système intégrée
+"""
+
+import os
+import sys
+import time
+import json
+from pathlib import Path
+from datetime import datetime
+from typing import Dict, List, Any
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX...
+```
+
+### **tests\test_configuration\test_ram_64gb_verification.py**
+- **Taille** : 9455 octets (257 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+TEST VÉRIFICATION RAM 64GB - SuperWhisper V6
+🎯 Objectif: Vérifier l'accès complet aux 64GB de RAM pour parallélisation
+"""
+
+import os
+import sys
+import gc
+import time
+import numpy as np
+from typing import List, Dict
+
+def get_memory_info() -> Dict[str, float]:
+    """Obtenir les informations mémoire détaillées"""
+    try:
+        import psutil
+        memory = psutil.virtual_memory()
+        return {
+            'total_gb': memory.total / (1024**3),
+            'availab...
+```
+
+### **tests\test_configuration\test_rtx3090_access.py**
+- **Taille** : 4714 octets (116 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test d'accès RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['...
+```
+
+### **tests\test_configuration\test_rtx3090_detection.py**
+- **Taille** : 6441 octets (163 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test détection GPU RTX 3090 - Configuration double GPU
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 309...
+```
+
+### **tests\test_configuration\test_validation_decouverte.py**
+- **Taille** : 5939 octets (157 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION FACTUELLE - DÉCOUVERTE CRITIQUE GPU
+Test pour vérifier la configuration GPU réelle du système
+"""
+
+import os
+import torch
+import subprocess
+import sys
+
+def test_gpu_configuration():
+    """Test factuel de la configuration GPU"""
+    print("🔍 VALIDATION FACTUELLE - CONFIGURATION GPU RÉELLE")
+    print("="*60)
+    
+    # Test 1: Configuration sans CUDA_VISIBLE_DEVICES
+    print("\n📊 TEST 1: Configuration GPU native")
+    if 'CUDA_VISIBLE_DEVICES' in os.environ...
+```
+
+### **tests\test_configuration\test_validation_globale_finale.py**
+- **Taille** : 6010 octets (150 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+VALIDATION GLOBALE FINALE - TOUTES CORRECTIONS GPU
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) EXCLUSIVE
+"""
+
+import os
+import sys
+import torch
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # RTX 3090 EXCLUSIVEMENT
+print("🎮 VALIDATION GLOBALE: RTX 3090 (CUDA:0) forcé...
+```
+
+### **tests\test_configuration\test_validation_rtx3090_detection.py**
+- **Taille** : 10291 octets (259 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🏆 VALIDATION COMPLÈTE RTX 3090 - Script de Test
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Script de validation pour vérifier la configuration GPU RTX 3090 dans SuperWhisper V6
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 ...
+```
+
+### **tests\test_correction_gpu\test_cuda.py**
+- **Taille** : 4651 octets (106 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Test de détection CUDA avec PyTorch
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RT...
+```
+
+### **tests\test_correction_gpu\test_cuda_debug.py**
+- **Taille** : 4430 octets (109 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Test DEBUG COMPLET - Configuration GPU RTX 3090
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Objectif: Valider configuration GPU RTX 3090 exclusive avec diagnostic complet
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1...
+```
+
+### **tests\test_output\enterprise_metrics.json**
+- **Taille** : 299 octets (17 lignes)
+- **Type** : .json
+
+```json
+{
+  "total_requests": 5,
+  "cache_hits": 1,
+  "cache_misses": 4,
+  "backend_usage": {
+    "piper_native": 4,
+    "cache": 1
+  },
+  "latencies": [
+    305.50590000348166,
+    419.48370001045987,
+    702.310499997111,
+    424.120599986054,
+    0.031400006264448166
+  ],
+  "errors": 0
+}
+```
+
+### **tests\test_output\test_vad_audio_reel_20250613_122513.json**
+- **Taille** : 931 octets (31 lignes)
+- **Type** : .json
+
+```json
+{
+  "timestamp": "2025-06-13T12:25:13.814309",
+  "correction_vad": "APPLIQUÉE",
+  "tests_realises": 3,
+  "ameliorations": 0,
+  "succes": 0,
+  "echecs": 3,
+  "resultats": [
+    {
+      "test": "Validation Utilisateur Complet",
+      "fichier": "test_output/validation_utilisateur_complet.wav",
+      "erreur": "No module named 'resampy'",
+      "statut": "EXCEPTION",
+      "timestamp": "2025-06-13T12:25:13.808306"
+    },
+    {
+      "test": "Demo Batch Long",
+      "fichier": "test_output/demo_batc...
+```
+
+### **tests\test_output\test_vad_audio_reel_20250613_122540.json**
+- **Taille** : 2796 octets (52 lignes)
+- **Type** : .json
+
+```json
+{
+  "timestamp": "2025-06-13T12:25:40.179170",
+  "correction_vad": "APPLIQUÉE",
+  "tests_realises": 3,
+  "ameliorations": 2,
+  "succes": 1,
+  "echecs": 0,
+  "resultats": [
+    {
+      "test": "Validation Utilisateur Complet",
+      "fichier": "test_output/validation_utilisateur_complet.wav",
+      "duree_audio": 79.3835625,
+      "texte_transcrit": "Bonjour, ceci est un test de validation pour Super WISP 2.  Je vais maintenant énoncer plusieurs phrases de complexité croissante  pour évaluer la p...
+```
+
+### **tests\test_output\validation_enregistrement_rode_reference.json**
+- **Taille** : 1785 octets (16 lignes)
+- **Type** : .json
+
+```json
+{
+  "timestamp": "2025-06-13T12:54:36.639657",
+  "fichier_audio": "test_input\\enregistrement_avec_lecture_texte_complet_depuis_micro_rode.wav",
+  "duree_audio_s": 68.0533125,
+  "sample_rate": 16000,
+  "processing_time_ms": 5592.354099964723,
+  "rtf": 0.08217607482317224,
+  "texte_transcrit": "Bonjour. Ceci est un test de validation pour Super Whisper 2. Je vais maintenant énoncer  plusieurs phrases de complexité croissante pour évaluer la précision de transcription.  Premièrement, des mots simp...
+```
+
+### **tests\test_output\validation_microphone_reel_20250613_101009.json**
+- **Taille** : 2290 octets (47 lignes)
+- **Type** : .json
+
+```json
+[
+  {
+    "test": "Test Phrase Courte",
+    "phrase_reelle": "'Ok, ceci est un test d'enregistrement 1, 2, 3, 4, 5\"",
+    "texte_transcrit": "Ok, ceci est un test d'enregistrement 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 40, 41, 42, 42, 43, 43, 44, 45, 46, 47, 48, 49, 50, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 67, 68, 69, 70, 70, 71, 71, 72, 72, 73, 74, 75, 75, 76, 77, 78, 78, 79, ...
+```
+
+### **tests\test_output\validation_microphone_reel_20250613_112730.json**
+- **Taille** : 1647 octets (47 lignes)
+- **Type** : .json
+
+```json
+[
+  {
+    "test": "Test Phrase Courte",
+    "phrase_reelle": "ceci est un nouveau test",
+    "texte_transcrit": "Ceci est un nouveau test.",
+    "latence_ms": 723.7532138824463,
+    "rtf": 0.241101266661038,
+    "confiance": 0.6289062440395355,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "excellent",
+    "precision_calculee": 80.0,
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "validé",
+    "timestamp": "2025-06-13T11:25:35.818247"
+...
+```
+
+### **tests\test_output\validation_texte_fourni.json**
+- **Taille** : 2212 octets (27 lignes)
+- **Type** : .json
+
+```json
+{
+  "test_info": {
+    "date": "2025-06-13T10:19:31.713189",
+    "duree_audio": 16.874,
+    "texte_reference": "Bonjour, ceci est un test de validation pour SuperWhisper2. Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription. Premièrement, des mots simples : chat, chien, maison, voiture, ordinateur, téléphone. Deuxièmement, des phrases courtes : Il fait beau aujourd'hui. Le café est délicieux. J'aime la musique classique. Troisièmement,...
+```
+
 ---
 
-## 🔧 CONFIG (33 fichiers)
+## 🔧 CONFIG (50 fichiers)
 
 ### **model_config.json**
 - **Taille** : 5367 octets (493 lignes)
@@ -4574,8 +5511,65 @@ Cursor recherche le fichier de configuration MCP dans plusieurs emplacements pos
 - Dans le do...
 ```
 
+### **luxa\continue_config.json**
+- **Taille** : 861 octets (34 lignes)
+- **Type** : .json
+
+```json
+{
+  "models": [
+    {
+      "title": "Qwen Coder 32B",
+      "provider": "ollama",
+      "model": "qwen-coder-32b:latest",
+      "apiBase": "http://localhost:11434"
+    },
+    {
+      "title": "Code Stral",
+      "provider": "ollama", 
+      "model": "code-stral:latest",
+      "apiBase": "http://localhost:11434"
+    },
+    {
+      "title": "DeepSeek Coder 6.7B",
+      "provider": "ollama",
+      "model": "deepseek-coder:6.7b", 
+      "apiBase": "http://localhost:11434"
+    }
+  ],
+  "customComman...
+```
+
+### **luxa\correction_config_mcp_complete.py**
+- **Taille** : 3599 octets (97 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🔧 Correction Automatique Configuration MCP
+Corrige automatiquement les noms des packages MCP incorrects
+"""
+
+import json
+import os
+from pathlib import Path
+
+def main():
+    print("🔧 Correction Automatique Configuration MCP")
+    print("=" * 50)
+    
+    # Corrections confirmées
+    corrections = {
+        "context7": {
+            "nouveau_nom": "@upstash/context7-mcp",
+            "nouvelle_config": {
+                "command": "npx",
+                "args": ["-y", "@...
+```
+
 ### **luxa\cursor_mcp_config.json**
-- **Taille** : 199 octets (11 lignes)
+- **Taille** : 225 octets (11 lignes)
 - **Type** : .json
 
 ```json
@@ -4584,11 +5578,416 @@ Cursor recherche le fichier de configuration MCP dans plusieurs emplacements pos
     "timemanager": {
       "command": "python",
       "args": [
-        "C:\\Dev\\SuperWhisper_V6\\luxa\\mcp_timemanager_server.py"
+        "C:\\\\Dev\\\\SuperWhisper_V6\\\\luxa\\\\timemanager-mcp\\\\mcp_timemanager_server.py"
       ],
       "env": {}
     }
   }
+}
+```
+
+### **luxa\cursor_mcp_config_CLEAN.json**
+- **Taille** : 216 octets (11 lignes)
+- **Type** : .json
+
+```json
+{
+  "mcpServers": {
+    "timemanager": {
+      "command": "python",
+      "args": [
+        "C:\\Dev\\SuperWhisper_V6\\luxa\\timemanager-mcp\\mcp_timemanager_server.py"
+      ],
+      "env": {}
+    }
+  }
+} 
+```
+
+### **luxa\cursor_mcp_config_PROPRE.json**
+- **Taille** : 2492 octets (133 lignes)
+- **Type** : .json
+
+```json
+{
+  "mcpServers": {
+    "timemanager": {
+      "command": "python",
+      "args": [
+        "C:\\Dev\\SuperWhisper_V6\\luxa\\timemanager-mcp\\mcp_timemanager_server.py"
+      ],
+      "env": {}
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Dev"
+      ],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],...
+```
+
+### **luxa\mcp_config.json**
+- **Taille** : 416 octets (15 lignes)
+- **Type** : .json
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "C:\\Dev"],
+      "env": {
+        "FILESYSTEM_ALLOWED_DIRS": "C:\\Dev;C:\\Users\\Utilisateur\\Desktop;C:\\Users\\Utilisateur\\Documents"
+      }
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git", "--repository", "C:\\Dev"]
+    }
+  }
+} 
+```
+
+### **luxa\mcp_config_optimized.json**
+- **Taille** : 2823 octets (145 lignes)
+- **Type** : .json
+
+```json
+{
+  "mcpServers": {
+    "timemanager": {
+      "command": "python",
+      "args": [
+        "C:\\Dev\\SuperWhisper_V6\\luxa\\timemanager-mcp\\mcp_timemanager_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "C:\\Dev\\SuperWhisper_V6\\luxa\\timemanager-mcp",
+        "TZ": "Europe/Paris"
+      }
+    },
+    "mcp-installer": {
+      "command": "npx",
+      "args": [
+        "cursor-mcp-installer-free@latest",
+        "index.mjs"
+      ],
+      "env": {}
+    },
+    "curl": {
+      "command": ...
+```
+
+### **luxa\void_config_agent_mode.json**
+- **Taille** : 743 octets (28 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true,
+    "agentMode": true,
+    "gatherMode": true,
+    "toolCalling": true
+  },
+  "tools": {
+    "fileOperations": true,
+    "terminal": true,
+    "search": true,
+    "mcp": true
+  },
+  "system_prom...
+```
+
+### **luxa\void_config_aggressive.json**
+- **Taille** : 750 octets (19 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "code-stral:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true
+  },
+  "system_prompt": "RÈGLES ABSOLUES: 1) JAMAIS utiliser edit_file, create_file_or_folder, read_file ou tout autre outil. 2) Répondre UNIQUEMENT avec du code brut. 3) Pour 'fonction Python hello ...
+```
+
+### **luxa\void_config_clean_model.json**
+- **Taille** : 641 octets (19 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true
+  },
+  "system_prompt": "Tu es un assistant de programmation. Quand on te demande du code, écrit DIRECTEMENT le code sans utiliser d'outils. Pas de create_file, pas de edit_file, juste le code pu...
+```
+
+### **luxa\void_config_extended_permissions.json**
+- **Taille** : 1160 octets (37 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true,
+    "agentMode": true,
+    "gatherMode": true,
+    "toolCalling": true
+  },
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["@modelcontextprotocol/se...
+```
+
+### **luxa\void_config_mcp_text_editor.json**
+- **Taille** : 812 octets (31 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true,
+    "agentMode": true,
+    "gatherMode": true,
+    "toolCalling": true
+  },
+  "mcp": {
+    "servers": {
+      "text-editor": {
+        "command": "python",
+        "args": ["-m", "mcp_text_edito...
+```
+
+### **luxa\void_config_native_tools.json**
+- **Taille** : 733 octets (24 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true
+  },
+  "agents": {
+    "enabled": true,
+    "tools": ["edit_file", "create_file_or_folder", "read_file", "search"],
+    "workspace": "D:\\modeles_llm\\projects"
+  },
+  "system_prompt": "Tu es un ...
+```
+
+### **luxa\void_config_no_tools.json**
+- **Taille** : 572 octets (22 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": false,
+    "inlineEdit": false,
+    "chat": true
+  },
+  "tools": [],
+  "system_prompt": "Tu es un assistant de programmation simple. Réponds directement aux questions de code avec du code pur. Pas d'outils, pas de fichiers, juste du code.",
+ ...
+```
+
+### **luxa\void_config_optimized.json**
+- **Taille** : 644 octets (19 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "code-stral:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true
+  },
+  "system_prompt": "IMPORTANT: Tu es un assistant de codage qui répond DIRECTEMENT aux questions. NE JAMAIS utiliser d'outils comme create_file_or_folder, edit_file, ou call_tool. Écris le code ...
+```
+
+### **luxa\void_config_simple.json**
+- **Taille** : 490 octets (19 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "code-stral:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true
+  },
+  "system_prompt": "Tu es un assistant de codage. Réponds directement aux questions sans utiliser d'outils. Si on te demande du code, écris le code directement."
+} 
+```
+
+### **luxa\void_config_with_workspace.json**
+- **Taille** : 994 octets (35 lignes)
+- **Type** : .json
+
+```json
+{
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "qwen-coder-32b:latest"
+  },
+  "editor": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "features": {
+    "autoComplete": true,
+    "inlineEdit": true,
+    "chat": true,
+    "agentMode": true,
+    "gatherMode": true,
+    "toolCalling": true
+  },
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["@modelcontextprotocol/se...
+```
+
+### **luxa\void_settings.json**
+- **Taille** : 203 octets (10 lignes)
+- **Type** : .json
+
+```json
+{
+  "mcp.servers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "D:\\modeles_llm"],
+      "env": {}
+    }
+  },
+  "mcp.enabled": true
 } 
 ```
 
@@ -4735,19 +6134,19 @@ modules:
 ```
 
 ### **.taskmaster\reports\task-complexity-report.json**
-- **Taille** : 4119 octets (109 lignes)
+- **Taille** : 6307 octets (133 lignes)
 - **Type** : .json
 
 ```json
 {
   "meta": {
-    "generatedAt": "2025-06-10T09:53:10.860Z",
-    "tasksAnalyzed": 12,
-    "totalTasks": 12,
-    "analysisCount": 12,
-    "thresholdScore": 5,
+    "generatedAt": "2025-06-12T17:38:35.181Z",
+    "tasksAnalyzed": 15,
+    "totalTasks": 15,
+    "analysisCount": 15,
+    "thresholdScore": 7,
     "projectName": "Taskmaster",
-    "usedResearch": false
+    "usedResearch": true
   },
   "complexityAnalysis": [
     {
@@ -4755,12 +6154,12 @@ modules:
       "taskTitle": "Setup Project Repository",
       "complexityScore": 6,
       "recommendedSubtasks": 2,
-      "expansionPrompt": "Configure repository to use a secure connection.",
-      "reasoning": "Repository setup and de...
+      "expansionPrompt": "Define repository structure and create initial commit",
+      "reasoning": "Repository setup in...
 ```
 
 ### **.taskmaster\tasks\tasks.json**
-- **Taille** : 16638 octets (301 lignes)
+- **Taille** : 23170 octets (548 lignes)
 - **Type** : .json
 
 ```json
@@ -4768,13 +6167,20 @@ modules:
   "tasks": [
     {
       "id": 1,
-      "title": "Phase 1 : Préparation et Setup",
-      "description": "Setup environnement sécurisé, sauvegarde et analyse des 40 fichiers cibles",
-      "status": "done",
+      "title": "Setup Project Repository",
+      "description": "...",
+      "details": "",
+      "testStrategy": "",
+      "priority": "medium",
       "dependencies": [],
-      "priority": "critical",
-      "details": "Créer branche Git dédiée, structure de travail, sauvegarder les 40 fichiers originaux, analyser configuration GPU existante, créer templates de validation",
-      "testStrategy": "Vérifier structure créée, backups comp...
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define repository structure",
+          "description": "Create a new repository with a clear folder structure for STT data and configuration files.",
+          "dependencies": [],
+          "details"...
 ```
 
 ### **docs\01_phase_1\mission homogénisation\validation_gpu_report.json**
@@ -5086,7 +6492,7 @@ jobs:
 
 ---
 
-## 🔧 SCRIPTS (17 fichiers)
+## 🔧 SCRIPTS (21 fichiers)
 
 ### **build_piper_312.ps1**
 - **Taille** : 2004 octets (55 lignes)
@@ -5159,8 +6565,56 @@ if (-not (Test-Path $ModelPath)) {
     Write-Error "❌ ERREUR: Le modèle...
 ```
 
+### **luxa\fix_empty_file.ps1**
+- **Taille** : 474 octets (19 lignes)
+- **Type** : .ps1
+
+```
+$content = @"
+def hello_world():
+    ""\"
+    Fonction simple qui affiche Hello World
+    ""\"
+    print("Bonjour, monde !")
+    return "Bonjour, monde !"
+
+# Appel de la fonction
+if __name__ == "__main__":
+    hello_world()
+"@
+
+$content | Out-File -FilePath "test.py" -Encoding UTF8 -Force
+Write-Host "✅ Fichier test.py réparé avec succès!"
+Write-Host "📁 Contenu écrit:"
+Get-Content "test.py"
+Write-Host "`n🚀 Test d'exécution:"
+python test.py 
+```
+
+### **scripts\comparaison_vad.py**
+- **Taille** : 8082 octets (192 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Comparaison Paramètres VAD - SuperWhisper V6 Phase 4
+🔧 DOCUMENTATION: Avant/Après correction VAD
+
+Mission: Documenter la différence entre paramètres VAD par défaut
+et paramètres corrigés pour résoudre le problème de transcription incomplète.
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# ====================================================================...
+```
+
 ### **scripts\generate_bundle_coordinateur.py**
-- **Taille** : 23583 octets (616 lignes)
+- **Taille** : 24385 octets (633 lignes)
 - **Type** : .py
 
 ```python
@@ -5179,6 +6633,29 @@ Modes disponibles:
 Auteur: Équipe SuperWhisper V6
 Date: 2025-06-12
 Version: 1.2 - Mode Régéné...
+```
+
+### **scripts\install_prism_dependencies.py**
+- **Taille** : 11777 octets (408 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Script d'installation des dépendances Prism STT - SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import subprocess
+import platform
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 30...
 ```
 
 ### **scripts\superwhisper_workflow.ps1**
@@ -5235,6 +6712,28 @@ param(
 
 # Configuration
 $ProjectRoot = ...
+```
+
+### **scripts\validate_dual_gpu_rtx3090.py**
+- **Taille** : 6889 octets (211 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Validation configuration RTX 3090 SuperWhisper V6 - Phase 4 STT
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Script de validation obligatoire avant toute implémentation STT
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RT...
 ```
 
 ### **docs\01_phase_1\mission homogénisation\gpu-correction\backup_script.ps1**
@@ -5662,7 +7161,7 @@ torch~=1.11.0
 
 ---
 
-## 🔧 AUTRES (177 fichiers)
+## 🔧 AUTRES (208 fichiers)
 
 ### **CHANGELOG.md**
 - **Taille** : 5698 octets (173 lignes)
@@ -5684,23 +7183,6 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Suite de Tests Pytest Complète** : 9 tests d'intégration automatisés
   - Test format WAV et amplitude audio
   - Test latence texte lo...
-```
-
-### **CHECKLIST_SUPERWHISPER_V6.md**
-- **Taille** : 10589 octets (217 lignes)
-- **Type** : .md
-
-```markdown
-# ✅ Checklist - SuperWhisper_V6 (LUXA) - Assistant Vocal Intelligent
-
-## 📋 **Informations du projet SuperWhisper_V6**
-
-### **1. 🎯 Vue d'ensemble du projet**
-- [x] **Nom complet :** SuperWhisper_V6 (LUXA)
-- [x] **Description générale :** Assistant vocal intelligent avec pipeline voix-à-voix complet (STT → LLM → TTS)
-- [x] **Type d'application :** Application Desktop Python avec modules IA spécialisés
-- [x] **Public cible :** Utilisateurs finaux recherchant un assistant vocal 100% local et privé
--...
 ```
 
 ### **convertir_fichiers_pcm_wav.py**
@@ -5974,23 +7456,6 @@ from collections import deque
 # ===================...
 ```
 
-### **PHASE3_OPTIMISATIONS_RESUME.md**
-- **Taille** : 7592 octets (255 lignes)
-- **Type** : .md
-
-```markdown
-# 🚀 SuperWhisper V6 - Phase 3 : Optimisations Performance TTS
-
-## 📋 Résumé Exécutif
-
-La **Phase 3** implémente 5 axes d'optimisation majeurs pour le système TTS de SuperWhisper V6, visant à **diviser la latence par 6** (500ms → <80ms) et **lever la limite de texte** (1000 → 5000+ caractères).
-
-### 🎯 Objectifs de Performance
-- **Latence cible** : <100ms par appel TTS (vs 500ms actuels)
-- **Textes longs** : Support 5000+ caractères (vs 1000 actuels)
-- **Cache intelligent** : Réponse instantanée po...
-```
-
 ### **PRD_LUXA_Development_Final.txt**
 - **Taille** : 7779 octets (177 lignes)
 - **Type** : .txt
@@ -6057,7 +7522,7 @@ Cette procédure définit le processus standardisé de transmission des livrable
 ```
 
 ### **README.md**
-- **Taille** : 8232 octets (302 lignes)
+- **Taille** : 12772 octets (431 lignes)
 - **Type** : .md
 
 ```markdown
@@ -6365,28 +7830,43 @@ from pathlib import Path
 2. **LLM** : llama-cpp-python + GGUF ✅ + R...
 ```
 
-### **docs\dev_plan.md**
-- **Taille** : 36677 octets (1066 lignes)
+### **docs\CHECKLIST_SUPERWHISPER_V6.md**
+- **Taille** : 10589 octets (217 lignes)
 - **Type** : .md
 
 ```markdown
-# 📅 PLAN DE DÉVELOPPEMENT - CONSOLIDATION TTS PHASE 2 ENTERPRISE
+# ✅ Checklist - SuperWhisper_V6 (LUXA) - Assistant Vocal Intelligent
 
-**Date :** 2025-06-12  
-**Version :** v2.0 Enterprise  
-**Durée Totale :** 5.5 jours  
-**Équipe :** SuperWhisper V6 Core Team  
+## 📋 **Informations du projet SuperWhisper_V6**
+
+### **1. 🎯 Vue d'ensemble du projet**
+- [x] **Nom complet :** SuperWhisper_V6 (LUXA)
+- [x] **Description générale :** Assistant vocal intelligent avec pipeline voix-à-voix complet (STT → LLM → TTS)
+- [x] **Type d'application :** Application Desktop Python avec modules IA spécialisés
+- [x] **Public cible :** Utilisateurs finaux recherchant un assistant vocal 100% local et privé
+-...
+```
+
+### **docs\dev_plan.md**
+- **Taille** : 37228 octets (1138 lignes)
+- **Type** : .md
+
+```markdown
+# 📋 PLAN DE DÉVELOPPEMENT - PHASE 4 STT SUPERWHISPER V6
+
+**Version :** 4.2 CORRECTION VAD RÉUSSIE  
+**Date :** 13 juin 2025  
+**Configuration :** RTX 3090 Unique (24GB VRAM)  
+**Durée réalisée :** 3 jours - VALIDATION MICROPHONE LIVE REQUISE  
+**Objectif :** Pipeline STT complet avec validation finale microphone  
 
 ---
 
-## 🎯 **VUE D'ENSEMBLE STRATÉGIQUE**
+## 🎯 CONTEXTE ET OBJECTIFS
 
-### **Philosophie de Développement :**
-- **Validation Continue :** Checkpoints bloquants à chaque phase
-- **Préservation des Acquis :** Architecture fonctionnelle maintenue
-- **Approche Enterprise :** Robustesse + monitoring + performance
-
-### **Architecture Cibl...
+### **État Actuel SuperWhisper V6**
+- ✅ **Phase 3 TTS** : Terminée avec succès exceptionnel (29.5ms latence cache)
+- 🟡 **Phase 4 STT** : Correction VA...
 ```
 
 ### **docs\guide_developpement_gpu_rtx3090.md**
@@ -6415,7 +7895,7 @@ Ce guide vous accompagne **étape par étape** pour développer des scripts comp
 ```
 
 ### **docs\journal_developpement.md**
-- **Taille** : 89253 octets (1582 lignes)
+- **Taille** : 16818 octets (334 lignes)
 - **Type** : .md
 
 ```markdown
@@ -6435,45 +7915,89 @@ Ce journal consigne toutes les analyses, décisions techniques et implémentatio
 ...
 ```
 
-### **docs\prd.md**
-- **Taille** : 14432 octets (438 lignes)
+### **docs\ON_BOARDING_ia.md**
+- **Taille** : 23454 octets (527 lignes)
 - **Type** : .md
 
 ```markdown
-# 📋 PRD - CONSOLIDATION TTS SUPERWHISPER V6 (PHASE 2 ENTERPRISE)
+# 🎯 **BRIEFING COMPLET - SUPERWHISPER V6**
 
-**Date :** 2025-06-12  
-**Version :** v2.0 Enterprise  
-**Statut :** Approuvé pour implémentation  
-**Équipe :** SuperWhisper V6 Core Team  
+**Date de création** : 12 Juin 2025  
+**Dernière mise à jour** : 12 Juin 2025 - 16:45  
+**Assistant IA** : Claude (Anthropic)  
+**Version projet** : 6.0.0-beta  
+**Statut** : Phase 3 TTS Terminée avec Succès Exceptionnel  
 
 ---
 
-## 🎯 **EXECUTIVE SUMMARY**
+## 📚 **DOCUMENTS PRIORITAIRES À CONSULTER**
 
-### **Problème Business :**
-Le sous-système TTS de SuperWhisper V6 souffre d'une **fragmentation critique** avec 15 handlers redondants, causant une **complexité de maintenance insoutenable** et des **risques d'instabilité**. La performance n'est pas garantie...
+### **🔴 PRIORITÉ CRITIQUE (À lire en PREMIER)**
+| Document | Localisation | Description | Utilité |
+|----------|--------------|-------------|---------|
+| **INDEX_TRANSMISSION_PHASE3....
+```
+
+### **docs\prd.md**
+- **Taille** : 23169 octets (635 lignes)
+- **Type** : .md
+
+```markdown
+# 📋 PRD - PHASE 4 STT SUPERWHISPER V6
+
+**Version :** 4.2 CORRECTION VAD RÉUSSIE  
+**Date :** 13 juin 2025  
+**Configuration :** RTX 3090 Unique (24GB VRAM)  
+**Responsable Produit :** Équipe SuperWhisper V6  
+**Statut :** CORRECTION VAD APPLIQUÉE - TEST MICROPHONE LIVE REQUIS  
+
+---
+
+## 🚨 EXIGENCES CRITIQUES - VALIDATION HUMAINE OBLIGATOIRE
+
+### **📋 Nouveaux Prérequis Développement**
+
+#### **🔍 VALIDATION HUMAINE AUDIO OBLIGATOIRE**
+**RÈGLE ABSOLUE** : Tous les tests audio au microphone DOIVENT ê...
 ```
 
 ### **docs\prompt.md**
-- **Taille** : 37002 octets (949 lignes)
+- **Taille** : 32362 octets (876 lignes)
 - **Type** : .md
 
 ```markdown
-# 🎯 PROMPT D'EXÉCUTION - CONSOLIDATION TTS SUPERWHISPER V6 (PHASE 2 ENTERPRISE)
+# 🚀 PROMPT D'IMPLÉMENTATION - PHASE 4 STT SUPERWHISPER V6
 
-**Date :** 2025-06-12  
-**Version :** v2.0 Enterprise  
-**Objectif :** Implémentation architecture UnifiedTTSManager enterprise-grade  
+**Version :** 4.2 CORRECTION VAD RÉUSSIE  
+**Date :** 13 juin 2025  
+**Configuration :** RTX 3090 Unique (24GB VRAM)  
+**Statut :** CORRECTION VAD APPLIQUÉE - TEST MICROPHONE LIVE REQUIS  
 
 ---
 
-## 🚨 **MISSION CRITIQUE**
+## 🎯 CONTEXTE PROJET
 
-### **Objectif Principal :**
-Implémenter l'architecture **UnifiedTTSManager enterprise-grade** en utilisant **EXCLUSIVEMENT le code expert fourni ci-dessous**, en remplaçant les 15 handlers fragmentés par une solution robuste <120ms.
+Vous êtes en charge d'ajouter le module STT à SuperWhisper V6 sur une **configuration RTX 3090 unique** (24GB VRAM), en utilisant **Prism_Whisper2** ([GitHub](https://github.com/KaizenCoder/Prism_whisper2)) pour compléter le...
+```
 
-### **🔥 INSTRUC...
+### **docs\RTX_5060_CUDA_PYTORCH_INCOMPATIBILITE.md**
+- **Taille** : 13172 octets (366 lignes)
+- **Type** : .md
+
+```markdown
+# 🚫 **PROBLÉMATIQUE RTX 5060 - INCOMPATIBILITÉ CUDA/PYTORCH**
+
+**Date de création** : 12 Juin 2025  
+**Dernière mise à jour** : 12 Juin 2025  
+**Projet** : SuperWhisper V6  
+**Statut** : Documentation Technique - Problème Critique Identifié  
+**Niveau** : Expert GPU/CUDA  
+
+---
+
+## 📋 **RÉSUMÉ EXÉCUTIF**
+
+La **NVIDIA GeForce RTX 5060** présente une **incompatibilité majeure** avec l'écosystème CUDA/PyTorch actuel, rendant impossible son utilisation pour les projets d'IA/ML nécessitant l'accélérat...
 ```
 
 ### **docs\standards_gpu_rtx3090_definitifs.md**
@@ -6499,6 +8023,25 @@ Implémenter l'architecture **UnifiedTTSManager enterprise-grade** en utilisant 
 ### 🎯 **Règle #1 : GPU EXCLUSIVE RTX 3090**
 - ✅ **AUTORISÉE :** RTX 3090 (24GB VRAM) sur Bus PCI 1 uniquement
 - ❌ **INTERDITE :** ...
+```
+
+### **luxa\CONTINUE_SETUP.md**
+- **Taille** : 5210 octets (142 lignes)
+- **Type** : .md
+
+```markdown
+# 🚀 Configuration Continue avec Ollama - Guide Complet
+
+## ✅ Configuration Automatique Terminée !
+
+Votre configuration Continue a été automatiquement créée et optimisée pour votre RTX 3090 24GB avec tous vos modèles Ollama locaux.
+
+## 📋 Modèles Configurés
+
+### 🎯 **Modèles de Chat (sélectionnables dans le dropdown)**
+- **Qwen-Coder-32B** (19GB) - Principal, le plus puissant pour le développement
+- **Code-Stral** (8.6GB) - Spécialisé pour l'édition de code
+- **DeepSeek-Coder-6.7B** (3.8GB) - Rapid...
 ```
 
 ### **luxa\CONTRIBUTING.md**
@@ -6553,6 +8096,165 @@ Suppression des paramètres problématiques de `get_capabilities()` dans le serv
 1. **Ouvrez Cursor → Paramèt...
 ```
 
+### **luxa\diagnostic_mcp_complet.py**
+- **Taille** : 1 octets (1 lignes)
+- **Type** : .py
+
+```
+ 
+```
+
+### **luxa\diagnostic_mcp_rapide.py**
+- **Taille** : 6636 octets (176 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🔧 Diagnostic Rapide MCP - Résolution Pastille Rouge
+Identifie et résout automatiquement les problèmes de serveurs MCP
+"""
+
+import json
+import subprocess
+import sys
+import os
+from pathlib import Path
+
+def print_status(message, status="INFO"):
+    symbols = {"INFO": "ℹ️", "SUCCESS": "✅", "ERROR": "❌", "WARNING": "⚠️"}
+    print(f"{symbols.get(status, 'ℹ️')} {message}")
+
+def test_python_import(module_name):
+    """Teste l'import d'un module Python"""
+    try:
+        resu...
+```
+
+### **luxa\diagnostic_serveurs_mcp_PRUDENT.py**
+- **Taille** : 2686 octets (76 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🔍 DIAGNOSTIC PRUDENT DES SERVEURS MCP
+Identifie seulement les problèmes sans tout casser
+"""
+
+import json
+import os
+from pathlib import Path
+
+def main():
+    print("🔍 DIAGNOSTIC PRUDENT DES SERVEURS MCP")
+    print("=" * 50)
+    
+    print("\n📋 ÉTAPE 1 : Vérifiez vos serveurs actuels")
+    print("1. Ouvrez Cursor")
+    print("2. Allez dans : Paramètres → MCP Tools")
+    print("3. Regardez la liste des serveurs")
+    print("\n❓ QUESTION : Quels serveurs voyez-vous ?")
+ ...
+```
+
+### **luxa\fix_3_serveurs_problematiques.py**
+- **Taille** : 6141 octets (166 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🔧 Fix des 3 Serveurs MCP Problématiques
+Répare context7, agentmode et sequential-thinking
+"""
+
+import subprocess
+import sys
+import time
+import json
+from pathlib import Path
+
+def run_cmd(cmd, description="", timeout=10):
+    """Exécute une commande avec gestion d'erreur"""
+    try:
+        print(f"   📥 {description}...", end=" ")
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+        if result.returncode == 0:
+         ...
+```
+
+### **luxa\fix_mcp_express.py**
+- **Taille** : 4075 octets (116 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🚀 Fix Express MCP - Résolution Automatique Pastilles Rouges
+Corrige automatiquement tous les problèmes MCP en 30 secondes
+"""
+
+import json
+import subprocess
+import sys
+import os
+from pathlib import Path
+
+def run_command(cmd, description=""):
+    """Exécute une commande et retourne le résultat"""
+    try:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+        return result.returncode == 0, result.stdout, result.stderr
+    ex...
+```
+
+### **luxa\fix_pastilles_rouges_FINAL.py**
+- **Taille** : 3417 octets (97 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🔴 CORRECTION DÉFINITIVE DES PASTILLES ROUGES MCP
+Résout les problèmes de configuration et doublons
+"""
+
+import os
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+def main():
+    print("🔴 CORRECTION PASTILLES ROUGES MCP - DÉMARRAGE")
+    print("=" * 50)
+    
+    # 1. Vérifier que le serveur timemanager fonctionne
+    print("\n1️⃣ Test du serveur TimeManager...")
+    server_path = Path("timemanager-mcp/mcp_timemanager_server.py")
+    
+   ...
+```
+
+### **luxa\hello_world.py**
+- **Taille** : 211 octets (10 lignes)
+- **Type** : .py
+
+```
+def hello_world():
+    """
+    Fonction simple qui affiche Hello World
+    """
+    print("Hello, World!")
+    return "Hello, World!"
+
+# Appel de la fonction
+if __name__ == "__main__":
+    hello_world() 
+```
+
 ### **luxa\install_superwhisper_mcp_suite.py**
 - **Taille** : 10762 octets (277 lignes)
 - **Type** : .py
@@ -6603,6 +8305,109 @@ class UserMCPInstaller:
         self.home_dir =...
 ```
 
+### **luxa\lister_mcp_tableau.py**
+- **Taille** : 5379 octets (157 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+📊 LISTAGE DES SERVEURS MCP EN TABLEAU
+Affiche tous vos serveurs MCP configurés
+"""
+
+import json
+import os
+from pathlib import Path
+from tabulate import tabulate
+
+def find_cursor_config():
+    """Trouve les fichiers de configuration MCP"""
+    configs_found = []
+    
+    # Chercher dans le projet actuel
+    local_configs = [
+        "cursor_mcp_config.json",
+        "cursor_mcp_config_CLEAN.json", 
+        "cursor_mcp_config_FINAL.json",
+        "mcp_config_optimized.js...
+```
+
+### **luxa\mcp_timemanager_server.py**
+- **Taille** : 11376 octets (310 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+Serveur MCP TimeManager - Gestion centralisée des dates et heures
+Expose 4 outils pour garantir la cohérence temporelle dans tous les projets.
+"""
+
+import asyncio
+import json
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+# Gestion des fuseaux horaires avec fallback
+try:
+    from zoneinfo import ZoneInfo
+    TIMEZONE_SUPPORT = True
+except ImportError:
+    from datetime import timezone, timedelta
+    TI...
+```
+
+### **luxa\nettoyer_doublons_mcp.py**
+- **Taille** : 5351 octets (165 lignes)
+- **Type** : .py
+
+```python
+#!/usr/bin/env python3
+"""
+🧹 NETTOYAGE INTELLIGENT DES DOUBLONS MCP
+Garde une seule version de chaque serveur (la meilleure)
+"""
+
+import json
+from pathlib import Path
+
+def main():
+    print("🧹 NETTOYAGE INTELLIGENT DES DOUBLONS MCP")
+    print("=" * 60)
+    
+    # Configuration optimale (une seule version de chaque)
+    config_propre = {
+        "mcpServers": {
+            # TimeManager - version locale fonctionnelle
+            "timemanager": {
+                "command": "python",
+             ...
+```
+
+### **luxa\ollama_migration_log.txt**
+- **Taille** : 6526 octets (93 lignes)
+- **Type** : .txt
+
+```
+===== DEBUT DE LA MIGRATION OLLAMA ===== 
+Date/Heure: 13/06/2025  9:32:52,92 
+Test de logging... 
+[INFO] Script demarre avec succes 
+[INFO] === INFORMATIONS SYSTEME === 
+[INFO] OS: Windows_NT 
+[INFO] Utilisateur: Utilisateur 
+[INFO] Dossier de travail: C:\Windows\System32 
+[INFO] Variables Ollama actuelles: 
+LOG_FILE=C:\Dev\SuperWhisper_V6\luxa\ollama_migration_log.txt
+OLLAMA_GPU_DEVICE=1
+OLLAMA_GPU_MEMORY=24GB
+OLLAMA_MODELS=D:\modeles_llm
+Path=C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\...
+```
+
 ### **luxa\REDEMARRAGE_MCP.md**
 - **Taille** : 1390 octets (31 lignes)
 - **Type** : .md
@@ -6620,6 +8425,52 @@ Quand l'onglet MCP est ouvert pendant la modification de la configuration, Curso
 2. **Relancez Cursor**
 3. **Allez dans les paramètres → MCP Tools**
 4. Vous devriez voir le serveur "timemanager" avec un bouton d'ac...
+```
+
+### **luxa\RESOLUTION_PASTILLES_ROUGES.md**
+- **Taille** : 3017 octets (111 lignes)
+- **Type** : .md
+
+```markdown
+# 🔴 Résolution Rapide des Pastilles Rouges MCP
+
+## 🎯 Problème Identifié
+
+**Symptôme :** Pastilles rouges sur les serveurs MCP dans Cursor
+**Cause principale :** Chemin de serveur incorrect ou serveur qui ne démarre pas
+
+## ✅ Solution Express (5 minutes)
+
+### Étape 1 : Vérification Configuration
+```json
+// Copiez exactement ce contenu dans Cursor → Paramètres → MCP Tools
+{
+  "mcpServers": {
+    "timemanager": {
+      "command": "python",
+      "args": [
+        "C:\\Dev\\SuperWhisper_V6\\luxa\\ti...
+```
+
+### **luxa\VERIFICATION_CONTINUE.md**
+- **Taille** : 3851 octets (134 lignes)
+- **Type** : .md
+
+```markdown
+# ✅ Vérification Continue - Guide Étape par Étape
+
+## 🔍 Statut Actuel
+- ✅ Configuration créée : `C:\Users\Utilisateur\.continue\config.json`
+- ✅ Extension Continue installée : v1.0.13
+- ✅ Modèles Ollama disponibles : Qwen-Coder-32B, Code-Stral, etc.
+
+## 📋 Vérifications à Faire dans VS Code
+
+### Étape 1 : Vérifier l'Extension
+1. **Ouvrir VS Code** (devrait être ouvert maintenant)
+2. **Aller dans View → Extensions** (Ctrl+Shift+X)
+3. **Chercher "Continue"** dans la liste
+4. **Vérifier qu'elle est ...
 ```
 
 ### **monitoring\prometheus_exporter_enhanced.py**
@@ -7137,132 +8988,360 @@ SuperWhisper_V6, nom de code "Luxa", est un assistant vocal intelligent multi-co
 ```
 
 ### **.taskmaster\tasks\task_001.txt**
-- **Taille** : 1345 octets (38 lignes)
+- **Taille** : 1804 octets (44 lignes)
 - **Type** : .txt
 
 ```
 # Task ID: 1
-# Title: Phase 1 : Préparation et Setup
+# Title: Setup Project Repository
 # Status: done
 # Dependencies: None
-# Priority: critical
-# Description: Setup environnement sécurisé, sauvegarde et analyse des 40 fichiers cibles
+# Priority: medium
+# Description: ...
 # Details:
-Créer branche Git dédiée, structure de travail, sauvegarder les 40 fichiers originaux, analyser configuration GPU existante, créer templates de validation
+
 
 # Test Strategy:
-Vérifier structure créée, backups complets, analyse documentée
+
 
 # Subtasks:
-## 1. Setup Environnement [done]
-### Dep...
+## 1. Define repository structure [done]
+### Dependencies: None
+### Description: Create a new repository with a clear folder structure for STT data and configuration files.
+### Details:
+The repository should include folders for data, configuration, and logs. The data folder should contain subfolders for training, testing, and validat...
 ```
 
 ### **.taskmaster\tasks\task_002.txt**
-- **Taille** : 1257 octets (26 lignes)
+- **Taille** : 1181 octets (38 lignes)
 - **Type** : .txt
 
 ```
 # Task ID: 2
-# Title: Phase 2 : Correction Modules Core
-# Status: done
+# Title: Implement PrismSTTBackend
+# Status: pending
 # Dependencies: 1
-# Priority: critical
-# Description: Corriger 13 modules critiques avec configuration GPU complète + Memory Leak V4.0
+# Priority: medium
+# Description: ...
 # Details:
-Appliquer configuration GPU complète (CUDA_VISIBLE_DEVICES='1' + CUDA_DEVICE_ORDER='PCI_BUS_ID') aux 13 modules core avec validation factuelle RTX 3090
+
 
 # Test Strategy:
-Script diagnostic obligatoire + tests fonctionnels complets pour chaque module
+
 
 # Subtasks:
-## 1. Modules Core Cr...
+## 1. Design Backend Architecture [pending]
+### Dependencies: None
+### Description: Create a high-level architecture for the backend service using Node.js and Express.js.
+### Details:
+Define the API endpoints, database schema, and server-side logic.
+
+## 2. Implement STT Module [pending]
+### Dependencies: 2.1
+### Description: Integra...
 ```
 
 ### **.taskmaster\tasks\task_003.txt**
-- **Taille** : 1446 octets (26 lignes)
+- **Taille** : 153 octets (12 lignes)
 - **Type** : .txt
 
 ```
 # Task ID: 3
-# Title: Phase 3 : Correction Scripts Test
-# Status: done
+# Title: Develop UnifiedSTTManager
+# Status: pending
 # Dependencies: 2
-# Priority: high
-# Description: Corriger 27 scripts test/validation avec configuration GPU complète
+# Priority: medium
+# Description: ...
 # Details:
-Appliquer configuration GPU complète aux 27 scripts de test avec validation RTX 3090
+
 
 # Test Strategy:
-Script diagnostic + validation fonctionnelle pour chaque script
 
-# Subtasks:
-## 1. Scripts Test Initiaux (13 fichiers) [done]
-### Dependencies: None
-### Description: tests/test_double_check_correct...
+
 ```
 
 ### **.taskmaster\tasks\task_004.txt**
-- **Taille** : 1242 octets (38 lignes)
+- **Taille** : 1640 octets (44 lignes)
 - **Type** : .txt
 
 ```
 # Task ID: 4
-# Title: Phase 4 : Validation Système
-# Status: done
+# Title: Integrate STT→LLM→TTS Pipeline
+# Status: pending
 # Dependencies: 3
-# Priority: critical
-# Description: Tests d'intégration globale et validation stabilité système
+# Priority: medium
+# Description: ...
 # Details:
-Validation système complet avec RTX 3090 exclusive, tests workflow STT→LLM→TTS, benchmarks performance, stabilité 30min
+
 
 # Test Strategy:
-Tests intégration + benchmarks avant/après + stabilité continue
+
 
 # Subtasks:
-## 1. Tests Intégration GPU [done]
+## 1. Design Pipeline Architecture [pending]
 ### Dependencies: None
-### Description: Vérifier que tout l...
+### Description: Create a high-level design of the pipeline architecture, including component interactions and data flows.
+### Details:
+Use UML or other modeling tools to create a detailed diagram of the pipeline.
+
+## 2. Implement STT Component [pending]
+### De...
 ```
 
 ### **.taskmaster\tasks\task_005.txt**
-- **Taille** : 1000 octets (32 lignes)
+- **Taille** : 168 octets (12 lignes)
 - **Type** : .txt
 
 ```
 # Task ID: 5
-# Title: Phase 5 : Documentation
-# Status: done
-# Dependencies: 4
+# Title: Implement Cache LRU and Circuit Breakers
+# Status: pending
+# Dependencies: 2
 # Priority: medium
-# Description: Standards GPU définitifs et guides développement
+# Description: ...
 # Details:
-Documenter standards GPU pour développements futurs, guide développeur, rapport final mission
+
 
 # Test Strategy:
-Documentation complète et réutilisable
 
-# Subtasks:
-## 1. Standards GPU Définitifs [done]
-### Dependencies: None
-### Description: Template obligatoire configuration GPU + validation
-### Details:
-Standard CUDA_VISIBL...
+
 ```
 
 ### **.taskmaster\tasks\task_006.txt**
-- **Taille** : 5570 octets (69 lignes)
+- **Taille** : 1310 octets (38 lignes)
 - **Type** : .txt
 
 ```
 # Task ID: 6
-# Title: Consolidation UnifiedTTSManager enterprise-grade avec fallback automatique
-# Status: done
-# Dependencies: 2, 3
-# Priority: high
-# Description: Remplacer les 15 handlers TTS fragmentés par une architecture UnifiedTTSManager enterprise-grade avec fallback automatique pour atteindre des performances <120ms P95, robustesse 99.9% et contraintes spécifiques RTX 3090 CUDA:1 exclusivement.
+# Title: Develop VoiceToVoicePipeline
+# Status: pending
+# Dependencies: 4
+# Priority: medium
+# Description: ...
 # Details:
-Appliquer la configuration UnifiedTTSManager sur les 15 handlers TTS fragmentés, i...
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Design Pipeline Architecture [pending]
+### Dependencies: None
+### Description: Create a high-level design for the pipeline architecture, including component selection and data flow.
+### Details:
+Develop a detailed architecture diagram and document component interactions.
+
+## 2. Implement STT Component [pending]
+### Dependen...
+```
+
+### **.taskmaster\tasks\task_007.txt**
+- **Taille** : 1609 octets (44 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 7
+# Title: Test and Refine STT Pipeline
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Test pipeline with various inputs [pending]
+### Dependencies: None
+### Description: Perform thorough testing of the STT pipeline with diverse input scenarios to ensure robustness and reliability.
+### Details:
+Input data will include a mix of clean and noisy audio, as well as different accents and speaking styles.
+
+## 2. Ref...
+```
+
+### **.taskmaster\tasks\task_008.txt**
+- **Taille** : 171 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 8
+# Title: Implement Monitoring and Alerting System
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_009.txt**
+- **Taille** : 158 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 9
+# Title: Develop UI/UX Web Interface
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_010.txt**
+- **Taille** : 166 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 10
+# Title: Implement API REST for Integration
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_011.txt**
+- **Taille** : 156 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 11
+# Title: Test and Refine API REST
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_012.txt**
+- **Taille** : 164 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 12
+# Title: Implement Multi-Language Support
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_013.txt**
+- **Taille** : 180 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 13
+# Title: Develop Streaming Feature for Real-Time Pipeline
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_014.txt**
+- **Taille** : 174 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 14
+# Title: Implement Clustering Multi-GPU for Scaling
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_015.txt**
+- **Taille** : 177 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 15
+# Title: Develop Analytics Features for Usage Patterns
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: ...
+# Details:
+
+
+# Test Strategy:
+
+
+```
+
+### **.taskmaster\tasks\task_016.txt**
+- **Taille** : 1156 octets (12 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 16
+# Title: Implement Human Validation for Audio STT with Manual Listening Protocol
+# Status: pending
+# Dependencies: 7
+# Priority: high
+# Description: Develop a system to validate audio input for speech-to-text (STT) functionality, ensuring high accuracy and precision, with manual listening protocol and testing for various accents and conditions.
+# Details:
+Design and implement a human validation module for audio input, utilizing a manual listening protocol to verify transcription ac...
+```
+
+### **.taskmaster\tasks\task_017.txt**
+- **Taille** : 6222 octets (148 lignes)
+- **Type** : .txt
+
+```
+# Task ID: 17
+# Title: Documentation continue obligatoire Phase 4 STT
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Continuation of documentation for phase 4, focusing on technical specifications and human validation tracking.
+# Details:
+This task involves creating and maintaining documentation for phase 4, including technical decisions, human validation tracking, and real-time task monitoring. The documentation will be updated daily during development and will include a recor...
 ```
 
 ### **.taskmaster\templates\example_prd.txt**
@@ -7412,6 +9491,23 @@ Corriger test_tts_handler.py : Remplacer la référence au modèle upmc par siwi
 Valider l'intégration dans run_assis...
 ```
 
+### **docs\01_phase_1\PHASE3_OPTIMISATIONS_RESUME.md**
+- **Taille** : 7592 octets (255 lignes)
+- **Type** : .md
+
+```markdown
+# 🚀 SuperWhisper V6 - Phase 3 : Optimisations Performance TTS
+
+## 📋 Résumé Exécutif
+
+La **Phase 3** implémente 5 axes d'optimisation majeurs pour le système TTS de SuperWhisper V6, visant à **diviser la latence par 6** (500ms → <80ms) et **lever la limite de texte** (1000 → 5000+ caractères).
+
+### 🎯 Objectifs de Performance
+- **Latence cible** : <100ms par appel TTS (vs 500ms actuels)
+- **Textes longs** : Support 5000+ caractères (vs 1000 actuels)
+- **Cache intelligent** : Réponse instantanée po...
+```
+
 ### **docs\01_phase_1\PHASE_0_COMPLETION_SUMMARY.md**
 - **Taille** : 5674 octets (162 lignes)
 - **Type** : .md
@@ -7488,6 +9584,27 @@ Ta mission est d'exécuter le plan d'action final pour officiellement clore la P
 ## 2. Plan d'Action Séquentiel
 
 Exécute les tâches suivantes dans cet ord...
+```
+
+### **docs\01_phase_1\prompt_avis_tiers.md**
+- **Taille** : 12378 octets (358 lignes)
+- **Type** : .md
+
+```markdown
+# 🎯 PROMPT AVIS TIERS - SUPERWHISPER V6
+
+**Date :** 12 Juin 2025  
+**Version :** 1.0 EXPERTISE EXTERNE  
+**Objectif :** Évaluation technique et stratégique par expert tiers  
+**Statut :** Phase 3 TTS Terminée - Phase 4 STT en Préparation  
+
+---
+
+## 📋 **CONTEXTE POUR L'EXPERT TIERS**
+
+Vous êtes sollicité en tant qu'**expert technique indépendant** pour évaluer le projet **SuperWhisper V6**, un assistant IA conversationnel avec pipeline voix-à-voix complet (STT → LLM → TTS) 100% local et privé.
+
+#...
 ```
 
 ### **docs\deprecated\JOURNAL-DEVELOPPEMENT_DEPRECATED.md**
@@ -7700,6 +9817,28 @@ Le projet SuperWhisper V6...
 2. **[BUNDLE_GPU_HOMOGENIZATION.md](BUNDLE_GPU_HOMOGENIZATION.md)** - 📦 **Bundle...
 ```
 
+### **docs\Transmission_Coordinateur\INDEX_TRANSMISSION_PHASE3.md**
+- **Taille** : 8529 octets (201 lignes)
+- **Type** : .md
+
+```markdown
+# 📚 INDEX TRANSMISSION COORDINATEUR - PHASE 3 TTS COMPLÉTÉE
+
+**Projet** : SuperWhisper V6 - Assistant IA Conversationnel  
+**Phase** : Phase 3 - Optimisation et Déploiement TTS  
+**Date** : 12 Juin 2025 - 15:35  
+**Statut** : ✅ **TRANSMISSION COMPLÈTE PRÊTE**  
+
+---
+
+## 🎯 **DOCUMENTS TRANSMISSION PHASE 3**
+
+### **📄 Documents Principaux (OBLIGATOIRES)**
+| Fichier | Description | Taille | Priorité |
+|---------|-------------|--------|----------|
+| 🚀 **[TRANSMISSION_PHASE3_TTS_COMPLETE.md](TRANSMISS...
+```
+
 ### **docs\Transmission_Coordinateur\MISSION_GPU_SYNTHESIS.md**
 - **Taille** : 9017 octets (224 lignes)
 - **Type** : .md
@@ -7740,6 +9879,30 @@ La mission critique d'homogénéisation GPU RTX 3090 pour SuperWhisper V6 est **
 ### ✅ **MISSION ACCOMPLIE - SUCCÈS EXCEPTIONNEL**
 
 Nous avons l'honneur de vous annoncer que la **mission critique d'homogé...
+```
+
+### **docs\Transmission_Coordinateur\NOTIFICATION_PHASE3_COMPLETE.md**
+- **Taille** : 2483 octets (62 lignes)
+- **Type** : .md
+
+```markdown
+# 📧 NOTIFICATION COORDINATEUR - PHASE 3 TTS COMPLÉTÉE
+
+**Date** : 12 Juin 2025 - 15:35  
+**Projet** : SuperWhisper V6  
+**Phase** : Phase 3 - Optimisation et Déploiement TTS  
+**Statut** : ✅ **TERMINÉE AVEC SUCCÈS EXCEPTIONNEL**  
+
+---
+
+## 🚀 TRANSMISSION COORDINATEUR - SuperWhisper V6
+
+**Date** : 12 Juin 2025  
+**Phase** : Phase 3 TTS - Optimisation et Déploiement  
+**Objectif** : Système TTS complet avec performances exceptionnelles  
+
+### ✅ **Réalisations Majeures**
+- **Performance cache** : 2...
 ```
 
 ### **docs\Transmission_Coordinateur\PROGRESSION.md**
@@ -8190,7 +10353,7 @@ python scripts/doc-check.py --update
 ```
 
 ### **docs\Transmission_Coordinateur\docs\INDEX_DOCUMENTATION.md**
-- **Taille** : 11166 octets (242 lignes)
+- **Taille** : 11509 octets (245 lignes)
 - **Type** : .md
 
 ```markdown
@@ -8236,7 +10399,7 @@ Index complet de toute la documentation du projet SuperWhisper V6, incluant le s
 ```
 
 ### **docs\Transmission_Coordinateur\docs\PROCEDURE-TRANSMISSION.md**
-- **Taille** : 9264 octets (307 lignes)
+- **Taille** : 9896 octets (320 lignes)
 - **Type** : .md
 
 ```markdown
@@ -8276,6 +10439,29 @@ Procédure standardisée pour la transmission de documentation technique complè
 - ✅ **CODE-SOURCE.md** : 241KB, 9044 lignes, 374 fichiers scannés
 - ✅ **Couverture 100%** : Tous les modules SuperWhisper V6 documentés
 - ✅ **Mission GPU RTX 3090** : 70 fichiers homogén...
+```
+
+### **docs\Transmission_Coordinateur\zip\CODE-SOURCE.md**
+- **Taille** : 309441 octets (10738 lignes)
+- **Type** : .md
+
+```markdown
+# 💻 CODE SOURCE COMPLET - SuperWhisper V6
+
+**Générée** : 2025-06-12 15:44:29 CET
+**Mode** : Régénération Complète - TOUT le code source scanné  
+**Commit** : 9f691e2 (main)  
+**Auteur** : VOTRE_VRAI_NOM <modeles@example.com>  
+
+---
+
+## 📊 RÉSUMÉ PROJET SUPERWHISPER V6
+
+### **Architecture Complète**
+- **Total fichiers scannés** : 423 fichiers
+- **Mission GPU RTX 3090** : 97 fichiers avec configuration GPU
+- **Modules principaux** : STT, LLM, TTS, Orchestrator
+- **Infrastructure** : Tests, Config, ...
 ```
 
 ### **luxa\timemanager-mcp\install_timemanager_mcp.py**
@@ -9715,13 +11901,13 @@ domain. We make this dedication for the...
 
 ---
 
-## 🚀 MISSION GPU HOMOGÉNÉISATION RTX 3090 - AJOUT 2025-06-12 15:32:47 CET
+## 🚀 MISSION GPU HOMOGÉNÉISATION RTX 3090 - AJOUT 2025-06-13 13:56:26 CET
 
 ### **Informations Commit Mission GPU**
-- **Hash** : `9f691e28a95805ac6a91c89b25f45c99634bce6f`
+- **Hash** : `d2c23315fc1d01ca7cb6907f778585e4bbb72e02`
 - **Auteur** : VOTRE_VRAI_NOM <modeles@example.com>
-- **Date** : 2025-06-12 14:41:30 +0200
-- **Message** : feat(tts): Consolidation TTS Phase 2 Enterprise - Mission TERMINÃ‰E avec SUCCÃˆS EXCEPTIONNEL - 15+ handlers fragmentÃ©s â†’ 1 UnifiedTTSManager enterprise-grade - Architecture 4-niveaux: PiperNative â†’ PiperCLI â†’ SAPI â†’ SilentEmergency - Performance validÃ©e: Cache 12351x accÃ©lÃ©ration, fallback <5ms - 9/9 fichiers tests validation complexes gÃ©nÃ©rÃ©s (100% succÃ¨s) - 6.6 minutes audio professionnel, 16.63 MB WAV valide - Correction PCMâ†’WAV validÃ©e par ChatGPT et tests utilisateur - SuperWhisper V6 architecture TTS enterprise-grade opÃ©rationnelle
+- **Date** : 2025-06-13 13:56:04 +0200
+- **Message** : docs: Mise Ã  jour documentation Phase 4 STT - Correction VAD rÃ©ussie, test microphone live requis
 
 ### **Résultats Mission**
 ✅ **38 fichiers analysés** - 19 fichiers critiques corrigés  
@@ -9733,15 +11919,9 @@ domain. We make this dedication for the...
 
 ## 📊 FICHIERS GPU RTX 3090 MODIFIÉS
 
-**Total analysé** : 97 fichiers avec configuration GPU RTX 3090
+**Total analysé** : 123 fichiers avec configuration GPU RTX 3090
 
-### **Modules Core** (32 fichiers)
-- `test_tts_module.py` (76 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 4 occurrences
-- `test_tts_real.py` (69 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
+### **Modules Core** (74 fichiers)
 - `benchmarks\benchmark_stt_realistic.py` (236 lignes)
   - CUDA_VISIBLE_DEVICES: 5 occurrences
   - RTX 3090: 28 occurrences
@@ -9759,10 +11939,18 @@ domain. We make this dedication for the...
 - `scripts\demo_tts.py` (358 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
   - RTX 3090: 2 occurrences
+- `scripts\diagnostic_stt_simple.py` (330 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
 - `STT\stt_manager_robust.py` (479 lignes)
   - CUDA_VISIBLE_DEVICES: 7 occurrences
   - RTX 3090: 24 occurrences
   - cuda:0: 3 occurrences
+- `STT\unified_stt_manager.py` (453 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 14 occurrences
+  - cuda:0: 1 occurrences
 - `STT\vad_manager.py` (351 lignes)
   - CUDA_VISIBLE_DEVICES: 10 occurrences
   - RTX 3090: 31 occurrences
@@ -9771,37 +11959,9 @@ domain. We make this dedication for the...
   - CUDA_VISIBLE_DEVICES: 6 occurrences
   - RTX 3090: 32 occurrences
   - validate_rtx3090: 3 occurrences
-- `tests\test_llm_handler.py` (78 lignes)
-  - RTX 3090: 1 occurrences
-- `tests\test_luxa_edge_tts_francais.py` (118 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 4 occurrences
-- `tests\test_stt_handler.py` (495 lignes)
-  - RTX 3090: 4 occurrences
-  - cuda:0: 4 occurrences
-- `tests\test_tts_fixed.py` (98 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_tts_long_feedback.py` (164 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 5 occurrences
-- `tests\test_tts_manager_integration.py` (485 lignes)
+- `STT\__init__.py` (23 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
   - RTX 3090: 3 occurrences
-- `tests\test_tts_rtx3090_performance.py` (162 lignes)
-  - CUDA_VISIBLE_DEVICES: 2 occurrences
-  - RTX 3090: 23 occurrences
-- `tests\test_validation_stt_manager_robust.py` (151 lignes)
-  - CUDA_VISIBLE_DEVICES: 4 occurrences
-  - RTX 3090: 6 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_validation_tts_performance.py` (140 lignes)
-  - CUDA_VISIBLE_DEVICES: 8 occurrences
-  - RTX 3090: 7 occurrences
-- `tests\test_workflow_stt_llm_tts_rtx3090.py` (381 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 29 occurrences
-  - cuda:0: 9 occurrences
 - `TTS\test_unified_tts.py` (149 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
   - RTX 3090: 6 occurrences
@@ -9814,6 +11974,167 @@ domain. We make this dedication for the...
   - CUDA_VISIBLE_DEVICES: 5 occurrences
   - RTX 3090: 26 occurrences
   - validate_rtx3090: 3 occurrences
+- `STT\backends\base_stt_backend.py` (153 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 1 occurrences
+- `STT\backends\prism_stt_backend.py` (437 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 9 occurrences
+  - cuda:0: 1 occurrences
+- `STT\backends\__init__.py` (19 lignes)
+  - RTX 3090: 2 occurrences
+- `STT\config\stt_config.py` (196 lignes)
+  - CUDA_VISIBLE_DEVICES: 2 occurrences
+  - RTX 3090: 5 occurrences
+  - cuda:1: 2 occurrences
+- `STT\config\__init__.py` (15 lignes)
+  - RTX 3090: 1 occurrences
+- `STT\utils\audio_utils.py` (191 lignes)
+  - RTX 3090: 1 occurrences
+- `STT\utils\__init__.py` (18 lignes)
+  - RTX 3090: 1 occurrences
+- `tests\STT\test_prism_backend.py` (199 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 3 occurrences
+  - cuda:1: 1 occurrences
+- `tests\STT\test_prism_integration.py` (446 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 21 occurrences
+  - cuda:0: 5 occurrences
+- `tests\STT\test_prism_simple.py` (200 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 13 occurrences
+  - validate_rtx3090: 2 occurrences
+- `tests\STT\test_stt_handler.py` (495 lignes)
+  - RTX 3090: 4 occurrences
+  - cuda:0: 4 occurrences
+- `tests\STT\test_stt_performance.py` (307 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 13 occurrences
+  - validate_rtx3090: 3 occurrences
+- `tests\STT\test_unified_stt_manager.py` (388 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 18 occurrences
+  - cuda:0: 2 occurrences
+- `tests\STT\test_validation_stt_manager_robust.py` (151 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 6 occurrences
+  - cuda:0: 2 occurrences
+- `tests\STT\test_workflow_stt_llm_tts_rtx3090.py` (381 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 29 occurrences
+  - cuda:0: 9 occurrences
+- `tests\STT\__init__.py` (7 lignes)
+  - RTX 3090: 1 occurrences
+- `tests\test_llm_handler\test_llm_handler.py` (78 lignes)
+  - RTX 3090: 1 occurrences
+- `tests\TTS_test_de_vois\test_4_handlers_validation.py` (220 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `tests\TTS_test_de_vois\test_correction_format_audio.py` (231 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_1.py` (79 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 11 occurrences
+  - cuda:0: 5 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_2.py` (106 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 12 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_3.py` (78 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 11 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_4.py` (83 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 5 occurrences
+- `tests\TTS_test_de_vois\test_diagnostic_rtx3090.py` (109 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 13 occurrences
+- `tests\TTS_test_de_vois\test_espeak_french.py` (102 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_fallback_real.py` (55 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+- `tests\TTS_test_de_vois\test_format_audio_validation.py` (158 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+- `tests\TTS_test_de_vois\test_french_voice.py` (103 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_luxa_edge_tts_francais.py` (118 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_performance_phase3.py` (446 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_performance_real.py` (85 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_performance_simple.py` (217 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_phase3_optimisations.py` (507 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_piper_native.py` (107 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_simple_validation.py` (132 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_son_simple_luxa.py` (47 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_tts_fixed.py` (98 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_tts_long_feedback.py` (164 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\TTS_test_de_vois\test_tts_manager_integration.py` (485 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `tests\TTS_test_de_vois\test_tts_module.py` (76 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_tts_real.py` (69 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_tts_rtx3090_performance.py` (162 lignes)
+  - CUDA_VISIBLE_DEVICES: 2 occurrences
+  - RTX 3090: 23 occurrences
+- `tests\TTS_test_de_vois\test_upmc_model.py` (140 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_validation_tts_performance.py` (140 lignes)
+  - CUDA_VISIBLE_DEVICES: 8 occurrences
+  - RTX 3090: 7 occurrences
+- `tests\TTS_test_de_vois\test_voix_francaise_project_config.py` (127 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 7 occurrences
+- `tests\TTS_test_de_vois\test_voix_francaise_qui_marche.py` (133 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\TTS_test_de_vois\test_voix_francaise_vraie_solution.py` (137 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_voix_naturelles_luxa.py` (186 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_voix_naturelle_luxa.py` (249 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 10 occurrences
+- `tests\TTS_test_de_vois\test_voix_piper_vraie_francaise_BUG.py` (128 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - cuda:1: 1 occurrences
+- `tests\TTS_test_de_vois\test_vraies_voix_francaises.py` (241 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
 - `TTS\components\cache_optimized.py` (426 lignes)
   - CUDA_VISIBLE_DEVICES: 1 occurrences
   - RTX 3090: 1 occurrences
@@ -9848,7 +12169,7 @@ domain. We make this dedication for the...
   - CUDA_VISIBLE_DEVICES: 2 occurrences
   - RTX 3090: 19 occurrences
 
-### **Tests** (50 fichiers)
+### **Tests** (31 fichiers)
 - `generer_tests_validation_complexes.py` (287 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
   - RTX 3090: 3 occurrences
@@ -9857,165 +12178,110 @@ domain. We make this dedication for the...
 - `run_complete_tests.py` (368 lignes)
   - CUDA_VISIBLE_DEVICES: 5 occurrences
   - RTX 3090: 2 occurrences
-- `test_4_handlers_validation.py` (220 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 3 occurrences
-- `test_avec_audio.py` (151 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_benchmark_performance_rtx3090.py` (368 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 30 occurrences
-  - cuda:0: 6 occurrences
-- `test_correction_format_audio.py` (231 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_fallback_real.py` (55 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 1 occurrences
-- `test_performance_phase3.py` (446 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_performance_real.py` (85 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `test_performance_simple.py` (217 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_phase3_optimisations.py` (507 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_simple_validation.py` (132 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
 - `DEPRECATED\test_voix_assistant_rtx3090.py` (180 lignes)
   - CUDA_VISIBLE_DEVICES: 5 occurrences
   - RTX 3090: 19 occurrences
   - cuda:1: 1 occurrences
-- `tests\test_correction_validation_1.py` (79 lignes)
+- `scripts\test_correction_vad.py` (246 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 11 occurrences
-  - cuda:0: 5 occurrences
-- `tests\test_correction_validation_2.py` (106 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 12 occurrences
-  - cuda:0: 12 occurrences
-- `tests\test_correction_validation_3.py` (78 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 11 occurrences
-- `tests\test_correction_validation_4.py` (83 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 12 occurrences
-  - cuda:0: 5 occurrences
-- `tests\test_cuda.py` (106 lignes)
+  - RTX 3090: 3 occurrences
+- `scripts\test_correction_vad_expert.py` (197 lignes)
   - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 25 occurrences
+  - RTX 3090: 10 occurrences
   - validate_rtx3090: 2 occurrences
-- `tests\test_cuda_debug.py` (109 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 26 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_diagnostic_rtx3090.py` (109 lignes)
+- `scripts\test_enregistrement_reference_rode.py` (228 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 13 occurrences
-- `tests\test_double_check_corrections.py` (283 lignes)
-  - RTX 3090: 26 occurrences
-- `tests\test_double_check_validation_simple.py` (238 lignes)
-  - RTX 3090: 4 occurrences
-  - cuda:0: 2 occurrences
-  - cuda:1: 4 occurrences
-- `tests\test_espeak_french.py` (102 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_format_audio_validation.py` (158 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 1 occurrences
-- `tests\test_french_voice.py` (103 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_gpu_correct.py` (320 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 19 occurrences
-  - validate_rtx3090: 5 occurrences
-- `tests\test_gpu_final_verification.py` (47 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 9 occurrences
+  - cuda:1: 1 occurrences
+- `scripts\test_final_correction_vad.py` (336 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
   - RTX 3090: 5 occurrences
-- `tests\test_gpu_verification.py` (123 lignes)
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_microphone_optimise.py` (269 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 7 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_microphone_reel.py` (319 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 8 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_rapide_vad.py` (194 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_vad_avec_audio_existant.py` (307 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_validation_texte_fourni.py` (365 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\test_benchmark_performance_rtx3090.py` (368 lignes)
   - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 26 occurrences
-  - cuda:0: 3 occurrences
+  - RTX 3090: 30 occurrences
+  - cuda:0: 6 occurrences
 - `tests\test_integration.py` (388 lignes)
   - gpu_manager: 2 occurrences
-- `tests\test_integration_gpu_rtx3090.py` (313 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 24 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_piper_native.py` (107 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_rtx3090_access.py` (116 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 24 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_rtx3090_detection.py` (163 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 32 occurrences
-  - validate_rtx3090: 3 occurrences
-- `tests\test_son_simple_luxa.py` (47 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
 - `tests\test_stabilite_30min_rtx3090.py` (318 lignes)
   - CUDA_VISIBLE_DEVICES: 7 occurrences
   - RTX 3090: 15 occurrences
   - cuda:0: 4 occurrences
-- `tests\test_toutes_voix_disponibles_BUG.py` (303 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 26 occurrences
-  - validate_rtx3090: 2 occurrences
-- `tests\test_upmc_model.py` (140 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_validation_decouverte.py` (157 lignes)
-  - CUDA_VISIBLE_DEVICES: 10 occurrences
-  - RTX 3090: 3 occurrences
-  - cuda:0: 1 occurrences
-- `tests\test_validation_globale_finale.py` (150 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 20 occurrences
-  - cuda:0: 6 occurrences
 - `tests\test_validation_mvp_settings.py` (105 lignes)
   - RTX 3090: 8 occurrences
   - cuda:0: 3 occurrences
-- `tests\test_validation_rtx3090_detection.py` (259 lignes)
-  - CUDA_VISIBLE_DEVICES: 8 occurrences
-  - RTX 3090: 25 occurrences
-  - cuda:1: 2 occurrences
-- `tests\test_voix_francaise_project_config.py` (127 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 7 occurrences
-- `tests\test_voix_francaise_qui_marche.py` (133 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 5 occurrences
-- `tests\test_voix_francaise_vraie_solution.py` (137 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 4 occurrences
-- `tests\test_voix_naturelles_luxa.py` (186 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 4 occurrences
-- `tests\test_voix_naturelle_luxa.py` (249 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 10 occurrences
-- `tests\test_voix_piper_vraie_francaise_BUG.py` (128 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 5 occurrences
-  - cuda:1: 1 occurrences
-- `tests\test_vraies_voix_francaises.py` (241 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 4 occurrences
 - `docs\01_phase_1\mission homogénisation\gpu-correction\tests\gpu_correction_test_base.py` (244 lignes)
   - CUDA_VISIBLE_DEVICES: 7 occurrences
   - RTX 3090: 33 occurrences
   - cuda:0: 1 occurrences
+- `tests\test_configuration\test_double_check_corrections.py` (283 lignes)
+  - RTX 3090: 26 occurrences
+- `tests\test_configuration\test_double_check_validation_simple.py` (238 lignes)
+  - RTX 3090: 4 occurrences
+  - cuda:0: 2 occurrences
+  - cuda:1: 4 occurrences
+- `tests\test_configuration\test_gpu_correct.py` (320 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 19 occurrences
+  - validate_rtx3090: 5 occurrences
+- `tests\test_configuration\test_gpu_final_verification.py` (47 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\test_configuration\test_gpu_verification.py` (123 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 26 occurrences
+  - cuda:0: 3 occurrences
+- `tests\test_configuration\test_integration_gpu_rtx3090.py` (313 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 24 occurrences
+  - cuda:0: 2 occurrences
+- `tests\test_configuration\test_rtx3090_access.py` (116 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 24 occurrences
+  - cuda:0: 2 occurrences
+- `tests\test_configuration\test_rtx3090_detection.py` (163 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 32 occurrences
+  - validate_rtx3090: 3 occurrences
+- `tests\test_configuration\test_validation_decouverte.py` (157 lignes)
+  - CUDA_VISIBLE_DEVICES: 10 occurrences
+  - RTX 3090: 3 occurrences
+  - cuda:0: 1 occurrences
+- `tests\test_configuration\test_validation_globale_finale.py` (150 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 20 occurrences
+  - cuda:0: 6 occurrences
+- `tests\test_configuration\test_validation_rtx3090_detection.py` (259 lignes)
+  - CUDA_VISIBLE_DEVICES: 8 occurrences
+  - RTX 3090: 25 occurrences
+  - cuda:1: 2 occurrences
+- `tests\test_correction_gpu\test_cuda.py` (106 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 25 occurrences
+  - validate_rtx3090: 2 occurrences
+- `tests\test_correction_gpu\test_cuda_debug.py` (109 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 26 occurrences
+  - cuda:0: 2 occurrences
 
 ### **Utils** (2 fichiers)
 - `utils\gpu_manager.py` (258 lignes)
@@ -10027,7 +12293,7 @@ domain. We make this dedication for the...
   - RTX 3090: 12 occurrences
   - cuda:0: 1 occurrences
 
-### **Autres** (13 fichiers)
+### **Autres** (16 fichiers)
 - `convertir_fichiers_pcm_wav.py` (298 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
   - RTX 3090: 2 occurrences
@@ -10063,522 +12329,20 @@ domain. We make this dedication for the...
   - CUDA_VISIBLE_DEVICES: 4 occurrences
   - RTX 3090: 10 occurrences
   - cuda:0: 1 occurrences
-- `scripts\generate_bundle_coordinateur.py` (616 lignes)
-  - CUDA_VISIBLE_DEVICES: 9 occurrences
-  - RTX 3090: 26 occurrences
-  - cuda:0: 3 occurrences
-- `scripts\validate_gpu_configuration.py` (200 lignes)
-  - CUDA_VISIBLE_DEVICES: 10 occurrences
-  - RTX 3090: 10 occurrences
-  - cuda:0: 1 occurrences
-- `docs\01_phase_1\mission homogénisation\gpu-correction\analyze_gpu_config.py` (205 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
-  - cuda:0: 2 occurrences
-  - gpu_manager: 1 occurrences
-
----
-
-## 🔧 CONFIGURATION GPU STANDARD APPLIQUÉE
-
-### **Template Obligatoire Implémenté**
-```python
-#!/usr/bin/env python3
-"""
-[Description du script]
-🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
-"""
-
-import os
-import sys
-
-# =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
-# =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
-
-print("🎮 GPU Configuration: RTX 3090 (CUDA:0 après mapping)")
-print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
-
-# Maintenant imports normaux...
-import torch
-```
-
-### **Fonction de Validation Standard**
-```python
-def validate_rtx3090_mandatory():
-    """Validation systématique RTX 3090 - OBLIGATOIRE dans chaque script"""
-    if not torch.cuda.is_available():
-        raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
-    
-    cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
-    if cuda_devices != '1':
-        raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
-    
-    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
-    if gpu_memory < 20:  # RTX 3090 ≈ 24GB
-        raise RuntimeError(f"🚫 GPU ({gpu_memory:.1f}GB) insuffisante - RTX 3090 requise")
-    
-    print(f"✅ RTX 3090 validée: {torch.cuda.get_device_name(0)} ({gpu_memory:.1f}GB)")
-```
-
----
-
-## 🚀 MEMORY LEAK PREVENTION V4.0 INTÉGRÉ
-
-### **Utilisation dans tous les modules GPU**
-```python
-# Import obligatoire pour tous fichiers avec GPU
-from memory_leak_v4 import (
-    configure_for_environment, 
-    gpu_test_cleanup, 
-    validate_no_memory_leak,
-    emergency_gpu_reset
-)
-
-# Configuration environnement
-configure_for_environment("dev")  # ou "ci"/"production"
-
-# Décorateur obligatoire pour TOUS tests GPU
-@gpu_test_cleanup("nom_test_descriptif")
-def your_gpu_test_function():
-    device = "cuda:0"  # RTX 3090 après mapping
-    # Votre code GPU ici
-    # Cleanup automatique à la fin du context
-
-# Validation obligatoire en fin de script
-if __name__ == "__main__":
-    validate_rtx3090_mandatory()  # Validation GPU
-    # Tests...
-    validate_no_memory_leak()     # Validation memory leak
-```
-
----
-
-## 📈 MÉTRIQUES PERFORMANCE MISSION GPU
-
-### **Gains Performance Mesurés**
-- **Objectif initial** : +50% performance
-- **Résultat obtenu** : +67% performance ✅
-- **Temps mission** : 8h15 vs 12-16h estimé (49% plus rapide)
-- **Fichiers traités** : 38/38 (100%)
-- **Fichiers critiques corrigés** : 19/19 (100%)
-
-### **Configuration Matérielle Validée**
-- **GPU Principal** : RTX 3090 (24GB VRAM) ✅
-- **GPU Masqué** : RTX 5060 Ti (16GB) - Inaccessible ✅
-- **Mapping** : `CUDA_VISIBLE_DEVICES='1'` → `cuda:0` = RTX 3090
-- **Ordre** : `CUDA_DEVICE_ORDER='PCI_BUS_ID'` pour stabilité
-
----
-
-## 🔍 VALIDATION MISSION GPU
-
-### **Scripts de Diagnostic Créés**
-- `test_diagnostic_rtx3090.py` - Diagnostic complet RTX 3090
-- `test_cuda_debug.py` - Debug configuration CUDA
-- `test_gpu_verification.py` - Vérification GPU
-- `test_rtx3090_detection.py` - Détection RTX 3090
-- `memory_leak_v4.py` - Prevention memory leak
-
-### **Validation Factuelle Obligatoire**
-Chaque fichier corrigé DOIT passer :
-1. ✅ Configuration environnement (`CUDA_VISIBLE_DEVICES='1'`)
-2. ✅ Détection RTX 3090 (>20GB VRAM)
-3. ✅ Tests fonctionnels (0% régression)
-4. ✅ Tests performance (maintien ou amélioration)
-5. ✅ Memory leak prevention (0% fuite mémoire)
-
----
-
-## 🛠️ OUTILS MISSION GPU AJOUTÉS
-
-### **Scripts d'Automation Créés**
-- `scripts/configure_git_secure.ps1` - Configuration Git sécurisée
-- `scripts/generate_bundle_coordinateur.py` - Génération bundle transmission
-- `scripts/validate_gpu_configuration.py` - Validation configuration GPU
-
-### **Nouvelles Dépendances GPU**
-```python
-# Memory management et monitoring GPU
-torch>=1.9.0
-psutil>=5.8.0
-nvidia-ml-py3>=7.352.0
-
-# Configuration et validation
-pyyaml>=5.4.0
-pathlib>=1.0.0
-
-# Tests et benchmarks
-pytest>=6.0.0
-pytest-cov>=2.12.0
-```
-
----
-
-**🎯 MISSION GPU HOMOGÉNÉISATION RTX 3090 : ACCOMPLIE AVEC SUCCÈS** ✅  
-**📊 Performance exceptionnelle** : +67% vs +50% objectif ✅  
-**🔧 Code source complet documenté** ✅  
-**📝 Documentation exhaustive** ✅
-
-
-
----
-
-## 🚀 MISSION GPU HOMOGÉNÉISATION RTX 3090 - AJOUT 2025-06-12 15:44:29 CET
-
-### **Informations Commit Mission GPU**
-- **Hash** : `575b41efc598c45c549d37dc57b4ae0114211a08`
-- **Auteur** : VOTRE_VRAI_NOM <modeles@example.com>
-- **Date** : 2025-06-12 15:39:42 +0200
-- **Message** : ðŸŽŠ PHASE 3 TTS COMPLÃ‰TÃ‰E AVEC SUCCÃˆS EXCEPTIONNEL - Latence 29.5ms (objectif <100ms) +240%, Taux cache 93.1% (+116%), Tests 8/9 validÃ©s (88.9%), UnifiedTTSManager 4 backends, Cache LRU 200MB, GPU RTX 3090 exclusif, Documentation complÃ¨te mise Ã  jour, Transmission coordinateur prÃªte - SUCCÃˆS TECHNIQUE REMARQUABLE
-
-### **Résultats Mission**
-✅ **38 fichiers analysés** - 19 fichiers critiques corrigés  
-✅ **Performance +67%** vs objectif +50%  
-✅ **Configuration standardisée** : `CUDA_VISIBLE_DEVICES='1'` + `CUDA_DEVICE_ORDER='PCI_BUS_ID'`  
-✅ **RTX 3090 exclusive** dans tous les modules SuperWhisper V6
-
----
-
-## 📊 FICHIERS GPU RTX 3090 MODIFIÉS
-
-**Total analysé** : 97 fichiers avec configuration GPU RTX 3090
-
-### **Modules Core** (32 fichiers)
-- `test_tts_module.py` (76 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 4 occurrences
-- `test_tts_real.py` (69 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `benchmarks\benchmark_stt_realistic.py` (236 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 28 occurrences
-  - validate_rtx3090: 3 occurrences
-- `LLM\llm_manager_enhanced.py` (404 lignes)
-  - CUDA_VISIBLE_DEVICES: 8 occurrences
-  - RTX 3090: 31 occurrences
-  - validate_rtx3090: 3 occurrences
-- `Orchestrator\fallback_manager.py` (421 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 43 occurrences
-  - gpu_manager: 4 occurrences
-- `Orchestrator\master_handler_robust.py` (559 lignes)
-  - gpu_manager: 4 occurrences
-- `scripts\demo_tts.py` (358 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `STT\stt_manager_robust.py` (479 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 24 occurrences
-  - cuda:0: 3 occurrences
-- `STT\vad_manager.py` (351 lignes)
-  - CUDA_VISIBLE_DEVICES: 10 occurrences
-  - RTX 3090: 31 occurrences
-  - cuda:0: 1 occurrences
-- `STT\vad_manager_optimized.py` (526 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
-  - RTX 3090: 32 occurrences
-  - validate_rtx3090: 3 occurrences
-- `tests\test_llm_handler.py` (78 lignes)
-  - RTX 3090: 1 occurrences
-- `tests\test_luxa_edge_tts_francais.py` (118 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 4 occurrences
-- `tests\test_stt_handler.py` (495 lignes)
-  - RTX 3090: 4 occurrences
-  - cuda:0: 4 occurrences
-- `tests\test_tts_fixed.py` (98 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_tts_long_feedback.py` (164 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 5 occurrences
-- `tests\test_tts_manager_integration.py` (485 lignes)
+- `scripts\comparaison_vad.py` (192 lignes)
   - CUDA_VISIBLE_DEVICES: 3 occurrences
   - RTX 3090: 3 occurrences
-- `tests\test_tts_rtx3090_performance.py` (162 lignes)
-  - CUDA_VISIBLE_DEVICES: 2 occurrences
-  - RTX 3090: 23 occurrences
-- `tests\test_validation_stt_manager_robust.py` (151 lignes)
-  - CUDA_VISIBLE_DEVICES: 4 occurrences
-  - RTX 3090: 6 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_validation_tts_performance.py` (140 lignes)
-  - CUDA_VISIBLE_DEVICES: 8 occurrences
-  - RTX 3090: 7 occurrences
-- `tests\test_workflow_stt_llm_tts_rtx3090.py` (381 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 29 occurrences
-  - cuda:0: 9 occurrences
-- `TTS\test_unified_tts.py` (149 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 6 occurrences
-  - validate_rtx3090: 2 occurrences
-- `TTS\tts_manager.py` (484 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 11 occurrences
-  - validate_rtx3090: 4 occurrences
-- `DEPRECATED\LUXA_TTS_DEPRECATED\tts_handler_coqui.py` (106 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 26 occurrences
-  - validate_rtx3090: 3 occurrences
-- `TTS\components\cache_optimized.py` (426 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 1 occurrences
-- `TTS\handlers\piper_daemon.py` (375 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 1 occurrences
-- `TTS\handlers\piper_native_optimized.py` (306 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 3 occurrences
-  - cuda:0: 1 occurrences
-- `TTS\legacy_handlers_20250612\tts_handler_coqui.py` (122 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 26 occurrences
-  - validate_rtx3090: 3 occurrences
-- `TTS\legacy_handlers_20250612\tts_handler_piper_espeak.py` (360 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
-  - RTX 3090: 23 occurrences
-  - validate_rtx3090: 3 occurrences
-- `TTS\legacy_handlers_20250612\tts_handler_piper_fixed.py` (300 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
-  - RTX 3090: 23 occurrences
-  - validate_rtx3090: 3 occurrences
-- `TTS\legacy_handlers_20250612\tts_handler_piper_french.py` (345 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
-  - RTX 3090: 23 occurrences
-  - validate_rtx3090: 3 occurrences
-- `TTS\legacy_handlers_20250612\tts_handler_piper_native.py` (223 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 29 occurrences
-  - validate_rtx3090: 3 occurrences
-- `TTS\legacy_handlers_20250612\tts_handler_piper_rtx3090.py` (183 lignes)
-  - CUDA_VISIBLE_DEVICES: 2 occurrences
-  - RTX 3090: 19 occurrences
-
-### **Tests** (50 fichiers)
-- `generer_tests_validation_complexes.py` (287 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 3 occurrences
-- `resume_tests_validation_complexes.py` (160 lignes)
-  - RTX 3090: 1 occurrences
-- `run_complete_tests.py` (368 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 2 occurrences
-- `test_4_handlers_validation.py` (220 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 3 occurrences
-- `test_avec_audio.py` (151 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_benchmark_performance_rtx3090.py` (368 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 30 occurrences
-  - cuda:0: 6 occurrences
-- `test_correction_format_audio.py` (231 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_fallback_real.py` (55 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 1 occurrences
-- `test_performance_phase3.py` (446 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_performance_real.py` (85 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `test_performance_simple.py` (217 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_phase3_optimisations.py` (507 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `test_simple_validation.py` (132 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `DEPRECATED\test_voix_assistant_rtx3090.py` (180 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 19 occurrences
-  - cuda:1: 1 occurrences
-- `tests\test_correction_validation_1.py` (79 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 11 occurrences
-  - cuda:0: 5 occurrences
-- `tests\test_correction_validation_2.py` (106 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 12 occurrences
-  - cuda:0: 12 occurrences
-- `tests\test_correction_validation_3.py` (78 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 11 occurrences
-- `tests\test_correction_validation_4.py` (83 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 12 occurrences
-  - cuda:0: 5 occurrences
-- `tests\test_cuda.py` (106 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 25 occurrences
-  - validate_rtx3090: 2 occurrences
-- `tests\test_cuda_debug.py` (109 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 26 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_diagnostic_rtx3090.py` (109 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 13 occurrences
-- `tests\test_double_check_corrections.py` (283 lignes)
-  - RTX 3090: 26 occurrences
-- `tests\test_double_check_validation_simple.py` (238 lignes)
-  - RTX 3090: 4 occurrences
-  - cuda:0: 2 occurrences
-  - cuda:1: 4 occurrences
-- `tests\test_espeak_french.py` (102 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_format_audio_validation.py` (158 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 1 occurrences
-- `tests\test_french_voice.py` (103 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_gpu_correct.py` (320 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 19 occurrences
-  - validate_rtx3090: 5 occurrences
-- `tests\test_gpu_final_verification.py` (47 lignes)
-  - CUDA_VISIBLE_DEVICES: 6 occurrences
-  - RTX 3090: 5 occurrences
-- `tests\test_gpu_verification.py` (123 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 26 occurrences
-  - cuda:0: 3 occurrences
-- `tests\test_integration.py` (388 lignes)
-  - gpu_manager: 2 occurrences
-- `tests\test_integration_gpu_rtx3090.py` (313 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 24 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_piper_native.py` (107 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_rtx3090_access.py` (116 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 24 occurrences
-  - cuda:0: 2 occurrences
-- `tests\test_rtx3090_detection.py` (163 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 32 occurrences
-  - validate_rtx3090: 3 occurrences
-- `tests\test_son_simple_luxa.py` (47 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_stabilite_30min_rtx3090.py` (318 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 15 occurrences
-  - cuda:0: 4 occurrences
-- `tests\test_toutes_voix_disponibles_BUG.py` (303 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 26 occurrences
-  - validate_rtx3090: 2 occurrences
-- `tests\test_upmc_model.py` (140 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 2 occurrences
-- `tests\test_validation_decouverte.py` (157 lignes)
-  - CUDA_VISIBLE_DEVICES: 10 occurrences
-  - RTX 3090: 3 occurrences
-  - cuda:0: 1 occurrences
-- `tests\test_validation_globale_finale.py` (150 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 20 occurrences
-  - cuda:0: 6 occurrences
-- `tests\test_validation_mvp_settings.py` (105 lignes)
-  - RTX 3090: 8 occurrences
-  - cuda:0: 3 occurrences
-- `tests\test_validation_rtx3090_detection.py` (259 lignes)
-  - CUDA_VISIBLE_DEVICES: 8 occurrences
-  - RTX 3090: 25 occurrences
-  - cuda:1: 2 occurrences
-- `tests\test_voix_francaise_project_config.py` (127 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 7 occurrences
-- `tests\test_voix_francaise_qui_marche.py` (133 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 5 occurrences
-- `tests\test_voix_francaise_vraie_solution.py` (137 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 4 occurrences
-- `tests\test_voix_naturelles_luxa.py` (186 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 4 occurrences
-- `tests\test_voix_naturelle_luxa.py` (249 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 10 occurrences
-- `tests\test_voix_piper_vraie_francaise_BUG.py` (128 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 5 occurrences
-  - cuda:1: 1 occurrences
-- `tests\test_vraies_voix_francaises.py` (241 lignes)
-  - CUDA_VISIBLE_DEVICES: 1 occurrences
-  - RTX 3090: 4 occurrences
-- `docs\01_phase_1\mission homogénisation\gpu-correction\tests\gpu_correction_test_base.py` (244 lignes)
-  - CUDA_VISIBLE_DEVICES: 7 occurrences
-  - RTX 3090: 33 occurrences
-  - cuda:0: 1 occurrences
-
-### **Utils** (2 fichiers)
-- `utils\gpu_manager.py` (258 lignes)
-  - CUDA_VISIBLE_DEVICES: 9 occurrences
-  - RTX 3090: 55 occurrences
-  - cuda:0: 3 occurrences
-- `utils\model_path_manager.py` (234 lignes)
-  - CUDA_VISIBLE_DEVICES: 5 occurrences
-  - RTX 3090: 12 occurrences
-  - cuda:0: 1 occurrences
-
-### **Autres** (13 fichiers)
-- `convertir_fichiers_pcm_wav.py` (298 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `generer_fichier_complet_optimise.py` (121 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 3 occurrences
-- `install_phase3_dependencies.py` (325 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `memory_leak_v4.py` (732 lignes)
-  - CUDA_VISIBLE_DEVICES: 4 occurrences
-  - RTX 3090: 12 occurrences
-  - cuda:0: 1 occurrences
-- `monitor_phase3.py` (423 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `monitor_phase3_demo.py` (204 lignes)
-  - CUDA_VISIBLE_DEVICES: 3 occurrences
-  - RTX 3090: 2 occurrences
-- `solution_memory_leak_gpu_v3_stable.py` (261 lignes)
-  - CUDA_VISIBLE_DEVICES: 4 occurrences
-  - RTX 3090: 10 occurrences
-  - cuda:0: 1 occurrences
-- `validate_gpu_config.py` (514 lignes)
-  - CUDA_VISIBLE_DEVICES: 16 occurrences
-  - RTX 3090: 19 occurrences
-  - cuda:0: 15 occurrences
-- `DEPRECATED\solution_memory_leak_gpu_DEPRECATED.py` (254 lignes)
-  - CUDA_VISIBLE_DEVICES: 4 occurrences
-  - RTX 3090: 11 occurrences
-  - cuda:0: 1 occurrences
-- `DEPRECATED\solution_memory_leak_gpu_v2_corrected_DEPRECATED.py` (362 lignes)
-  - CUDA_VISIBLE_DEVICES: 4 occurrences
-  - RTX 3090: 10 occurrences
-  - cuda:0: 1 occurrences
 - `scripts\generate_bundle_coordinateur.py` (633 lignes)
   - CUDA_VISIBLE_DEVICES: 9 occurrences
   - RTX 3090: 26 occurrences
   - cuda:0: 3 occurrences
+- `scripts\install_prism_dependencies.py` (408 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 6 occurrences
+- `scripts\validate_dual_gpu_rtx3090.py` (211 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 16 occurrences
+  - cuda:0: 2 occurrences
 - `scripts\validate_gpu_configuration.py` (200 lignes)
   - CUDA_VISIBLE_DEVICES: 10 occurrences
   - RTX 3090: 10 occurrences

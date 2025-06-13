@@ -1,0 +1,27 @@
+{
+  "test_info": {
+    "date": "2025-06-13T10:19:31.713189",
+    "duree_audio": 16.874,
+    "texte_reference": "Bonjour, ceci est un test de validation pour SuperWhisper2. Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription. Premièrement, des mots simples : chat, chien, maison, voiture, ordinateur, téléphone. Deuxièmement, des phrases courtes : Il fait beau aujourd'hui. Le café est délicieux. J'aime la musique classique. Troisièmement, des phrases plus complexes : L'intelligence artificielle transforme notre manière de travailler et de communiquer dans le monde moderne. Quatrièmement, des termes techniques : algorithme, machine learning, GPU RTX 3090, faster-whisper, quantification INT8, latence de transcription. Cinquièmement, des nombres et dates : vingt-trois, quarante-sept, mille neuf cent quatre-vingt-quinze, le quinze janvier deux mille vingt-quatre. Sixièmement, des mots difficiles : chrysanthème, anticonstitutionnellement, prestidigitateur, kakémono, yaourt. Septièmement, une phrase longue et complexe : L'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitement, et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final. Fin du test de validation.",
+    "texte_transcrit": "Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription.  Premièrement, des mots simples.  Chat, chien, maison, voiture, ordinateur, téléphone."
+  },
+  "metriques_techniques": {
+    "latence_ms": 1410.5894565582275,
+    "rtf": 0.0835090434987339,
+    "confiance": 0.7062205166186927,
+    "backend_used": "prism_large-v2",
+    "cached": false
+  },
+  "analyse_precision": {
+    "mots_reference": 155,
+    "mots_transcrits": 25,
+    "mots_corrects_estimes": 25,
+    "precision_estimee": 16.129032258064516
+  },
+  "validation_humaine": {
+    "precision_humaine": "excellent",
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "validé"
+  }
+}

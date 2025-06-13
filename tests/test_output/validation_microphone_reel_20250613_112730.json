@@ -1,0 +1,47 @@
+[
+  {
+    "test": "Test Phrase Courte",
+    "phrase_reelle": "ceci est un nouveau test",
+    "texte_transcrit": "Ceci est un nouveau test.",
+    "latence_ms": 723.7532138824463,
+    "rtf": 0.241101266661038,
+    "confiance": 0.6289062440395355,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "excellent",
+    "precision_calculee": 80.0,
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "validé",
+    "timestamp": "2025-06-13T11:25:35.818247"
+  },
+  {
+    "test": "Test Phrase Longue",
+    "phrase_reelle": "",
+    "texte_transcrit": "",
+    "latence_ms": 16.530513763427734,
+    "rtf": 0.001982137495360803,
+    "confiance": 0.8,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "insuffisant",
+    "precision_calculee": 0,
+    "latence_percue": "acceptable",
+    "commentaires": "je n'ai pas parlé pendant ce test!",
+    "validation_finale": "à_corriger",
+    "timestamp": "2025-06-13T11:26:28.427438"
+  },
+  {
+    "test": "Test Mots Techniques",
+    "phrase_reelle": "'Troisièmenent, des phrases plus complexes, l'intelligence artificielle.",
+    "texte_transcrit": "Troisièmement, des phrases plus complexes, l'intelligence artificielle.",
+    "latence_ms": 629.249095916748,
+    "rtf": 0.12567619999172167,
+    "confiance": 0.6661086309523809,
+    "backend_utilise": "prism_large-v2",
+    "precision_humaine": "excellent",
+    "precision_calculee": 85.71428571428571,
+    "latence_percue": "imperceptible",
+    "commentaires": "",
+    "validation_finale": "validé",
+    "timestamp": "2025-06-13T11:27:30.082670"
+  }
+]

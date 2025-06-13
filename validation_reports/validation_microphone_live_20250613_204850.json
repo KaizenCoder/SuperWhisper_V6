@@ -1,0 +1,21 @@
+{
+  "date_validation": "2025-06-13T20:48:50.723109",
+  "texte_reference": "Bonjour, je suis en train de tester le système de reconnaissance vocale SuperWhisper V6. \nCette phrase contient plusieurs mots techniques comme reconnaissance, transcription, et validation. \nLe système doit être capable de transcrire correctement tous les mots sans interruption. \nNous testons également les nombres comme 123, 456, et les dates comme le 13 juin 2025. \nCette validation est critique pour valider la correction VAD qui a permis une amélioration de 492 pourcent. \nLe système utilise une RTX 3090 avec 24 gigaoctets de mémoire vidéo pour optimiser les performances. \nMerci de valider que cette transcription est complète et précise.",
+  "mots_reference": 97,
+  "texte_transcrit": "Le système utilise un RTX 3090 avec 24 Go de mémoire.",
+  "mots_transcrits": 11,
+  "couverture_pourcent": 11.34020618556701,
+  "latence_transcription": 0.8068571090698242,
+  "rtf": 0.0536981210547945,
+  "duree_enregistrement": 14.971820831298828,
+  "precision_humaine": "insuffisant",
+  "interruptions": "non",
+  "commentaires": "non",
+  "criteres_techniques": [
+    "❌ Couverture insuffisante (<90%)",
+    "✅ Latence acceptable (≤10s)",
+    "✅ Transcription complète"
+  ],
+  "decision_finale": "❌ À CORRIGER",
+  "validation_reussie": false
+}

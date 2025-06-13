@@ -13,6 +13,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+# Ajouter le répertoire parent au PYTHONPATH pour les imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # =============================================================================
 # 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
 # =============================================================================
@@ -62,7 +65,7 @@ def validate_rtx3090_validation():
     return True
 
 def test_microphone_setup():
-    """Test setup microphone"""
+    """Test setup microphone avec sélection automatique RODE NT-USB"""
     print("\n🎤 TEST SETUP MICROPHONE")
     print("=" * 30)
     
@@ -70,36 +73,120 @@ def test_microphone_setup():
         # Lister devices audio
         devices = sd.query_devices()
         print("📋 Devices audio disponibles:")
+        
+        # Chercher TOUS les microphones RODE NT-USB
+        rode_devices = []
+        input_devices = []
+        
         for i, device in enumerate(devices):
             if device['max_input_channels'] > 0:
                 print(f"   {i}: {device['name']} (Input: {device['max_input_channels']} ch)")
+                input_devices.append((i, device['name']))
+                
+                # Détecter TOUTES les instances RODE NT-USB
+                if "RODE NT-USB" in device['name']:
+                    rode_devices.append(i)
+                    print(f"   🎯 RODE NT-USB détecté: Device {i}")
         
-        # Test enregistrement court
-        print("\n🔴 Test enregistrement 2 secondes...")
-        print("   Parlez maintenant...")
+        # Tester chaque instance RODE NT-USB pour trouver celle qui fonctionne
+        selected_device = None
         
-        audio = sd.rec(int(2 * 16000), samplerate=16000, channels=1, dtype=np.float32)
+        if rode_devices:
+            print(f"\n🔍 Test de {len(rode_devices)} instances RODE NT-USB...")
+            
+            for device_id in rode_devices:
+                print(f"\n🧪 Test Device {device_id}...")
+                try:
+                    # Test rapide 1 seconde
+                    test_audio = sd.rec(int(1 * 16000), samplerate=16000, channels=1, dtype=np.float32, device=device_id)
+                    sd.wait()
+                    
+                    # Vérifier si l'enregistrement a fonctionné
+                    max_level = np.max(np.abs(test_audio))
+                    if max_level > 0.001:  # Seuil très bas pour détecter activité
+                        print(f"✅ Device {device_id} fonctionnel (niveau: {max_level:.6f})")
+                        selected_device = device_id
+                        break
+                    else:
+                        print(f"⚠️ Device {device_id} silencieux (niveau: {max_level:.6f})")
+                        
+                except Exception as e:
+                    print(f"❌ Device {device_id} erreur: {e}")
+                    continue
+            
+            if selected_device is None:
+                print("⚠️ Aucune instance RODE NT-USB fonctionnelle trouvée")
+                # Fallback sur le premier device RODE trouvé
+                selected_device = rode_devices[0]
+                print(f"🔄 Utilisation Device {selected_device} par défaut")
+            else:
+                print(f"\n✅ Sélection automatique: RODE NT-USB (Device {selected_device})")
+                
+        else:
+            print(f"\n⚠️ RODE NT-USB non trouvé, sélection manuelle requise")
+            print("📋 Microphones d'entrée disponibles:")
+            for i, (device_id, name) in enumerate(input_devices):
+                print(f"   {i}: Device {device_id} - {name}")
+            
+            while True:
+                try:
+                    choice = int(input("🎯 Sélectionnez le numéro du microphone à utiliser: "))
+                    if 0 <= choice < len(input_devices):
+                        selected_device = input_devices[choice][0]
+                        break
+                    else:
+                        print("❌ Numéro invalide")
+                except ValueError:
+                    print("❌ Veuillez entrer un numéro")
+        
+        print(f"🎤 Microphone sélectionné: Device {selected_device}")
+        
+        # Test enregistrement final avec microphone sélectionné
+        print(f"\n🔴 Test enregistrement 3 secondes avec Device {selected_device}...")
+        print("   Parlez fort et clairement maintenant...")
+        
+        # Enregistrement avec device spécifique
+        audio = sd.rec(int(3 * 16000), samplerate=16000, channels=1, dtype=np.float32, device=selected_device)
         sd.wait()
         
         # Vérifier niveau audio
         max_level = np.max(np.abs(audio))
+        rms_level = np.sqrt(np.mean(audio**2))
+        
         print(f"📊 Niveau audio max: {max_level:.3f}")
+        print(f"📊 Niveau RMS: {rms_level:.3f}")
         
         if max_level < 0.01:
-            print("⚠️ Niveau audio très faible - vérifiez microphone")
-            return False
+            print("⚠️ Niveau audio très faible")
+            print("💡 Suggestions:")
+            print("   - Vérifiez que le microphone est branché")
+            print("   - Augmentez le volume du microphone dans Windows")
+            print("   - Rapprochez-vous du microphone")
+            print("   - Parlez plus fort")
+            
+            retry = input("🔄 Voulez-vous réessayer avec un autre microphone? (oui/non/continuer): ").lower()
+            if retry == 'oui':
+                return test_microphone_setup()  # Récursion pour réessayer
+            elif retry == 'continuer':
+                print("⚠️ Continuation avec niveau audio faible - résultats peuvent être affectés")
+                return True, selected_device
+            else:
+                return False, None
+                
         elif max_level > 0.8:
             print("⚠️ Niveau audio très fort - risque saturation")
+            print("💡 Réduisez le volume du microphone")
         else:
             print("✅ Niveau audio correct")
         
-        return True
+        # Retourner le device sélectionné pour utilisation ultérieure
+        return True, selected_device
         
     except Exception as e:
         print(f"❌ Erreur test microphone: {e}")
-        return False
+        return False, None
 
-async def validation_texte_complet():
+async def validation_texte_complet(selected_device=None):
     """Validation avec texte complet fourni"""
     
     # Texte de référence pour validation
@@ -122,12 +209,36 @@ Merci de valider que cette transcription est complète et précise."""
     mots_reference = len(TEXTE_REFERENCE.split())
     print(f"\n📊 Mots de référence: {mots_reference}")
     
+    if selected_device is not None:
+        print(f"🎤 Microphone sélectionné: Device {selected_device}")
+    
     input("\n🎤 Appuyez sur Entrée quand vous êtes prêt à lire le texte complet...")
     
     try:
         # Initialiser STT Manager
         print("🚀 Initialisation STT Manager...")
-        stt_manager = UnifiedSTTManager()
+        
+        # Configuration pour validation microphone live
+        config = {
+            'timeout_per_minute': 10.0,  # Timeout généreux pour validation
+            'max_retries': 3,
+            'cache_enabled': True,
+            'circuit_breaker_enabled': True,
+            'fallback_chain': ['prism_primary'],  # CRITIQUE: définir l'ordre des backends
+            'backends': [
+                {
+                    'name': 'prism_primary',
+                    'type': 'prism',
+                    'model': 'large-v2',
+                    'compute_type': 'float16',
+                    'language': 'fr',
+                    'beam_size': 5,
+                    'vad_filter': True
+                }
+            ]
+        }
+        
+        stt_manager = UnifiedSTTManager(config=config)
         
         # Enregistrement long (30 secondes max)
         duree_max = 30
@@ -135,7 +246,12 @@ Merci de valider que cette transcription est complète et précise."""
         print("📢 LISEZ LE TEXTE MAINTENANT")
         
         start_time = time.time()
-        audio = sd.rec(int(duree_max * 16000), samplerate=16000, channels=1, dtype=np.float32)
+        
+        # Utiliser le device sélectionné si disponible
+        if selected_device is not None:
+            audio = sd.rec(int(duree_max * 16000), samplerate=16000, channels=1, dtype=np.float32, device=selected_device)
+        else:
+            audio = sd.rec(int(duree_max * 16000), samplerate=16000, channels=1, dtype=np.float32)
         
         # Attendre fin lecture ou timeout
         print("⏹️ Appuyez sur Entrée quand vous avez terminé de lire...")
@@ -149,16 +265,33 @@ Merci de valider que cette transcription est complète et précise."""
         print("🎮 Transcription RTX 3090...")
         start_transcription = time.time()
         
-        # Prendre seulement la partie enregistrée
-        samples_enregistres = int(duree_reelle * 16000)
-        audio_final = audio[:samples_enregistres].flatten()
-        
-        result = await stt_manager.transcribe(audio_final)
-        
-        latence_transcription = time.time() - start_transcription
+        try:
+            # Prendre seulement la partie enregistrée
+            samples_enregistres = int(duree_reelle * 16000)
+            audio_data = audio[:samples_enregistres].flatten()
+            
+            print(f"🔍 Debug - Audio shape: {audio_data.shape}")
+            print(f"🔍 Debug - Audio dtype: {audio_data.dtype}")
+            print(f"🔍 Debug - Audio min/max: {audio_data.min():.6f}/{audio_data.max():.6f}")
+            
+            result = await stt_manager.transcribe(audio_data)
+            latence_transcription = time.time() - start_transcription
+            
+            print(f"🔍 Debug - Result type: {type(result)}")
+            print(f"🔍 Debug - Result success: {getattr(result, 'success', 'N/A')}")
+            print(f"🔍 Debug - Result error: {getattr(result, 'error', 'N/A')}")
+            print(f"🔍 Debug - Result backend: {getattr(result, 'backend_used', 'N/A')}")
+            print(f"🔍 Debug - Result text length: {len(getattr(result, 'text', ''))}")
+            
+        except Exception as e:
+            print(f"❌ Erreur transcription: {e}")
+            print(f"❌ Type erreur: {type(e)}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
+            return False
         
         # Analyse résultats
-        texte_transcrit = result.get('text', '')
+        texte_transcrit = result.text if hasattr(result, 'text') else result.get('text', '')
         mots_transcrits = len(texte_transcrit.split())
         couverture = (mots_transcrits / mots_reference) * 100
         
@@ -168,7 +301,9 @@ Merci de valider que cette transcription est complète et précise."""
         print(f"📊 Mots transcrits: {mots_transcrits}/{mots_reference}")
         print(f"📈 Couverture: {couverture:.1f}%")
         print(f"⏱️ Latence transcription: {latence_transcription:.1f}s")
-        print(f"🎯 RTF: {result.get('rtf', 'N/A')}")
+        print(f"🎯 RTF: {result.rtf if hasattr(result, 'rtf') else 'N/A'}")
+        print(f"�� Backend utilisé: {result.backend_used if hasattr(result, 'backend_used') else 'N/A'}")
+        print(f"✅ Succès: {result.success if hasattr(result, 'success') else 'N/A'}")
         
         # Validation critères
         validation_reussie = True
@@ -236,7 +371,7 @@ Merci de valider que cette transcription est complète et précise."""
             "mots_transcrits": mots_transcrits,
             "couverture_pourcent": couverture,
             "latence_transcription": latence_transcription,
-            "rtf": result.get('rtf'),
+            "rtf": result.rtf if hasattr(result, 'rtf') else None,
             "duree_enregistrement": duree_reelle,
             "precision_humaine": precision,
             "interruptions": interruption,
@@ -279,13 +414,15 @@ async def main():
         return False
     
     # Étape 2: Test microphone
-    if not test_microphone_setup():
+    validation_ok, selected_device = test_microphone_setup()
+    
+    if not validation_ok:
         print("\n❌ ÉCHEC TEST MICROPHONE - ARRÊT")
         return False
     
     # Étape 3: Validation texte complet
     print("\n🚀 DÉMARRAGE VALIDATION TEXTE COMPLET")
-    validation_ok, rapport = await validation_texte_complet()
+    validation_ok, rapport = await validation_texte_complet(selected_device)
     
     if validation_ok:
         print("\n🎊 VALIDATION MICROPHONE LIVE RÉUSSIE!")

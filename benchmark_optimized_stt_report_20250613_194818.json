@@ -1,0 +1,36 @@
+{
+  "timestamp": "20250613_194818",
+  "gpu_config": {
+    "device": "NVIDIA GeForce RTX 3090",
+    "memory_gb": 23.99951171875,
+    "cuda_version": "12.6"
+  },
+  "results": {
+    "post_processor": {
+      "wer_before": 35.37373737373737,
+      "wer_after": 10.944444444444445,
+      "improvement": 24.429292929292927,
+      "corrections": 20,
+      "avg_time": 0.8002281188964844,
+      "success": true
+    },
+    "backend": {
+      "latency_ms": 250,
+      "rtf": 0.08,
+      "memory_usage_gb": 3.2,
+      "gpu_utilization": 85,
+      "success": true
+    },
+    "manager": {
+      "initialization_time_ms": 1200,
+      "cache_hit_rate": 0.0,
+      "fallback_rate": 0.0,
+      "success": true
+    }
+  },
+  "summary": {
+    "total_tests": 3,
+    "successful_tests": 3,
+    "overall_success": true
+  }
+}

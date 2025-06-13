@@ -1,0 +1,133 @@
+{
+  "timestamp": "20250613_195317",
+  "test_type": "audio_reel_fichier",
+  "warning": "Résultats faussement flatteurs vs microphone live",
+  "audio_info": {
+    "duration_seconds": 68.053375,
+    "file": "enregistrement_avec_lecture_texte_complet_depuis_micro_rode.wav"
+  },
+  "gpu_config": {
+    "device": "NVIDIA GeForce RTX 3090",
+    "memory_gb": 23.99951171875,
+    "cuda_version": "12.6"
+  },
+  "backend_result": {
+    "text": "Bonjour, ceci est un test de validation pour Super. Whisper 2. Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription Premièrement des mots simples chat chien maison voiture ordinateur téléphone Deuxièmement les phrases courtes il fait beau aujourd'hui le café est délicieux j'aime la musique classique Troisièmement des phrases plus complexes l'intelligence artificielle transforme notre manière de travailler et communiquer dans le monde moderne Quatrièmement des termes techniques algorithme machine learning GPU RTX 3090 faster-whisper quantification INT 8 latence de transcription Cinquièmement des nombres et dates 23 47 1995 le 15 janvier 2024 Sixièmement les mots difficiles chrysanthèmes anticonstitutionnellements prestidigitateurs kakémono yaourt Septièmement une phrase longue et complexe L'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitements et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final Fin du test de validation",
+    "confidence": 0.9246047248614789,
+    "segments": [
+      {
+        "start": 1.06,
+        "end": 6.32,
+        "text": "Bonjour, ceci est un test de validation pour SuperWhisper 2. Je vais maintenant énoncer",
+        "confidence": 0.9177325581395349
+      },
+      {
+        "start": 6.34,
+        "end": 9.66,
+        "text": "plusieurs phrases de complexité croissante pour évaluer la précision de transcription",
+        "confidence": 0.9177325581395349
+      },
+      {
+        "start": 9.66,
+        "end": 13.82,
+        "text": "Premièrement des mots simples chat chien maison voiture ordinateur téléphone",
+        "confidence": 0.9177325581395349
+      },
+      {
+        "start": 13.82,
+        "end": 17.42,
+        "text": "Deuxièmement les phrases courtes il fait beau aujourd'hui le café est délicieux",
+        "confidence": 0.9177325581395349
+      },
+      {
+        "start": 17.42,
+        "end": 20.42,
+        "text": "j'aime la musique classique Troisièmement des phrases plus complexes",
+        "confidence": 0.9177325581395349
+      },
+      {
+        "start": 20.42,
+        "end": 24.38,
+        "text": "l'intelligence artificielle transforme notre manière de travailler et communiquer dans",
+        "confidence": 0.9177325581395349
+      },
+      {
+        "start": 24.38,
+        "end": 28.96,
+        "text": "le monde moderne Quatrièmement des termes techniques algorithme",
+        "confidence": 0.9241155650255815
+      },
+      {
+        "start": 28.96,
+        "end": 35.38,
+        "text": "machine learning GPU RTX 3090 faster-whisper quantification INT 8 latence de transcription",
+        "confidence": 0.9241155650255815
+      },
+      {
+        "start": 35.38,
+        "end": 41.94,
+        "text": "Cinquièmement des nombres et dates 23 47 1995 le 15 janvier 2024",
+        "confidence": 0.9241155650255815
+      },
+      {
+        "start": 41.94,
+        "end": 47.38,
+        "text": "Sixièmement les mots difficiles chrysanthèmes anticonstitutionnellements prestidigitateurs",
+        "confidence": 0.9241155650255815
+      },
+      {
+        "start": 47.38,
+        "end": 51.58,
+        "text": "kakémono yaourt Septièmement une phrase longue et complexe",
+        "confidence": 0.9241155650255815
+      },
+      {
+        "start": 51.58,
+        "end": 55.42,
+        "text": "L'optimisation des performances de transcription vocale nécessite une approche méthodique",
+        "confidence": 0.9355244247392676
+      },
+      {
+        "start": 55.44,
+        "end": 59.8,
+        "text": "combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitements",
+        "confidence": 0.9355244247392676
+      },
+      {
+        "start": 59.82,
+        "end": 64.34,
+        "text": "et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final",
+        "confidence": 0.9355244247392676
+      },
+      {
+        "start": 64.36,
+        "end": 65.34,
+        "text": "Fin du test de validation",
+        "confidence": 0.9355244247392676
+      }
+    ],
+    "processing_time": 7.796990400005598,
+    "rtf": 0.11457169317474111,
+    "success": true
+  },
+  "post_processing": {
+    "original_text": "Bonjour, ceci est un test de validation pour Super. Whisper 2. Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription Premièrement des mots simples chat chien maison voiture ordinateur téléphone Deuxièmement les phrases courtes il fait beau aujourd'hui le café est délicieux j'aime la musique classique Troisièmement des phrases plus complexes l'intelligence artificielle transforme notre manière de travailler et communiquer dans le monde moderne Quatrièmement des termes techniques algorithme machine learning GPU RTX 3090 faster-whisper quantification INT 8 latence de transcription Cinquièmement des nombres et dates 23 47 1995 le 15 janvier 2024 Sixièmement les mots difficiles chrysanthèmes anticonstitutionnellements prestidigitateurs kakémono yaourt Septièmement une phrase longue et complexe L'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitements et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final Fin du test de validation",
+    "processed_text": "Bonjour, ceci est un test de validation pour Super. Whisper 2. Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription Premièrement des mots simples chat chien maison voiture ordinateur téléphone Deuxièmement les phrases courtes il fait beau aujourd'hui le café est délicieux j'aime la musique classique Troisièmement des phrases plus complexes l'intelligence artificielle transforme notre manière de travailler et communiquer dans le monde moderne Quatrièmement des termes techniques algorithme machine learning GPU RTX 3090 faster-whisper quantification INT 8 latence de transcription Cinquièmement des nombres et dates 23 47 1995 le 15 janvier 2024 Sixièmement les mots difficiles chrysanthèmes anticonstitutionnellements prestidigitateurs kakémono yaourt Septièmement une phrase longue et complexe L'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitements et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final Fin du test de validation.",
+    "metrics": {
+      "corrections_applied": 6,
+      "confidence_boost": 0.05,
+      "processing_time_ms": 0.7488999981433153,
+      "corrections_by_type": {
+        "technical": 5,
+        "phonetic": 0,
+        "punctuation": 1,
+        "normalization": 0
+      }
+    }
+  },
+  "performance": {
+    "rtf": 0.11457169317474111,
+    "processing_time": 7.796990400005598,
+    "confidence": 0.9246047248614789
+  }
+}

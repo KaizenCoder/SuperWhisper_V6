@@ -1,0 +1,31 @@
+{
+  "timestamp": "2025-06-13T12:25:13.814309",
+  "correction_vad": "APPLIQUÉE",
+  "tests_realises": 3,
+  "ameliorations": 0,
+  "succes": 0,
+  "echecs": 3,
+  "resultats": [
+    {
+      "test": "Validation Utilisateur Complet",
+      "fichier": "test_output/validation_utilisateur_complet.wav",
+      "erreur": "No module named 'resampy'",
+      "statut": "EXCEPTION",
+      "timestamp": "2025-06-13T12:25:13.808306"
+    },
+    {
+      "test": "Demo Batch Long",
+      "fichier": "test_output/demo_batch_long_20250612_151733.wav",
+      "erreur": "No module named 'resampy'",
+      "statut": "EXCEPTION",
+      "timestamp": "2025-06-13T12:25:13.811310"
+    },
+    {
+      "test": "Demo Batch Moyen",
+      "fichier": "test_output/demo_batch_moyen_20250612_151733.wav",
+      "erreur": "No module named 'resampy'",
+      "statut": "EXCEPTION",
+      "timestamp": "2025-06-13T12:25:13.813310"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "date_validation": "2025-06-13T20:52:24.307917",
+  "texte_reference": "Bonjour, je suis en train de tester le système de reconnaissance vocale SuperWhisper V6. \nCette phrase contient plusieurs mots techniques comme reconnaissance, transcription, et validation. \nLe système doit être capable de transcrire correctement tous les mots sans interruption. \nNous testons également les nombres comme 123, 456, et les dates comme le 13 juin 2025. \nCette validation est critique pour valider la correction VAD qui a permis une amélioration de 492 pourcent. \nLe système utilise une RTX 3090 avec 24 gigaoctets de mémoire vidéo pour optimiser les performances. \nMerci de valider que cette transcription est complète et précise.",
+  "mots_reference": 97,
+  "texte_transcrit": "2. Je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la  précision de transcription. Premièrement, des mots simples, chat, chien, maison, voiture,  ordinateur, téléphone. Deuxièmement, des phrases courtes, il fait beau aujourd'hui,  le café délicieux, j'aime la musique classique. Troisièmement, des phrases plus complexes,  l'intelligence artificielle transforme notre manière de travailler et de communiquer dans  le monde moderne. Quatrièmement, des termes techniques, algorithme, machine learning,  GPU RTX 3090, Faster Whisper, quantification ENT8, latence de transcription.",
+  "mots_transcrits": 77,
+  "couverture_pourcent": 79.38144329896907,
+  "latence_transcription": 3.0752618312835693,
+  "rtf": 0.10238844333216549,
+  "duree_enregistrement": 59.44118857383728,
+  "precision_humaine": "acceptable",
+  "interruptions": "non",
+  "commentaires": "la première question est inutile",
+  "criteres_techniques": [
+    "❌ Couverture insuffisante (<90%)",
+    "✅ Latence acceptable (≤10s)",
+    "✅ Transcription complète"
+  ],
+  "decision_finale": "🔄 VALIDÉ AVEC RÉSERVES",
+  "validation_reussie": false
+}

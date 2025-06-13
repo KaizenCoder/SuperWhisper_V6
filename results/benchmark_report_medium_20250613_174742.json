@@ -1,0 +1,17 @@
+{
+    "metadata": {
+        "model_used": "medium",
+        "test_date": "2025-06-13T15:50:51Z"
+    },
+    "reference_text": "bonjour, ceci est un test de validation pour superwhisper 2.\nje vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription.\npremièrement, des mots simples : chat, chien, maison, voiture, ordinateur, téléphone.\ndeuxièmement, des phrases courtes : il fait beau aujourd'hui. le café est délicieux. j'aime la musique classique.\ntroisièmement, des phrases plus complexes : l'intelligence artificielle transforme notre manière de travailler et de communiquer dans le monde moderne.\nquatrièmement, des termes techniques : algorithme, machine learning, gpu rtx 3090, faster-whisper, quantification int8, latence de transcription.\ncinquièmement, des nombres et dates : vingt-trois, quarante-sept, mille neuf cent quatre-vingt-quinze, le quinze janvier deux mille vingt-quatre.\nsixièmement, des mots difficiles : chrysanthème, anticonstitutionnellement, prestidigitateur, kakémono, yaourt.\nseptièmement, une phrase longue et complexe : l'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitement, et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final.\nfin du test de validation.",
+    "transcribed_text": "bonjour, ceci est un test d'invitation pour super whispers 2.  je vais vous demander de lancer plusieurs phrases de complexité croissante pour évaluer la précision de la transmission.  premièrement, des mots simples. cherchez une maison voiture ou ordinateur. téléphone, deuxièmement des phrases courtes, tu fais beau aujourd'hui, le café est délicieux,  vieille musique classique, troisièmement des phrases plus complexes,  la séjourne artificielle transforme notre manière de travailler et de communiquer pour le monde moderne,  le frémement des seins techniques, agorique, machine learning, gpu, rtx 3090,  faster, whisper, quantification et nt8,  le temps de construction, fréquemment des mondades,  le 23 à 47, 1995, le 15 janvier 2024,  sixièmement des mondes difficiles,  crédentéme, anticonstitutionnellement,  pré-sigitateur, paca-moulonnon, yaourt,  septièmement, offrassement et complexe,  l'optimisation des performances de transcription vocale,  et c'est ici une approche méthodique,  combinant la sélection appropriée des modèles,  l'ajustement des paramètres de fracquement,  et la présentation d'algorithmes de post-fracquement,  pour améliorer le métier de la vie la finale.  fin du test de réalisation.",
+    "performance_metrics": {
+        "word_error_rate_percent": 61.04
+    },
+    "operational_metrics": {
+        "chunks_processed": 4545,
+        "chunks_with_voice": 1730,
+        "chunks_filtered_noise": 2815,
+        "hallucinations_detected": 0,
+        "transcribed_segments": 2,
+        "average_rms": 

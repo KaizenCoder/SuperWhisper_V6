@@ -1,0 +1,20 @@
+{
+    "metadata": {
+        "model_used": "large-v2",
+        "test_date": "2025-06-13T15:54:26Z"
+    },
+    "reference_text": "bonjour, ceci est un test de validation pour superwhisper 2.\nje vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription.\npremièrement, des mots simples : chat, chien, maison, voiture, ordinateur, téléphone.\ndeuxièmement, des phrases courtes : il fait beau aujourd'hui. le café est délicieux. j'aime la musique classique.\ntroisièmement, des phrases plus complexes : l'intelligence artificielle transforme notre manière de travailler et de communiquer dans le monde moderne.\nquatrièmement, des termes techniques : algorithme, machine learning, gpu rtx 3090, faster-whisper, quantification int8, latence de transcription.\ncinquièmement, des nombres et dates : vingt-trois, quarante-sept, mille neuf cent quatre-vingt-quinze, le quinze janvier deux mille vingt-quatre.\nsixièmement, des mots difficiles : chrysanthème, anticonstitutionnellement, prestidigitateur, kakémono, yaourt.\nseptièmement, une phrase longue et complexe : l'optimisation des performances de transcription vocale nécessite une approche méthodique combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitement, et l'implémentation d'algorithmes de post-traitement pour améliorer la qualité du résultat final.\nfin du test de validation.",
+    "transcribed_text": "bonjour, ceci est un test de validation pour super whisper 2.  je vais maintenant énoncer plusieurs phrases de complexité croissante pour évaluer la précision de transcription.  premièrement, des mots simples.  chat, chien, maison, voiture, ordinateur, téléphone.  deuxièmement, des phrases courtes.  il fait beau aujourd'hui, le café délicieux, j'aime la musique classique.  troisièmement, des phrases plus complexes.  l'intelligence artificielle transforme notre manière de travailler et de communiquer dans le monde moderne.  quatreièmement, des termes techniques.  algorithme, machine learning, gpu, rtx 3090.  after whisper, quantification inédite, latence de transcription.  cinquièmement, des monnaies.  23, 47, 1995, le 15 janvier 2024.  sixièmement, des mots difficiles.  crésentemps, anticonstitutionnellement, prestidigitateur, kakemono et out.  septièmement, une phrase longue et complexe.  l'optimisation des performances de transcription vocale nécessite une approche méthodique,  combinant la sélection appropriée des modèles, l'ajustement des paramètres de traitement et l'alimentation d'algorithmes de post-traitement  pour améliorer la qualité de la liste finale.  fin du test de validation.",
+    "performance_metrics": {
+        "word_error_rate_percent": 39.61
+    },
+    "operational_metrics": {
+        "chunks_processed": 2064,
+        "chunks_with_voice": 1654,
+        "chunks_filtered_noise": 410,
+        "hallucinations_detected": 0,
+        "transcribed_segments": 1,
+        "average_rms": 0.010145941749215126,
+        "vad_efficiency_percent": 80.13565891472868
+    }
+}

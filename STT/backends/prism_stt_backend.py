@@ -42,6 +42,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from STT.backends.base_stt_backend import BaseSTTBackend, STTResult, validate_rtx3090_mandatory
+from STT.model_pool import model_pool
 
 class PrismSTTBackend(BaseSTTBackend):
     """
@@ -106,21 +107,17 @@ class PrismSTTBackend(BaseSTTBackend):
             # Validation GPU obligatoire
             validate_rtx3090_mandatory()
             
-            # Chargement modèle faster-whisper optimisé
+            # Chargement du modèle depuis le pool partagé
             start_time = time.time()
+            self.model = model_pool.get_model(self.model_size, self.compute_type)
             
-            self.model = WhisperModel(
-                self.model_size,
-                device="cuda",  # cuda:0 après mapping CUDA_VISIBLE_DEVICES='1'
-                compute_type=self.compute_type,
-                cpu_threads=4,  # Optimisation CPU pour preprocessing
-                num_workers=1   # Single worker pour éviter conflicts GPU
-            )
-            
+            if self.model is None:
+                raise RuntimeError(f"Impossible de charger le modèle '{self.model_size}' depuis le pool.")
+
             self.model_load_time = time.time() - start_time
             self.model_loaded = True
             
-            self.logger.info(f"✅ Modèle {self.model_size} chargé en {self.model_load_time:.2f}s")
+            self.logger.info(f"✅ Modèle '{self.model_size}' obtenu depuis le pool en {self.model_load_time:.2f}s")
             
             # Warm-up GPU avec audio test (inspiré Prism_Whisper2)
             self._warm_up_model()

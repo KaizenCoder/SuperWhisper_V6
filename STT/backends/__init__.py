@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SuperWhisper V6 - Backends STT
+Module STT Backends - SuperWhisper V6 Phase 4
 🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 
 Backends STT avec fallback intelligent :

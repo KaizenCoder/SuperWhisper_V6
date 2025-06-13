@@ -37,7 +37,11 @@ except ImportError as e:
     sys.exit(1)
 
 # Import modules locaux
-from .base_stt_backend import BaseSTTBackend, STTResult, validate_rtx3090_mandatory
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from STT.backends.base_stt_backend import BaseSTTBackend, STTResult, validate_rtx3090_mandatory
 
 class PrismSTTBackend(BaseSTTBackend):
     """
@@ -64,7 +68,7 @@ class PrismSTTBackend(BaseSTTBackend):
         self.compute_type = config.get('compute_type', 'float16')
         self.language = config.get('language', 'fr')
         self.beam_size = config.get('beam_size', 5)
-        self.vad_filter = config.get('vad_filter', True)
+        self.vad_filter = config.get('vad_filter', True)  # 🔧 VAD avec paramètres corrigés pour transcription complète
         
         # Modèle Whisper
         self.model = None
@@ -280,6 +284,7 @@ class PrismSTTBackend(BaseSTTBackend):
     def _transcribe_sync(self, audio: np.ndarray) -> Dict[str, Any]:
         """
         Transcription synchrone pour thread - optimisée Prism_Whisper2
+        🔧 VAD CORRIGÉ: Paramètres EXPERTS faster-whisper pour transcription complète
         
         Args:
             audio: Audio numpy array
@@ -288,15 +293,33 @@ class PrismSTTBackend(BaseSTTBackend):
             Dict avec text, confidence, segments
         """
         try:
-            # Transcription avec paramètres optimisés (inspiré Prism_Whisper2)
+            # ✅ PARAMÈTRES VAD CORRECTS pour faster-whisper (SOLUTION EXPERTE)
+            vad_parameters = {
+                "threshold": 0.3,                    # Plus permissif (défaut: 0.5)
+                "min_speech_duration_ms": 100,       # Détection plus rapide (défaut: 250)
+                "max_speech_duration_s": float('inf'), # Pas de limite (défaut: 30s)
+                "min_silence_duration_ms": 2000,     # 2s de silence pour couper (défaut: 2000)
+                "speech_pad_ms": 400                 # Padding autour de la parole (défaut: 400)
+            }
+            
+            # Transcription avec paramètres VAD corrects
             segments, info = self.model.transcribe(
                 audio,
                 language=self.language,
                 beam_size=self.beam_size,
-                best_of=5,  # Qualité optimale
+                best_of=5,
                 vad_filter=self.vad_filter,
-                word_timestamps=False,  # Plus rapide sans timestamps mots
-                condition_on_previous_text=False  # Éviter dépendances contexte
+                vad_parameters=vad_parameters if self.vad_filter else None,
+                word_timestamps=False,
+                condition_on_previous_text=True,  # Améliore la cohérence
+                without_timestamps=False,          # Garde les timestamps
+                initial_prompt=None,               # Pas de prompt initial
+                temperature=0.0,                   # Déterministe
+                compression_ratio_threshold=2.4,   # Standard
+                log_prob_threshold=-1.0,          # Standard
+                no_speech_threshold=0.6,          # Standard
+                prepend_punctuations="\"'¿([{-",
+                append_punctuations="\"'.。,，!！?？:：\")]}、"
             )
             
             # Extraire texte et segments

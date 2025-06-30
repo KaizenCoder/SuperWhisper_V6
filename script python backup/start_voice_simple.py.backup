@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""
+Script de lancement pour l'assistant vocal Cursor - Version simplifiée
+"""
+
+import sys
+import os
+import asyncio
+
+# Ajouter le répertoire du projet au path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from cursor_voice_assistant_simple import main
+
+if __name__ == "__main__":
+    print("🚀 Lancement de l'assistant vocal simplifié pour Cursor...")
+    print("💡 Cette version évite les problèmes complexes du système STT")
+    print("🎯 Assurez-vous que Cursor est ouvert et actif")
+    print("📍 Placez votre curseur là où vous voulez dicter")
+    print()
+    
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n👋 Assistant vocal fermé")
+    except Exception as e:
+        print(f"\n❌ Erreur: {e}")
+        print("💡 Essayez d'installer les dépendances manquantes:") 

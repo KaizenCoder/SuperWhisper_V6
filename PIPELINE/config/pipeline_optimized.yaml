@@ -1,0 +1,7 @@
+pipeline:
+  audio_buffer_size: 512
+  enable_metrics: false
+  llm_timeout: 15.0
+  max_queue_size: 8
+  tts_cache_size: 1000
+  worker_timeout: 20.0

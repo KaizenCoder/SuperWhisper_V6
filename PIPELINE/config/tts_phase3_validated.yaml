@@ -1,0 +1,31 @@
+advanced:
+  channels: 1
+  max_text_length: 1000
+  sample_rate: 22050
+backends:
+  piper_cli:
+    channels: 1
+    enabled: true
+    executable_path: piper/piper.exe
+    length_scale: 1.0
+    model_path: models/fr_FR-siwis-medium.onnx
+    sample_rate: 22050
+    speaker_id: 0
+    target_latency_ms: 1000
+    use_json_config: true
+  sapi_french:
+    enabled: true
+    rate: 0
+    target_latency_ms: 500
+    voice_name: Microsoft Hortense Desktop
+    volume: 100
+  silent_emergency:
+    enabled: true
+    target_latency_ms: 10
+cache:
+  max_size_mb: 100
+  ttl_seconds: 3600
+circuit_breaker:
+  failure_threshold: 3
+  reset_timeout_seconds: 60
+enable_piper_native: false

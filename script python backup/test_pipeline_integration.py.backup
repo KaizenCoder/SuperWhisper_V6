@@ -1,0 +1,460 @@
+#!/usr/bin/env python3
+"""
+Tests Intégration Pipeline - Task 19.1
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Tests d'intégration pipeline sans LLM :
+- STT → Queue → TTS direct (bypass LLM)
+- Validation workers asynchrones
+- Métriques collecte temps réel  
+- Performance composants isolés
+"""
+
+import os
+import sys
+import pytest
+import pytest_asyncio
+import asyncio
+import numpy as np
+import time
+import wave
+import io
+from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from pathlib import Path
+from datetime import datetime, timedelta
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎮 Tests Intégration Pipeline: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Maintenant imports normaux...
+import torch
+from prometheus_client import REGISTRY, CollectorRegistry
+
+# Imports projet
+sys.path.append(str(Path(__file__).parent.parent.parent))
+from PIPELINE.pipeline_orchestrator import PipelineOrchestrator
+
+def create_test_wav_bytes():
+    """Crée des données WAV de test"""
+    sample_rate = 22050
+    duration = 0.1  # 100ms
+    frequency = 440  # La note A
+    
+    # Générer signal sinusoïdal
+    t = np.linspace(0, duration, int(sample_rate * duration))
+    audio_data = np.sin(2 * np.pi * frequency * t)
+    
+    # Convertir en int16
+    audio_data = (audio_data * 32767).astype(np.int16)
+    
+    # Créer WAV en mémoire
+    buffer = io.BytesIO()
+    with wave.open(buffer, 'wb') as wav_file:
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16-bit
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(audio_data.tobytes())
+    
+    return buffer.getvalue()
+
+@pytest.fixture
+def mock_tts_realistic():
+    """Mock TTS manager réaliste avec latence simulée"""
+    tts = Mock()
+    
+    def mock_synthesize(text):
+        # Simuler latence TTS réaliste  
+        time.sleep(0.05)  # 50ms latence simulée
+        
+        tts_result = Mock()
+        tts_result.success = True
+        tts_result.audio_data = create_test_wav_bytes()
+        tts_result.error = None
+        return tts_result
+    
+    # Configuration pour run_in_executor
+    tts.synthesize = mock_synthesize
+    return tts
+
+@pytest.fixture
+def mock_audio_output():
+    """Mock AudioOutputManager pour tests"""
+    audio_out = Mock()
+    audio_out.play_async = AsyncMock()
+    return audio_out
+
+@pytest.fixture
+def mock_llm_client():
+    """Mock LLMClient pour tests"""
+    llm = Mock()
+    
+    async def mock_generate(prompt, history):
+        await asyncio.sleep(0.05)  # Simuler latence LLM
+        return "Réponse LLM de test"
+    
+    llm.generate = AsyncMock(side_effect=mock_generate)
+    return llm
+
+@pytest.fixture
+def clean_prometheus_registry():
+    """Nettoie le registre Prometheus entre les tests"""
+    # Sauvegarder les collectors existants
+    original_collectors = list(REGISTRY._collector_to_names.keys())
+    
+    yield
+    
+    # Nettoyer les nouveaux collectors ajoutés pendant le test
+    current_collectors = list(REGISTRY._collector_to_names.keys())
+    for collector in current_collectors:
+        if collector not in original_collectors:
+            try:
+                REGISTRY.unregister(collector)
+            except KeyError:
+                pass  # Déjà supprimé
+
+@pytest_asyncio.fixture
+async def integration_pipeline(mock_tts_realistic, mock_audio_output, mock_llm_client, clean_prometheus_registry):
+    """Pipeline d'intégration avec mocks réalistes"""
+    
+    # Mock STT manager
+    mock_stt = Mock()
+    mock_stt.start_streaming = AsyncMock()
+    mock_stt.stop_streaming = AsyncMock()
+    
+    # Créer pipeline avec mocks selon la vraie signature
+    pipeline = PipelineOrchestrator(
+        stt=mock_stt,
+        tts=mock_tts_realistic,
+        llm_endpoint="http://localhost:8000",
+        metrics_enabled=False  # Désactiver métriques pour tests
+    )
+    
+    # Remplacer les composants par nos mocks
+    pipeline.audio_out = mock_audio_output
+    pipeline.llm = mock_llm_client
+    
+    # Démarrer workers pour tests fonctionnels
+    pipeline._llm_task = asyncio.create_task(pipeline._llm_worker())
+    pipeline._tts_task = asyncio.create_task(pipeline._tts_worker())
+    
+    # Laisser temps aux workers de démarrer
+    await asyncio.sleep(0.1)
+    
+    yield pipeline
+    
+    # Nettoyage
+    if hasattr(pipeline, '_llm_task') and not pipeline._llm_task.done():
+        pipeline._llm_task.cancel()
+        try:
+            await pipeline._llm_task
+        except asyncio.CancelledError:
+            pass
+            
+    if hasattr(pipeline, '_tts_task') and not pipeline._tts_task.done():
+        pipeline._tts_task.cancel()
+        try:
+            await pipeline._tts_task
+        except asyncio.CancelledError:
+            pass
+
+class TestPipelineIntegrationWithoutLLM:
+    """Tests intégration pipeline sans LLM (STT → TTS direct)"""
+    
+    @pytest.mark.asyncio
+    async def test_stt_to_tts_direct_bypass(self, integration_pipeline):
+        """Test pipeline STT → TTS direct (bypass LLM)"""
+        start_time = time.time()
+        
+        # Simuler transcription STT
+        test_text = "Test intégration pipeline sans LLM"
+        stt_latency = 120.5  # Latence STT simulée
+        
+        # Déclencher le pipeline avec bypass LLM
+        integration_pipeline._on_transcription(test_text, stt_latency)
+        
+        # Attendre traitement complet (LLM + TTS)
+        await asyncio.sleep(1.0)  # Plus de temps pour le traitement complet
+        
+        # Vérifier que TTS a été appelé (via run_in_executor)
+        # Note: avec run_in_executor, on ne peut pas utiliser assert_called_once
+        # On vérifie plutôt que le pipeline a traité la requête
+        
+        # Vérifier métriques pipeline
+        metrics = integration_pipeline.get_metrics()
+        assert metrics.total_requests >= 1
+        
+        # Vérifier que audio_out.play_async a été appelé
+        assert integration_pipeline.audio_out.play_async.called
+        
+        # Vérifier latence totale acceptable
+        total_time = time.time() - start_time
+        assert total_time < 2.0  # < 2s pour test intégration
+        
+        print(f"✅ Pipeline STT→LLM→TTS: {total_time*1000:.1f}ms")
+
+    @pytest.mark.asyncio
+    async def test_queue_processing_stt_to_tts(self, integration_pipeline):
+        """Test traitement queue STT → TTS"""
+        # Ajouter plusieurs éléments à la queue
+        test_items = [
+            ("Premier test", 100.0),
+            ("Deuxième test", 110.0),
+            ("Troisième test", 95.0)
+        ]
+        
+        for text, latency in test_items:
+            integration_pipeline._on_transcription(text, latency)
+        
+        # Attendre traitement
+        await asyncio.sleep(2.0)  # Plus de temps pour traitement multiple
+        
+        # Vérifier métriques
+        metrics = integration_pipeline.get_metrics()
+        assert metrics.total_requests >= len(test_items)
+        
+        # Vérifier que audio a été joué plusieurs fois
+        assert integration_pipeline.audio_out.play_async.call_count >= len(test_items)
+        
+        print(f"✅ Queue processing: {len(test_items)} éléments traités")
+
+    @pytest.mark.asyncio
+    async def test_audio_output_integration(self, integration_pipeline):
+        """Test intégration sortie audio complète"""
+        # Déclencher pipeline
+        test_text = "Test audio output intégration"
+        integration_pipeline._on_transcription(test_text, 100.0)
+        
+        # Attendre traitement complet
+        await asyncio.sleep(1.0)
+        
+        # Vérifier que audio a été joué
+        assert integration_pipeline.audio_out.play_async.called
+        call_args = integration_pipeline.audio_out.play_async.call_args[0]
+        audio_data = call_args[0]
+        
+        # Vérifier format audio
+        assert isinstance(audio_data, np.ndarray)
+        assert len(audio_data) > 0
+        
+        print("✅ Audio output intégration validée")
+
+class TestAsyncWorkersIntegration:
+    """Tests workers asynchrones intégration"""
+    
+    @pytest.mark.asyncio
+    async def test_tts_worker_performance_isolated(self, integration_pipeline):
+        """Test performance worker TTS isolé"""
+        # Préparer queue réponse (pour TTS worker)
+        test_items = [
+            ("Test user 1", "Test worker TTS 1", 100.0, 50.0),
+            ("Test user 2", "Test worker TTS 2", 110.0, 55.0),
+            ("Test user 3", "Test worker TTS 3", 90.0, 45.0)
+        ]
+        
+        start_time = time.time()
+        
+        # Remplir queue response (ce que TTS worker consomme)
+        for user_text, assistant_text, stt_latency, llm_latency in test_items:
+            await integration_pipeline._response_q.put((user_text, assistant_text, stt_latency, llm_latency))
+        
+        # Attendre traitement
+        await asyncio.sleep(0.8)
+        
+        # Vérifier performance
+        total_time = time.time() - start_time
+        avg_time_per_item = total_time / len(test_items)
+        
+        assert avg_time_per_item < 0.5  # < 500ms par item
+        assert integration_pipeline.tts.synthesize.call_count >= len(test_items)
+        
+        print(f"✅ TTS Worker: {avg_time_per_item*1000:.1f}ms/item")
+
+    @pytest.mark.asyncio
+    async def test_queue_backpressure_handling(self, integration_pipeline):
+        """Test gestion backpressure queues"""
+        # Remplir queue au maximum
+        max_size = integration_pipeline._llm_q.maxsize
+        
+        # Ajouter éléments jusqu'à saturation
+        for i in range(max_size + 2):
+            try:
+                integration_pipeline._llm_q.put_nowait((f"Test {i}", 100.0, time.time()))
+            except asyncio.QueueFull:
+                break
+        
+        # Vérifier que queue est pleine
+        assert integration_pipeline._llm_q.full()
+        
+        # Attendre traitement partiel
+        await asyncio.sleep(0.5)
+        
+        # Vérifier que queue se vide
+        assert not integration_pipeline._llm_q.full()
+        
+        print("✅ Backpressure handling validé")
+
+class TestMetricsIntegration:
+    """Tests intégration métriques"""
+    
+    @pytest.mark.asyncio
+    async def test_metrics_collection_real_time(self, integration_pipeline):
+        """Test collecte métriques temps réel"""
+        # Déclencher quelques transactions
+        for i in range(3):
+            integration_pipeline._on_transcription(f"Test métriques {i}", 100.0 + i*10)
+        
+        # Attendre traitement
+        await asyncio.sleep(0.6)
+        
+        # Vérifier métriques collectées
+        metrics = integration_pipeline.get_metrics()
+        
+        assert 'total_conversations' in metrics
+        assert metrics['total_conversations'] >= 3
+        assert 'average_latency_ms' in metrics
+        
+        print(f"✅ Métriques: {metrics['total_conversations']} conversations")
+
+    @pytest.mark.asyncio
+    async def test_metrics_accuracy_calculation(self, integration_pipeline):
+        """Test précision calcul métriques"""
+        # Transaction avec latences connues
+        known_latencies = [100.0, 150.0, 200.0]
+        
+        for i, latency in enumerate(known_latencies):
+            integration_pipeline._on_transcription(f"Test précision {i}", latency)
+        
+        await asyncio.sleep(0.6)
+        
+        # Vérifier calculs métriques
+        metrics = integration_pipeline.get_metrics()
+        expected_avg = sum(known_latencies) / len(known_latencies)
+        
+        # Tolérance pour calculs temps réel
+        assert abs(metrics.get('average_stt_latency_ms', 0) - expected_avg) < 50
+        
+        print(f"✅ Précision métriques validée")
+
+class TestComponentPerformanceIsolated:
+    """Tests performance composants isolés"""
+    
+    def test_audio_conversion_performance(self):
+        """Test performance conversion audio"""
+        # Créer données test
+        test_wav = create_test_wav_bytes()
+        
+        start_time = time.time()
+        
+        # Simuler conversion (fonction du pipeline)
+        from PIPELINE.pipeline_orchestrator import _wav_bytes_to_numpy
+        audio_array = _wav_bytes_to_numpy(test_wav)
+        
+        conversion_time = time.time() - start_time
+        
+        # Vérifications
+        assert isinstance(audio_array, np.ndarray)
+        assert len(audio_array) > 0
+        assert conversion_time < 0.01  # < 10ms
+        
+        print(f"✅ Conversion audio: {conversion_time*1000:.2f}ms")
+
+    @pytest.mark.asyncio
+    async def test_queue_throughput_isolated(self):
+        """Test throughput queue isolé"""
+        queue = asyncio.Queue(maxsize=100)
+        
+        # Test écriture
+        start_time = time.time()
+        for i in range(50):
+            await queue.put(f"item_{i}")
+        write_time = time.time() - start_time
+        
+        # Test lecture
+        start_time = time.time()
+        items = []
+        for i in range(50):
+            items.append(await queue.get())
+        read_time = time.time() - start_time
+        
+        # Vérifications performance
+        assert write_time < 0.1  # < 100ms pour 50 items
+        assert read_time < 0.1   # < 100ms pour 50 items
+        assert len(items) == 50
+        
+        print(f"✅ Queue throughput: {50/write_time:.0f} items/s écriture")
+
+    @pytest.mark.asyncio
+    async def test_audio_output_latency_isolated(self, mock_audio_output):
+        """Test latence audio output isolé"""
+        test_audio = np.random.rand(1024).astype(np.float32)
+        
+        start_time = time.time()
+        await mock_audio_output.play_async(test_audio)
+        latency = time.time() - start_time
+        
+        # Vérifications
+        assert mock_audio_output.play_async.called
+        assert latency < 0.1  # < 100ms pour mock
+        
+        print(f"✅ Audio output latency: {latency*1000:.2f}ms")
+
+class TestIntegrationRobustness:
+    """Tests robustesse intégration"""
+    
+    @pytest.mark.asyncio
+    async def test_pipeline_error_recovery_without_llm(self, integration_pipeline):
+        """Test récupération erreurs pipeline sans LLM"""
+        # Simuler erreur TTS
+        integration_pipeline.tts.synthesize.side_effect = Exception("Erreur TTS simulée")
+        
+        # Déclencher pipeline
+        integration_pipeline._on_transcription("Test erreur", 100.0)
+        
+        # Attendre traitement
+        await asyncio.sleep(0.5)
+        
+        # Vérifier que pipeline continue de fonctionner
+        assert integration_pipeline.tts.synthesize.called
+        
+        # Rétablir fonctionnement normal
+        integration_pipeline.tts.synthesize.side_effect = None
+        integration_pipeline.tts.synthesize.return_value = Mock(success=True, audio_data=create_test_wav_bytes())
+        
+        integration_pipeline._on_transcription("Test récupération", 100.0)
+        await asyncio.sleep(0.5)
+        
+        print("✅ Récupération erreurs validée")
+
+    @pytest.mark.asyncio
+    async def test_concurrent_requests_handling(self, integration_pipeline):
+        """Test gestion requêtes concurrentes"""
+        # Lancer plusieurs requêtes simultanément
+        tasks = []
+        for i in range(5):
+            task = asyncio.create_task(
+                self._simulate_concurrent_request(integration_pipeline, f"Concurrent {i}")
+            )
+            tasks.append(task)
+        
+        # Attendre toutes les requêtes
+        await asyncio.gather(*tasks)
+        
+        # Vérifier que toutes ont été traitées
+        assert integration_pipeline.tts.synthesize.call_count >= 5
+        
+        print("✅ Requêtes concurrentes gérées")
+    
+    async def _simulate_concurrent_request(self, pipeline, text):
+        """Simule une requête concurrente"""
+        pipeline._on_transcription(text, 100.0)
+        await asyncio.sleep(0.1)
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"]) 

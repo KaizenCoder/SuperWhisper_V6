@@ -1,0 +1,18 @@
+{
+  "validation_time": "2025-06-14 14:54:43",
+  "pipeline_test": "ORCHESTRATOR_SUCCESS",
+  "input_text": "Bonjour SuperWhisper, comment allez-vous ?",
+  "llm_response": "Bonjour ! Je vais très bien, merci. Je suis SuperWhisper V6, votre assistant vocal. Comment puis-je vous aider aujourd'hui ?",
+  "backend_used": "piper_native",
+  "latencies": {
+    "llm_ms": 0.0,
+    "tts_ms": 927.8342723846436,
+    "audio_ms": 9276.15761756897,
+    "total_ms": 10204.990863800049
+  },
+  "objective_1200ms": false,
+  "audio_size_bytes": 393724,
+  "gpu_config": "RTX 3090 (CUDA:1)",
+  "human_validation": "SUCCESS",
+  "pipeline_orchestrator": true
+}

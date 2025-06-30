@@ -1,0 +1,370 @@
+#!/usr/bin/env python3
+"""
+Configuration LLM Serveur - Task 18.3
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import asyncio
+import aiohttp
+import time
+import yaml
+from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass
+from enum import Enum
+import logging
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 LLM Config: RTX 3090 (CUDA:1) configuration forcée")
+
+
+class LLMEndpointType(Enum):
+    """Types d'endpoints LLM supportés"""
+    OPENAI_COMPATIBLE = "openai_compatible"
+    OLLAMA = "ollama"
+    VLLM = "vllm"
+    LLAMA_CPP = "llama_cpp"
+
+
+class LLMStatus(Enum):
+    """Statuts serveur LLM"""
+    HEALTHY = "healthy"
+    UNHEALTHY = "unhealthy"
+    TIMEOUT = "timeout"
+    UNKNOWN = "unknown"
+
+
+@dataclass
+class LLMEndpoint:
+    """Configuration endpoint LLM"""
+    name: str
+    url: str
+    type: LLMEndpointType
+    timeout: int = 30
+    priority: int = 1
+    api_key: Optional[str] = None
+    model: Optional[str] = None
+    status: LLMStatus = LLMStatus.UNKNOWN
+    last_check: float = 0
+    response_time_ms: float = 0
+
+
+class LLMServerConfig:
+    """Configuration serveur LLM avec health-check robuste"""
+    
+    def __init__(self, config_path: str = "PIPELINE/config/pipeline_config.yaml"):
+        self.config_path = config_path
+        self.logger = logging.getLogger(__name__)
+        self.endpoints: List[LLMEndpoint] = []
+        self.active_endpoint: Optional[LLMEndpoint] = None
+        self.health_check_interval = 30
+        self.max_retries = 3
+        
+        # Chargement configuration
+        self._load_config()
+        self._setup_logging()
+        
+    def _load_config(self):
+        """Charge la configuration depuis YAML"""
+        try:
+            with open(self.config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                
+            llm_config = config.get('llm', {})
+            
+            # Chargement endpoints
+            for endpoint_config in llm_config.get('endpoints', []):
+                endpoint = LLMEndpoint(
+                    name=endpoint_config['name'],
+                    url=endpoint_config['url'],
+                    type=LLMEndpointType(endpoint_config['type']),
+                    timeout=endpoint_config.get('timeout', 30),
+                    priority=endpoint_config.get('priority', 1),
+                    model=endpoint_config.get('model')
+                )
+                self.endpoints.append(endpoint)
+                
+            # Configuration health-check
+            self.health_check_interval = llm_config.get('health_check_interval', 30)
+            self.max_retries = llm_config.get('retry_attempts', 3)
+            
+            # Tri par priorité
+            self.endpoints.sort(key=lambda x: x.priority)
+            
+            self.logger.info(f"✅ Configuration LLM chargée: {len(self.endpoints)} endpoints")
+            
+        except Exception as e:
+            self.logger.error(f"❌ Erreur chargement config LLM: {e}")
+            # Configuration par défaut
+            self._load_default_config()
+            
+    def _load_default_config(self):
+        """Configuration par défaut si YAML échoue"""
+        self.endpoints = [
+            LLMEndpoint(
+                name="LM Studio",
+                url="http://localhost:1234/v1",
+                type=LLMEndpointType.OPENAI_COMPATIBLE,
+                timeout=30,
+                priority=1
+            ),
+            LLMEndpoint(
+                name="Ollama", 
+                url="http://localhost:11434",
+                type=LLMEndpointType.OLLAMA,
+                timeout=15,
+                priority=2
+            ),
+            LLMEndpoint(
+                name="vLLM",
+                url="http://localhost:8000",
+                type=LLMEndpointType.OPENAI_COMPATIBLE,
+                timeout=20,
+                priority=3
+            )
+        ]
+        
+    def _setup_logging(self):
+        """Configuration logging"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        
+    async def health_check_endpoint(self, endpoint: LLMEndpoint) -> Tuple[LLMStatus, float]:
+        """Health-check robuste pour un endpoint"""
+        start_time = time.time()
+        
+        try:
+            timeout = aiohttp.ClientTimeout(total=endpoint.timeout)
+            
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                
+                # URL de health-check selon type
+                if endpoint.type == LLMEndpointType.OPENAI_COMPATIBLE:
+                    health_url = f"{endpoint.url}/models"
+                    headers = {"Content-Type": "application/json"}
+                    if endpoint.api_key:
+                        headers["Authorization"] = f"Bearer {endpoint.api_key}"
+                        
+                elif endpoint.type == LLMEndpointType.OLLAMA:
+                    health_url = f"{endpoint.url}/api/tags"
+                    headers = {"Content-Type": "application/json"}
+                    
+                else:  # VLLM, llama.cpp
+                    health_url = f"{endpoint.url}/health"
+                    headers = {"Content-Type": "application/json"}
+                
+                async with session.get(health_url, headers=headers) as response:
+                    response_time = (time.time() - start_time) * 1000
+                    
+                    if response.status == 200:
+                        # Vérification réponse valide
+                        data = await response.json()
+                        
+                        if endpoint.type == LLMEndpointType.OPENAI_COMPATIBLE:
+                            # Doit contenir des modèles
+                            if 'data' in data and len(data['data']) > 0:
+                                self.logger.info(f"✅ {endpoint.name}: {len(data['data'])} modèles disponibles")
+                                return LLMStatus.HEALTHY, response_time
+                        
+                        elif endpoint.type == LLMEndpointType.OLLAMA:
+                            # Doit contenir des modèles Ollama
+                            if 'models' in data:
+                                self.logger.info(f"✅ {endpoint.name}: {len(data['models'])} modèles Ollama")
+                                return LLMStatus.HEALTHY, response_time
+                        
+                        else:
+                            # Réponse 200 suffit pour les autres
+                            return LLMStatus.HEALTHY, response_time
+                    
+                    else:
+                        self.logger.warning(f"⚠️ {endpoint.name}: HTTP {response.status}")
+                        return LLMStatus.UNHEALTHY, response_time
+                        
+        except asyncio.TimeoutError:
+            response_time = endpoint.timeout * 1000
+            self.logger.warning(f"⏱️ {endpoint.name}: Timeout {endpoint.timeout}s")
+            return LLMStatus.TIMEOUT, response_time
+            
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            self.logger.error(f"❌ {endpoint.name}: {e}")
+            return LLMStatus.UNHEALTHY, response_time
+            
+    async def health_check_all(self) -> Dict[str, Any]:
+        """Health-check de tous les endpoints"""
+        results = {}
+        healthy_endpoints = []
+        
+        tasks = [
+            self.health_check_endpoint(endpoint) 
+            for endpoint in self.endpoints
+        ]
+        
+        endpoint_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        for endpoint, result in zip(self.endpoints, endpoint_results):
+            if isinstance(result, Exception):
+                status = LLMStatus.UNHEALTHY
+                response_time = 0
+                self.logger.error(f"❌ {endpoint.name}: Exception {result}")
+            else:
+                status, response_time = result
+                
+            # Mise à jour endpoint
+            endpoint.status = status
+            endpoint.last_check = time.time()
+            endpoint.response_time_ms = response_time
+            
+            results[endpoint.name] = {
+                "status": status.value,
+                "response_time_ms": response_time,
+                "url": endpoint.url,
+                "type": endpoint.type.value,
+                "priority": endpoint.priority
+            }
+            
+            if status == LLMStatus.HEALTHY:
+                healthy_endpoints.append(endpoint)
+                
+        # Sélection endpoint actif (meilleure priorité healthy)
+        if healthy_endpoints:
+            self.active_endpoint = min(healthy_endpoints, key=lambda x: x.priority)
+            self.logger.info(f"🎯 Endpoint actif: {self.active_endpoint.name}")
+        else:
+            self.active_endpoint = None
+            self.logger.error("❌ Aucun endpoint LLM healthy disponible")
+            
+        return {
+            "healthy_endpoints": len(healthy_endpoints),
+            "total_endpoints": len(self.endpoints),
+            "active_endpoint": self.active_endpoint.name if self.active_endpoint else None,
+            "details": results,
+            "timestamp": time.time()
+        }
+        
+    async def get_best_endpoint(self) -> Optional[LLMEndpoint]:
+        """Récupère le meilleur endpoint disponible"""
+        # Health-check si pas fait récemment
+        if not self.active_endpoint or (time.time() - self.active_endpoint.last_check) > self.health_check_interval:
+            await self.health_check_all()
+            
+        return self.active_endpoint
+        
+    async def retry_with_fallback(self, operation, *args, **kwargs):
+        """Exécute opération avec fallback endpoints"""
+        last_exception = None
+        
+        for attempt in range(self.max_retries):
+            try:
+                endpoint = await self.get_best_endpoint()
+                if not endpoint:
+                    raise Exception("Aucun endpoint LLM disponible")
+                    
+                # Exécution opération
+                result = await operation(endpoint, *args, **kwargs)
+                return result
+                
+            except Exception as e:
+                last_exception = e
+                self.logger.warning(f"⚠️ Tentative {attempt + 1}/{self.max_retries} échouée: {e}")
+                
+                # Marquer endpoint comme unhealthy
+                if self.active_endpoint:
+                    self.active_endpoint.status = LLMStatus.UNHEALTHY
+                    self.active_endpoint = None
+                    
+                # Délai avant retry
+                if attempt < self.max_retries - 1:
+                    await asyncio.sleep(0.1 * (attempt + 1))
+                    
+        raise Exception(f"Toutes les tentatives LLM ont échoué: {last_exception}")
+        
+    def get_inference_config(self) -> Dict[str, Any]:
+        """Configuration inférence LLM depuis YAML"""
+        try:
+            with open(self.config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                
+            return config.get('llm', {}).get('inference', {
+                'max_tokens': 150,
+                'temperature': 0.7,
+                'top_p': 0.9,
+                'frequency_penalty': 0.1,
+                'presence_penalty': 0.1
+            })
+            
+        except Exception as e:
+            self.logger.error(f"❌ Erreur lecture config inférence: {e}")
+            return {
+                'max_tokens': 150,
+                'temperature': 0.7,
+                'top_p': 0.9
+            }
+            
+    def get_status_report(self) -> Dict[str, Any]:
+        """Rapport status complet"""
+        healthy = [e for e in self.endpoints if e.status == LLMStatus.HEALTHY]
+        
+        return {
+            "config_loaded": len(self.endpoints) > 0,
+            "total_endpoints": len(self.endpoints),
+            "healthy_endpoints": len(healthy),
+            "active_endpoint": self.active_endpoint.name if self.active_endpoint else None,
+            "health_check_interval": self.health_check_interval,
+            "endpoints": [
+                {
+                    "name": e.name,
+                    "url": e.url,
+                    "type": e.type.value,
+                    "status": e.status.value,
+                    "response_time_ms": e.response_time_ms,
+                    "priority": e.priority,
+                    "last_check": e.last_check
+                }
+                for e in self.endpoints
+            ]
+        }
+
+
+# =============================================================================
+# FONCTIONS UTILITAIRES
+# =============================================================================
+
+async def test_llm_config():
+    """Test configuration LLM"""
+    print("🧪 Test Configuration LLM Serveur")
+    
+    config = LLMServerConfig()
+    
+    # Health-check complet
+    print("\n📊 Health-check endpoints...")
+    results = await config.health_check_all()
+    
+    print(f"\n✅ Résultats: {results['healthy_endpoints']}/{results['total_endpoints']} endpoints healthy")
+    
+    if results['active_endpoint']:
+        print(f"🎯 Endpoint actif: {results['active_endpoint']}")
+    else:
+        print("❌ Aucun endpoint disponible")
+        
+    # Rapport détaillé
+    print(f"\n📋 Rapport status:")
+    status = config.get_status_report()
+    for endpoint in status['endpoints']:
+        print(f"  {endpoint['name']}: {endpoint['status']} ({endpoint['response_time_ms']:.1f}ms)")
+        
+    return config
+
+
+if __name__ == "__main__":
+    # Test configuration
+    asyncio.run(test_llm_config()) 

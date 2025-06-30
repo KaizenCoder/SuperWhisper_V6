@@ -1,91 +1,80 @@
-# PRD - SuperWhisper_V6 (Luxa)
+# PRD - JOUR 2 PIPELINE COMPLET SUPERWHISPER V6
 
-## Vue d'ensemble du produit
-SuperWhisper_V6, nom de code "Luxa", est un assistant vocal intelligent multi-composants intégrant la reconnaissance vocale (STT), le traitement par LLM, et la synthèse vocale (TTS). L'objectif est de créer un assistant conversationnel performant avec orchestration intelligente des différents modules.
+## CONTEXTE PROJET
+SuperWhisper V6 - Assistant IA conversationnel voix-à-voix 100% local
+- Architecture : STT → LLM → TTS pipeline complet
+- Performance cible : < 1.2s end-to-end
+- Configuration GPU : RTX 3090 24GB VRAM exclusive
+- Statut : Jour 1 terminé (100%) - Infrastructure complète
 
-## Objectifs business
-- Créer un assistant vocal de nouvelle génération
-- Intégrer les technologies STT, LLM et TTS de manière fluide
-- Optimiser les performances de chaque composant individuellement
-- Fournir une orchestration intelligente entre les modules
-- Permettre une validation et amélioration continue via benchmarks
+## ÉTAT ACTUEL - JOUR 1 TERMINÉ
+✅ PipelineOrchestrator code obligatoire v1.1 implémenté
+✅ Tests unitaires : 20/20 réussis (100%)
+✅ Métriques Prometheus + Dashboard Grafana
+✅ Scripts utilitaires (demo, benchmark, validation)
+✅ Configuration RTX 3090 appliquée partout
 
-## Architecture technique imposée
-- **Langage principal :** Python
-- **Environnement :** Virtual environment (venv)
-- **Structure modulaire :** Séparation claire STT/LLM/TTS/Orchestrator
-- **Point d'entrée :** run_assistant.py
-- **Validation :** Système de benchmarks intégré (phase0_validation.py)
+## MISSION JOUR 2 - TESTS ET VALIDATION (8h)
 
-## Fonctionnalités principales
+### TÂCHE 19.1 - Tests Intégration Pipeline (1h30)
+Implémenter tests intégration pipeline sans LLM
+- Tests STT → Queue → TTS direct
+- Validation workers asynchrones
+- Métriques collecte temps réel
+- Performance composants isolés
 
-### 1. STT (Speech-to-Text)
-- Module de reconnaissance vocale
-- Conversion audio vers texte
-- Optimisation de la précision et vitesse
+### TÂCHE 19.2 - Tests End-to-End (1h30) 
+Implémenter tests pipeline complet avec LLM
+- Tests STT → LLM → TTS complet
+- Validation serveur LLM local
+- Fallbacks LLM fonctionnels
+- Latence end-to-end mesurée
 
-### 2. LLM (Large Language Model)
-- Traitement intelligent du texte
-- Génération de réponses contextuelles
-- Intégration avec modèles locaux ou cloud
+### TÂCHE 19.3 - Optimisation Performance (2h)
+Optimiser pipeline pour < 1.2s end-to-end
+- Profiling composants goulots
+- Tuning paramètres performance
+- Cache et parallélisation
+- Validation objectifs atteints
 
-### 3. TTS (Text-to-Speech)
-- Synthèse vocale naturelle
-- Conversion texte vers audio
-- Voix de qualité et personnalisable
+### TÂCHE 19.4 - Validation Humaine (2h) - CRITIQUE
+Tests conversation réelle obligatoires
+- Conversation voix-à-voix complète
+- Validation qualité audio sortie
+- Tests conditions réelles
+- Documentation résultats humains
 
-### 4. Orchestrator
-- Coordination entre les modules STT/LLM/TTS
-- Gestion des flux de données
-- Optimisation des performances globales
+### TÂCHE 19.5 - Sécurité & Robustesse (30min)
+Tests fallbacks et edge cases
+- Récupération erreurs automatique
+- Tests conditions dégradées
+- Validation sécurité
+- Documentation robustesse
 
-### 5. Configuration et monitoring
-- Système de configuration centralisé
-- Logging et monitoring des performances
-- Tests automatisés et benchmarks
+### TÂCHE 19.6 - Documentation Finale (30min)
+Finalisation documentation livraison
+- Mise à jour suivi pipeline complet
+- Journal développement Jour 2
+- Guide utilisation final
+- Procédures déploiement
 
-## Structure de projet proposée
-```
-luxa/
-├── STT/                    # Module reconnaissance vocale
-├── LLM/                    # Module traitement langue
-├── TTS/                    # Module synthèse vocale
-├── Orchestrator/           # Coordination des modules
-├── Config/                 # Configuration centralisée
-├── Tests/                  # Tests unitaires et intégration
-├── Logs/                   # Fichiers de logs
-├── benchmarks/             # Validation et benchmarks
-│   └── phase0_validation.py
-├── run_assistant.py        # Point d'entrée principal
-├── requirements.txt        # Dépendances Python
-└── venv/                   # Environnement virtuel
-```
+## CONTRAINTES CRITIQUES
+- Code obligatoire v1.1 : NE JAMAIS modifier pipeline_orchestrator.py
+- Configuration GPU RTX 3090 : OBLIGATOIRE dans tous nouveaux scripts
+- Fonction _bootstrap() : Utiliser EXACTEMENT celle du prompt
+- Validation humaine : Tests conversation OBLIGATOIRES
+- Performance < 1.2s : Objectif critique absolu
 
-## Processus de développement
-1. **Setup initial** - Initialisation Git, venv, structure
-2. **Développement modulaire** - Chaque composant indépendamment
-3. **Validation continue** - Tests benchmarks à chaque étape
-4. **Intégration** - Orchestration des modules
-5. **Optimisation** - Amélioration basée sur les benchmarks
+## LIVRABLES ATTENDUS
+- Pipeline voix-à-voix opérationnel < 1.2s
+- Tests intégration + end-to-end fonctionnels
+- Validation humaine conversation réussie
+- Documentation complète mise à jour
+- SuperWhisper V6 production-ready
 
-## Critères de validation
-- Phase 0 : Validation de la structure et setup initial
-- Tests de performance pour chaque module
-- Benchmarks d'intégration globale
-- Critères GO/NO-GO basés sur les métriques
-
-## Contraintes techniques
-- Python comme langage principal
-- Modularité stricte entre composants
-- Système de logging obligatoire
-- Benchmarks automatisés pour validation
-- Architecture permettant optimisation continue
-
-## Timeline de développement
-- **Phase 0** : Setup et validation initiale
-- **Phase 1** : Développement modules individuels
-- **Phase 2** : Intégration et orchestration
-- **Phase 3** : Optimisation et benchmarks avancés
-
-## Notes supplémentaires
-[À REMPLIR] - Informations complémentaires importantes 
+## CRITÈRES DE SUCCÈS
+- Latence end-to-end < 1.2s (95% des cas)
+- Taux succès > 95% conversations complètes  
+- Qualité audio > 8/10 validation humaine
+- Robustesse récupération < 3s après erreur
+- Tests automatisés 100% réussis 

@@ -1,0 +1,10 @@
+# Tests exploratoires et temporaires (≤ 7 jours)
+# ATTENTION: Les fichiers ici sont automatiquement supprimés après 7 jours
+# Utilisez ce répertoire pour expérimentations, prototypes et tests jetables
+# 
+# Workflow recommandé:
+# 1. Créer tests exploratoires ici
+# 2. Une fois validés, les déplacer vers unit/ ou integration/
+# 3. Les fichiers anciens sont purgés automatiquement
+#
+# Exécuter purge manuelle: python tools/clean_sandbox.py 

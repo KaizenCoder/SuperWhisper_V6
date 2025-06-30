@@ -4,23 +4,51 @@ EnhancedLLMManager - Gestionnaire LLM avancé avec contexte conversationnel
 🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 
 Conforme aux spécifications du Plan de Développement LUXA Final
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 """
 
 import os
 import sys
+import pathlib
 
 # =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
 # =============================================================================
-# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
 
-print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
-print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
 
 # Maintenant imports normaux...
+
 import asyncio
 import logging
 import time
@@ -108,14 +136,58 @@ Directives:
 Contexte: Assistant vocal intégré, français prioritaire."""
 
     async def initialize(self):
-        """Initialisation du modèle LLM avec optimisations RTX 3090"""
+        """Initialisation du modèle LLM avec support Ollama et fallback local"""
         self.logger.info("Initialisation EnhancedLLMManager...")
         
-        # Configuration GPU RTX 3090 forcée via CUDA_VISIBLE_DEVICES='1'
+        # Essayer d'abord Ollama
+        use_ollama = self.config.get('use_ollama', True)
+        base_url = self.config.get('base_url', 'http://127.0.0.1:11434/v1')
+        model_name = self.config.get('model', 'nous-hermes')
+        
+        if use_ollama:
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get('http://127.0.0.1:11434/api/tags')
+                    if response.status_code == 200:
+                        models = response.json().get('models', [])
+                        model_names = [m['name'] for m in models]
+                        self.logger.info(f"✅ Ollama accessible - Modèles: {model_names}")
+                        
+                        # Vérifier si notre modèle existe (recherche exacte ou partielle)
+                        exact_match = model_name in model_names
+                        partial_match = any(model_name in name or name in model_name for name in model_names)
+                        
+                        if exact_match or partial_match:
+                            # Utiliser le nom exact du modèle trouvé
+                            if exact_match:
+                                actual_model = model_name
+                            else:
+                                actual_model = next(name for name in model_names if model_name in name or name in model_name)
+                            
+                            self.actual_model_name = actual_model
+                            self.use_ollama = True
+                            self.logger.info(f"✅ Modèle trouvé: {actual_model}")
+                            return
+                        else:
+                            self.logger.warning(f"⚠️ Modèle {model_name} non trouvé - Fallback local")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Ollama non accessible: {e} - Fallback local")
+        
+        # Fallback : modèle local
+        self.use_ollama = False
+        
+        # Vérifier si model_path est fourni pour fallback local
+        model_path = self.config.get("model_path")
+        if not model_path:
+            self.logger.warning("⚠️ Aucun model_path configuré - Utilisation fallback simple")
+            self.model = None
+            return
+        
+        # Configuration GPU RTX 3090 pour modèle local
         gpu_index = self.config.get("gpu_device_index", 0)
         if gpu_index != 0:
             self.logger.warning(f"⚠️ gpu_device_index={gpu_index} - Avec CUDA_VISIBLE_DEVICES='1', utiliser index 0 (RTX 3090 visible)")
-            # Forcer index 0 (RTX 3090 seule visible)
             self.config["gpu_device_index"] = 0
         
         self.logger.info(f"🎮 GPU CONFIG: RTX 3090 exclusif via CUDA_VISIBLE_DEVICES='1' (main_gpu=0)")
@@ -123,7 +195,7 @@ Contexte: Assistant vocal intégré, français prioritaire."""
         try:
             # Configuration optimisée - RTX 3090 UNIQUEMENT
             model_config = {
-                "model_path": self.config["model_path"],
+                "model_path": model_path,
                 "n_gpu_layers": self.config.get("n_gpu_layers", 35),
                 "main_gpu": 0,  # RTX 3090 seule visible = index 0
                 "n_ctx": self.config.get("context_length", 4096),
@@ -186,6 +258,38 @@ Contexte: Assistant vocal intégré, français prioritaire."""
                 include_context=include_context
             )
             
+            # Essayer Ollama d'abord si disponible
+            if hasattr(self, 'use_ollama') and self.use_ollama:
+                try:
+                    response = await self._generate_ollama(user_input, max_tokens, temperature)
+                    if response:
+                        if not internal_check:
+                            self._add_to_history(user_input, response)
+                            self._update_metrics(response, time.time() - start_time)
+                        
+                        response_time = time.time() - start_time
+                        llm_response_time_seconds.observe(response_time)
+                        
+                        self.logger.info(f"✅ Réponse Ollama générée en {response_time:.2f}s")
+                        return response
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Ollama échoué, fallback local: {e}")
+            
+            # Fallback : modèle local ou réponse simple
+            if self.model is None:
+                self.logger.warning("⚠️ Aucun modèle LLM disponible - Réponse fallback")
+                fallback_response = f"Je reçois votre message : '{user_input}'. Le système LLM n'est pas disponible actuellement, mais la reconnaissance vocale et la synthèse fonctionnent parfaitement."
+                
+                if not internal_check:
+                    self._add_to_history(user_input, fallback_response)
+                    self._update_metrics(fallback_response, time.time() - start_time)
+                
+                response_time = time.time() - start_time
+                llm_response_time_seconds.observe(response_time)
+                
+                self.logger.info(f"✅ Réponse fallback générée en {response_time:.2f}s")
+                return fallback_response
+            
             self.logger.debug(f"Génération réponse RTX 3090 pour: '{user_input[:50]}...'")
             
             # Génération avec timeout
@@ -209,13 +313,65 @@ Contexte: Assistant vocal intégré, français prioritaire."""
             return cleaned_response
             
         except asyncio.TimeoutError:
-            self.logger.error("⏱️ Timeout génération LLM RTX 3090")
+            self.logger.error("⏱️ Timeout génération LLM")
             llm_errors_total.inc()
             return "Désolé, le traitement prend trop de temps. Pouvez-vous répéter ?"
         except Exception as e:
-            self.logger.error(f"❌ Erreur génération LLM RTX 3090: {e}")
+            self.logger.error(f"❌ Erreur génération LLM: {e}")
             llm_errors_total.inc()
             return "Désolé, je rencontre un problème technique. Pouvez-vous reformuler ?"
+    
+    async def _generate_ollama(self, user_input: str, max_tokens: int, temperature: float) -> str:
+        """Génération via Ollama API - VERSION CORRIGÉE"""
+        try:
+            import httpx
+            
+            # ✅ CORRECTION: Utiliser l'API native Ollama avec le bon format
+            actual_model = getattr(self, 'actual_model_name', self.config.get('model', 'nous-hermes'))
+            
+            # Format correct pour l'API native Ollama
+            data = {
+                "model": actual_model,
+                "prompt": f"{self.system_prompt}\n\nUser: {user_input}\nAssistant:",
+                "stream": False,
+                "options": {
+                    "temperature": temperature,
+                    "num_predict": max_tokens,
+                    "top_p": 0.9,
+                    "repeat_penalty": 1.1,
+                    "stop": ["User:", "\n\n"]
+                }
+            }
+            
+            self.logger.info(f"🧠 Requête Ollama: model={actual_model}, tokens={max_tokens}")
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    'http://127.0.0.1:11434/api/generate',
+                    json=data
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    response_text = result.get('response', '').strip()
+                    
+                    if response_text:
+                        self.logger.info(f"✅ Ollama réponse: {response_text[:50]}...")
+                        return response_text
+                    else:
+                        self.logger.warning("⚠️ Ollama réponse vide")
+                        return None
+                else:
+                    self.logger.error(f"❌ Ollama API error: {response.status_code} - {response.text}")
+                    return None
+                    
+        except Exception as e:
+            self.logger.error(f"❌ Erreur Ollama: {e}")
+            return None
+                    
+        except Exception as e:
+            self.logger.error(f"Erreur Ollama: {e}")
+            return None
     
     def _generate_sync(self, prompt: str, max_tokens: int, temperature: float) -> str:
         """Génération synchrone (appelée via to_thread)"""

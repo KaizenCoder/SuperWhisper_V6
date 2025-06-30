@@ -1,0 +1,425 @@
+#!/usr/bin/env python3
+"""
+🤖 VALIDATION LLM INDIVIDUELLE - SUPERWHISPER V6
+===============================================
+Script validation LLM critique pour pipeline voix-à-voix < 1.2s end-to-end
+
+MISSION CRITIQUE:
+- Valider LLM < 400ms pour objectif total < 1.2s
+- Configuration RTX 3090 (CUDA:1) OBLIGATOIRE
+- Tests qualité réponses conversationnelles françaises
+- Sélection meilleur modèle pour production
+
+Usage: python scripts/test_llm_validation.py
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import asyncio
+import json
+import time
+import logging
+from typing import Dict, Any, List, Optional
+from dataclasses import dataclass
+import httpx
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Configuration logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("llm_validation")
+
+@dataclass
+class LLMTestResult:
+    """Résultats validation LLM"""
+    model_name: str
+    endpoint_url: str
+    available: bool = False
+    latency_ms: float = 0.0
+    response_text: str = ""
+    quality_score: float = 0.0
+    error: Optional[str] = None
+    test_count: int = 0
+    success_rate: float = 0.0
+
+def validate_rtx3090_configuration():
+    """Validation obligatoire configuration RTX 3090"""
+    try:
+        import torch
+        
+        if not torch.cuda.is_available():
+            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+        
+        cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+        if cuda_devices != '1':
+            raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
+        
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+        if gpu_memory < 20:  # RTX 3090 = ~24GB
+            raise RuntimeError(f"🚫 GPU ({gpu_memory:.1f}GB) trop petite - RTX 3090 requise")
+        
+        print(f"✅ RTX 3090 validée: {torch.cuda.get_device_name(0)} ({gpu_memory:.1f}GB)")
+        return True
+        
+    except ImportError:
+        print("⚠️ PyTorch non disponible - validation GPU ignorée")
+        return True
+    except Exception as e:
+        raise RuntimeError(f"🚫 Validation GPU échouée: {e}")
+
+class OllamaLLMValidator:
+    """Validateur LLM spécialisé Ollama pour SuperWhisper V6"""
+    
+    def __init__(self):
+        self.base_url = "http://localhost:11434"
+        self.timeout = 30
+        # Modèles prioritaires identifiés par diagnostic
+        self.priority_models = [
+            "llama3.2:latest",      # 3.2B - Optimal conversation
+            "llama3.2:1b",          # 1.2B - Rapide
+            "qwen2.5-coder:1.5b",   # 1.5B - Très rapide  
+            "lux_model:latest",     # 3.2B - Spécialisé
+        ]
+        
+        # Tests conversation française
+        self.test_prompts = [
+            "Bonjour ! Comment allez-vous aujourd'hui ?",
+            "Pouvez-vous m'expliquer brièvement ce qu'est l'intelligence artificielle ?",
+            "Quelle est la capitale de la France ?",
+            "Racontez-moi une courte histoire en français.",
+            "Comment dit-on 'hello' en français ?"
+        ]
+    
+    async def get_available_models(self) -> List[str]:
+        """Récupère les modèles disponibles sur Ollama"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(f"{self.base_url}/api/tags")
+                response.raise_for_status()
+                
+                data = response.json()
+                models = [model['name'] for model in data.get('models', [])]
+                
+                logger.info(f"📋 {len(models)} modèles Ollama disponibles")
+                return models
+                
+        except Exception as e:
+            logger.error(f"❌ Erreur récupération modèles: {e}")
+            return []
+    
+    async def test_model_inference(self, model_name: str, prompt: str) -> Dict[str, Any]:
+        """Test inférence LLM pour un modèle spécifique"""
+        start_time = time.time()
+        
+        try:
+            payload = {
+                'model': model_name,
+                'prompt': prompt,
+                'stream': False,
+                'options': {
+                    'temperature': 0.7,
+                    'num_predict': 100,
+                    'top_p': 0.9
+                }
+            }
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/generate",
+                    json=payload
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                response_text = data.get('response', '').strip()
+                
+                latency_ms = (time.time() - start_time) * 1000
+                
+                return {
+                    'success': True,
+                    'latency_ms': latency_ms,
+                    'response_text': response_text,
+                    'error': None
+                }
+                
+        except Exception as e:
+            latency_ms = (time.time() - start_time) * 1000
+            return {
+                'success': False,
+                'latency_ms': latency_ms,
+                'response_text': '',
+                'error': str(e)
+            }
+    
+    def evaluate_response_quality(self, prompt: str, response: str) -> float:
+        """Évaluation qualité réponse (0-10)"""
+        if not response or len(response.strip()) < 5:
+            return 0.0
+        
+        score = 5.0  # Score base
+        
+        # Critères qualité
+        if len(response) >= 20:  # Longueur appropriée
+            score += 1.0
+        if len(response) <= 200:  # Pas trop long
+            score += 0.5
+        
+        # Détection français (heuristiques)
+        french_indicators = ['le', 'la', 'les', 'de', 'du', 'est', 'sont', 'avec', 'pour', 'dans']
+        french_count = sum(1 for word in french_indicators if word in response.lower())
+        if french_count >= 2:
+            score += 1.5
+        
+        # Cohérence contextuelle
+        if 'bonjour' in prompt.lower() and any(word in response.lower() for word in ['bonjour', 'salut', 'bonsoir']):
+            score += 1.0
+        if 'capital' in prompt.lower() and 'paris' in response.lower():
+            score += 1.0
+        if 'hello' in prompt.lower() and 'bonjour' in response.lower():
+            score += 1.0
+        
+        return min(10.0, score)
+    
+    async def validate_model(self, model_name: str) -> LLMTestResult:
+        """Validation complète d'un modèle LLM"""
+        logger.info(f"🧪 Validation modèle: {model_name}")
+        
+        result = LLMTestResult(
+            model_name=model_name,
+            endpoint_url=self.base_url
+        )
+        
+        latencies = []
+        quality_scores = []
+        responses = []
+        successful_tests = 0
+        
+        for i, prompt in enumerate(self.test_prompts):
+            logger.info(f"   Test {i+1}/5: {prompt[:50]}...")
+            
+            test_result = await self.test_model_inference(model_name, prompt)
+            
+            if test_result['success']:
+                successful_tests += 1
+                latencies.append(test_result['latency_ms'])
+                
+                quality = self.evaluate_response_quality(prompt, test_result['response_text'])
+                quality_scores.append(quality)
+                responses.append(test_result['response_text'])
+                
+                logger.info(f"   ✅ {test_result['latency_ms']:.1f}ms - Qualité: {quality:.1f}/10")
+            else:
+                logger.warning(f"   ❌ Échec: {test_result['error']}")
+        
+        # Calcul métriques finales
+        if successful_tests > 0:
+            result.available = True
+            result.latency_ms = sum(latencies) / len(latencies)  # Moyenne
+            result.quality_score = sum(quality_scores) / len(quality_scores)
+            result.test_count = len(self.test_prompts)
+            result.success_rate = successful_tests / len(self.test_prompts)
+            result.response_text = responses[0] if responses else ""
+        else:
+            result.error = "Aucun test réussi"
+        
+        return result
+    
+    async def validate_all_models(self) -> List[LLMTestResult]:
+        """Validation de tous les modèles prioritaires"""
+        logger.info("🚀 DÉMARRAGE VALIDATION LLM SUPERWHISPER V6")
+        
+        # Validation GPU obligatoire
+        validate_rtx3090_configuration()
+        
+        # Récupération modèles disponibles
+        available_models = await self.get_available_models()
+        
+        # Intersection modèles prioritaires et disponibles
+        models_to_test = [model for model in self.priority_models if model in available_models]
+        
+        if not models_to_test:
+            logger.error("❌ Aucun modèle prioritaire disponible")
+            return []
+        
+        logger.info(f"📋 Validation {len(models_to_test)} modèles prioritaires")
+        
+        results = []
+        for model in models_to_test:
+            try:
+                result = await self.validate_model(model)
+                results.append(result)
+            except Exception as e:
+                logger.error(f"❌ Erreur validation {model}: {e}")
+                error_result = LLMTestResult(model, self.base_url, error=str(e))
+                results.append(error_result)
+        
+        return results
+
+def select_best_model(results: List[LLMTestResult]) -> Optional[LLMTestResult]:
+    """Sélection du meilleur modèle selon critères SuperWhisper V6"""
+    
+    # Filtrer modèles fonctionnels
+    working_models = [r for r in results if r.available and r.success_rate >= 0.8]
+    
+    if not working_models:
+        return None
+    
+    # Critères de sélection (pondérés)
+    def model_score(result: LLMTestResult) -> float:
+        # Latence (50% du score) - objectif < 400ms
+        latency_score = max(0, (400 - result.latency_ms) / 400) * 5.0
+        
+        # Qualité (30% du score)
+        quality_score = (result.quality_score / 10.0) * 3.0
+        
+        # Fiabilité (20% du score)
+        reliability_score = result.success_rate * 2.0
+        
+        return latency_score + quality_score + reliability_score
+    
+    # Sélection meilleur score
+    best_model = max(working_models, key=model_score)
+    return best_model
+
+def generate_validation_report(results: List[LLMTestResult], best_model: Optional[LLMTestResult]) -> str:
+    """Génération rapport validation LLM"""
+    
+    report = "="*70 + "\n"
+    report += "🤖 RAPPORT VALIDATION LLM - SUPERWHISPER V6\n"
+    report += "="*70 + "\n"
+    
+    # Métriques globales
+    working_count = len([r for r in results if r.available])
+    total_count = len(results)
+    
+    report += f"📊 Modèles testés: {total_count}\n"
+    report += f"✅ Modèles fonctionnels: {working_count}\n"
+    
+    if best_model:
+        report += f"🏆 MODÈLE SÉLECTIONNÉ: {best_model.model_name}\n"
+        report += f"⚡ Latence moyenne: {best_model.latency_ms:.1f}ms\n"
+        report += f"🎯 Objectif < 400ms: {'✅ ATTEINT' if best_model.latency_ms < 400 else '❌ DÉPASSÉ'}\n"
+        report += f"🏅 Qualité: {best_model.quality_score:.1f}/10\n"
+        report += f"📈 Fiabilité: {best_model.success_rate*100:.1f}%\n"
+    else:
+        report += "❌ AUCUN MODÈLE FONCTIONNEL\n"
+    
+    report += "\n" + "📋 DÉTAIL MODÈLES:\n"
+    for result in results:
+        if result.available:
+            status = f"✅ {result.latency_ms:.1f}ms - Q:{result.quality_score:.1f}/10 - R:{result.success_rate*100:.0f}%"
+        else:
+            status = f"❌ {result.error or 'Non fonctionnel'}"
+        
+        report += f"   {result.model_name}: {status}\n"
+    
+    # Recommandations
+    report += "\n" + "🎯 RECOMMANDATIONS:\n"
+    if best_model and best_model.latency_ms < 400:
+        report += f"✅ Modèle {best_model.model_name} validé pour production\n"
+        report += f"✅ Latence {best_model.latency_ms:.1f}ms compatible objectif < 1.2s total\n"
+        report += "🚀 Prêt pour intégration pipeline complet\n"
+    elif best_model:
+        report += f"⚠️ Modèle {best_model.model_name} fonctionne mais latence élevée ({best_model.latency_ms:.1f}ms)\n"
+        report += "🔧 Optimisation nécessaire ou modèle plus petit requis\n"
+    else:
+        report += "❌ Aucun modèle utilisable - vérifier configuration Ollama\n"
+    
+    report += "="*70
+    return report
+
+async def main():
+    """Validation LLM principale SuperWhisper V6"""
+    
+    try:
+        validator = OllamaLLMValidator()
+        results = await validator.validate_all_models()
+        
+        if not results:
+            print("❌ Aucun résultat de validation")
+            return 1
+        
+        # Sélection meilleur modèle
+        best_model = select_best_model(results)
+        
+        # Génération rapport
+        report = generate_validation_report(results, best_model)
+        print(report)
+        
+        # Sauvegarde rapport
+        report_path = "docs/VALIDATION_LLM_REPORT.md"
+        with open(report_path, 'w', encoding='utf-8') as f:
+            f.write(f"# RAPPORT VALIDATION LLM - SUPERWHISPER V6\n\n")
+            f.write(f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write(f"```\n{report}\n```\n")
+        
+        print(f"\n📁 Rapport sauvegardé: {report_path}")
+        
+        # Validation humaine si modèle sélectionné
+        if best_model:
+            print(f"\n🤖 VALIDATION HUMAINE REQUISE:")
+            print(f"Modèle: {best_model.model_name}")
+            print(f"Exemple réponse: {best_model.response_text[:100]}...")
+            print(f"\n❓ Le modèle {best_model.model_name} vous semble-t-il approprié pour la conversation ?")
+            
+            # Retourner code succès si modèle < 400ms
+            return 0 if best_model.latency_ms < 400 else 1
+        else:
+            return 1
+            
+    except Exception as e:
+        logger.error(f"❌ Erreur validation: {e}")
+        return 1
+
+if __name__ == "__main__":
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code) 

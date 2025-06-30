@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""
+Test Pipeline Rapide SuperWhisper V6
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import asyncio
+import httpx
+import yaml
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+async def test_llm_ollama():
+    """Test rapide LLM Ollama"""
+    print("\n🧪 Test LLM Ollama...")
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Test santé
+            response = await client.get("http://localhost:11434/api/tags")
+            if response.status_code == 200:
+                print("✅ Ollama opérationnel")
+                
+                # Test génération rapide
+                payload = {
+                    "model": "nous-hermes-2-mistral-7b-dpo:latest",
+                    "messages": [{"role": "user", "content": "Dis juste 'Bonjour'"}],
+                    "stream": False,
+                    "options": {"num_predict": 10}
+                }
+                
+                response = await client.post("http://localhost:11434/api/chat", json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    print(f"✅ LLM génération: \"{data['message']['content'][:50]}...\"")
+                    return True
+                else:
+                    print(f"❌ Génération échouée: {response.status_code}")
+                    return False
+            else:
+                print(f"❌ Ollama santé échouée: {response.status_code}")
+                return False
+                
+    except Exception as e:
+        print(f"❌ Erreur LLM: {e}")
+        return False
+
+def test_tts_files():
+    """Test présence fichiers TTS validés"""
+    print("\n🔊 Test fichiers TTS validés...")
+    
+    files_to_check = [
+        "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx",
+        "D:/TTS_Voices/piper/fr_FR-siwis-medium.onnx.json"
+    ]
+    
+    all_ok = True
+    for file_path in files_to_check:
+        if Path(file_path).exists():
+            size_mb = Path(file_path).stat().st_size / (1024*1024)
+            print(f"✅ {Path(file_path).name} ({size_mb:.1f}MB)")
+        else:
+            print(f"❌ MANQUANT: {file_path}")
+            all_ok = False
+    
+    if all_ok:
+        print("✅ TTS fr_FR-siwis-medium.onnx validé (14/06/2025)")
+    
+    return all_ok
+
+def test_config_pipeline():
+    """Test configuration pipeline.yaml"""
+    print("\n⚙️ Test configuration...")
+    
+    try:
+        config_path = Path("PIPELINE/config/pipeline.yaml")
+        if not config_path.exists():
+            print("❌ pipeline.yaml manquant")
+            return False
+            
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        
+        # Vérifications critiques
+        checks = [
+            (config.get('llm', {}).get('endpoint') == "http://localhost:11434", "LLM endpoint Ollama"),
+            (config.get('llm', {}).get('model') == "nous-hermes-2-mistral-7b-dpo:latest", "LLM modèle Hermes"),
+            (config.get('tts', {}).get('primary_backend') == "unified", "TTS backend UnifiedTTSManager"),
+            (config.get('pipeline', {}).get('llm_endpoint') == "http://localhost:11434/api/chat", "Pipeline LLM endpoint"),
+        ]
+        
+        all_ok = True
+        for check, description in checks:
+            if check:
+                print(f"✅ {description}")
+            else:
+                print(f"❌ {description}")
+                all_ok = False
+        
+        return all_ok
+        
+    except Exception as e:
+        print(f"❌ Erreur config: {e}")
+        return False
+
+async def main():
+    """Test complet rapide"""
+    print("🚀 TEST PIPELINE RAPIDE SUPERWHISPER V6")
+    print("=" * 50)
+    
+    # Tests composants
+    tests = [
+        ("Configuration", test_config_pipeline()),
+        ("TTS Fichiers", test_tts_files()),
+        ("LLM Ollama", await test_llm_ollama()),
+    ]
+    
+    # Rapport
+    print("\n" + "=" * 50)
+    print("📊 RAPPORT TESTS RAPIDES")
+    print("=" * 50)
+    
+    for test_name, result in tests:
+        status = "✅ OK" if result else "❌ ÉCHEC"
+        print(f"{test_name:15} {status}")
+    
+    all_passed = all(result for _, result in tests)
+    
+    if all_passed:
+        print(f"\n🎊 TOUS LES TESTS RÉUSSIS !")
+        print("✅ Pipeline prêt pour validation complète")
+    else:
+        print(f"\n⚠️ PROBLÈMES DÉTECTÉS")
+        print("❌ Corriger avant validation complète")
+    
+    return 0 if all_passed else 1
+
+if __name__ == "__main__":
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code) 

@@ -2,23 +2,51 @@
 """
 Test de la voix de l'assistant LUXA - SuperWhisper V6
 🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 """
 
 import os
 import sys
+import pathlib
 
 # =============================================================================
-# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
 # =============================================================================
-# RTX 5060 (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
-os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
 
-print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
-print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
 
-# Ajouter le répertoire courant au PYTHONPATH
+# Maintenant imports normaux...
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import time

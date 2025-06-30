@@ -1,0 +1,496 @@
+#!/usr/bin/env python3
+"""
+Validation Humaine SuperWhisper V6 - Tâche 4 CRITIQUE
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Tests conversation voix-à-voix en conditions réelles
+✔ Conversation fluide sans interruptions
+✔ Qualité audio TTS acceptable
+✔ Latence perçue < 1.2s
+✔ Pipeline robuste en conditions réelles
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import asyncio
+import time
+import signal
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+import logging
+from datetime import datetime
+import json
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 Validation Humaine: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Ajouter le répertoire parent au path pour imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# =============================================================================
+# IMPORTS ET CONFIGURATION
+# =============================================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s – %(levelname)s – %(name)s – %(message)s",
+)
+LOGGER = logging.getLogger("ValidationHumaine")
+
+# =============================================================================
+# CLASSE VALIDATION HUMAINE
+# =============================================================================
+
+class ValidationHumaine:
+    """Tests conversation voix-à-voix en conditions réelles"""
+    
+    def __init__(self):
+        self.config_path = "PIPELINE/config/pipeline.yaml"  # Utiliser config par défaut d'abord
+        self.results_path = "PIPELINE/reports/validation_humaine_results.json"
+        self.orchestrator = None
+        self.conversation_turns = []
+        self.test_phrases = [
+            "Bonjour, comment ça va aujourd'hui ?",
+            "Pouvez-vous me parler de la météo ?", 
+            "Quel est votre plat préféré ?",
+            "Racontez-moi une histoire courte",
+            "Merci pour cette conversation"
+        ]
+        self.validation_results = {
+            "timestamp": datetime.now().isoformat(),
+            "tests_performed": [],
+            "latency_measurements": [],
+            "quality_evaluations": [],
+            "success_criteria": {
+                "conversation_fluide": False,
+                "qualite_audio_acceptable": False,
+                "latence_sous_1_2s": False,
+                "pipeline_robuste": False
+            },
+            "overall_success": False
+        }
+    
+    async def run_validation(self):
+        """Exécuter validation humaine complète"""
+        print("\n" + "="*70)
+        print("🎯 VALIDATION HUMAINE SUPERWHISPER V6 - TÂCHE 4 CRITIQUE")
+        print("🚨 TESTS CONVERSATION VOIX-À-VOIX EN CONDITIONS RÉELLES")
+        print("="*70)
+        
+        try:
+            # Validation préliminaire
+            await self._validate_environment()
+            
+            # Initialisation pipeline
+            await self._initialize_pipeline()
+            
+            # Tests interactifs
+            await self._run_interactive_tests()
+            
+            # Évaluation finale
+            self._evaluate_results()
+            
+            # Sauvegarde résultats
+            self._save_results()
+            
+        except KeyboardInterrupt:
+            print("\n🛑 Validation interrompue par l'utilisateur")
+        except Exception as e:
+            LOGGER.error(f"❌ Erreur validation: {e}")
+            print(f"❌ Erreur: {e}")
+            self.validation_results["error"] = str(e)
+        finally:
+            if self.orchestrator:
+                await self._cleanup_pipeline()
+    
+    async def _validate_environment(self):
+        """Validation environnement avant tests"""
+        print("\n🔍 VALIDATION ENVIRONNEMENT PRÉLIMINAIRE")
+        print("-" * 50)
+        
+        # Test GPU RTX 3090
+        try:
+            from PIPELINE.scripts.assert_gpu_env import main as validate_gpu
+            validate_gpu()
+            print("✅ GPU RTX 3090 validée")
+        except Exception as e:
+            raise RuntimeError(f"❌ GPU validation failed: {e}")
+        
+        # Test audio devices
+        try:
+            print("🔍 Validation devices audio...")
+            import sounddevice as sd
+            devices = sd.query_devices()
+            print(f"✅ {len(devices)} devices audio détectés")
+        except Exception as e:
+            print(f"⚠️ Avertissement audio: {e}")
+        
+        # Vérification configuration
+        config_path = Path(self.config_path)
+        if not config_path.exists():
+            print(f"⚠️ Configuration non trouvée: {config_path}")
+            print(f"📋 Utilisation configuration par défaut vide")
+        else:
+            print(f"✅ Configuration trouvée: {config_path}")
+    
+    async def _initialize_pipeline(self):
+        """Initialisation pipeline avec code obligatoire"""
+        print("\n🚀 INITIALISATION PIPELINE - CODE OBLIGATOIRE")
+        print("-" * 50)
+        
+        try:
+            import yaml
+            
+            # Charger configuration
+            cfg = {}
+            if Path(self.config_path).exists():
+                with open(self.config_path, 'r', encoding='utf-8') as f:
+                    cfg = yaml.safe_load(f)
+                print(f"📁 Configuration chargée: {self.config_path}")
+            else:
+                print("📋 Utilisation configuration par défaut vide")
+            
+            # Import components
+            from STT.unified_stt_manager_optimized import OptimizedUnifiedSTTManager
+            from TTS.tts_manager import UnifiedTTSManager
+            from PIPELINE.pipeline_orchestrator import PipelineOrchestrator
+            
+            # Initialiser composants avec gestion d'erreur
+            print("🎯 Initialisation STT...")
+            try:
+                stt = OptimizedUnifiedSTTManager(cfg.get("stt", {}))
+            except Exception as e:
+                print(f"⚠️ Erreur STT: {e}")
+                print("📋 Utilisation configuration STT minimale")
+                stt = OptimizedUnifiedSTTManager({})
+            
+            print("🔊 Initialisation TTS...")
+            try:
+                tts = UnifiedTTSManager(cfg.get("tts", {}))
+            except Exception as e:
+                print(f"⚠️ Erreur TTS: {e}")
+                print("📋 Utilisation configuration TTS minimale")
+                tts = UnifiedTTSManager({})
+            
+            print("🎯 Initialisation Orchestrator...")
+            self.orchestrator = PipelineOrchestrator(
+                stt,
+                tts,
+                llm_endpoint=cfg.get("pipeline", {}).get("llm_endpoint", "http://localhost:8000"),
+                metrics_enabled=True,  # Activer métriques pour validation
+            )
+            
+            print("🚀 Démarrage pipeline...")
+            await self.orchestrator.start()
+            
+            print("✅ Pipeline initialisé avec succès")
+            
+        except Exception as e:
+            raise RuntimeError(f"❌ Échec initialisation pipeline: {e}")
+    
+    async def _run_interactive_tests(self):
+        """Tests interactifs conversation voix-à-voix"""
+        print("\n🎤 TESTS CONVERSATION VOIX-À-VOIX INTERACTIFS")
+        print("="*60)
+        print("📋 Instructions:")
+        print("  • Parlez clairement dans votre microphone")
+        print("  • Écoutez les réponses audio")
+        print("  • Évaluez la qualité de chaque interaction")
+        print("  • Appuyez sur Ctrl+C pour arrêter")
+        print("\n🎯 Objectifs de validation:")
+        print("  • Latence perçue < 1.2s")
+        print("  • Conversation fluide sans interruptions")
+        print("  • Qualité audio TTS acceptable")
+        print("  • Pipeline robuste en conditions réelles")
+        
+        # Test 1: Conversation libre
+        await self._test_conversation_libre()
+        
+        # Test 2: Phrases prédéfinies (optionnel)
+        if self._ask_user_continue("Voulez-vous tester avec des phrases prédéfinies ?"):
+            await self._test_phrases_predefinies()
+        
+        # Test 3: Test stress (optionnel)
+        if self._ask_user_continue("Voulez-vous effectuer un test de robustesse ?"):
+            await self._test_robustesse()
+    
+    async def _test_conversation_libre(self):
+        """Test conversation libre avec évaluation humaine"""
+        print("\n🗣️ TEST 1: CONVERSATION LIBRE")
+        print("-" * 40)
+        print("🎤 Commencez à parler naturellement...")
+        print("⏱️ Observez la latence de chaque réponse")
+        print("🔊 Évaluez la qualité audio des réponses")
+        
+        try:
+            # Laisser le pipeline tourner pendant 5 minutes max
+            start_time = time.time()
+            conversation_duration = 0
+            
+            while time.time() - start_time < 300:  # 5 minutes max
+                await asyncio.sleep(1)
+                conversation_duration = time.time() - start_time
+                
+                # Collecter métriques périodiquement
+                if int(conversation_duration) % 10 == 0:  # Toutes les 10s
+                    metrics = self.orchestrator.get_metrics()
+                    if metrics.total_requests > 0:
+                        avg_latency = metrics.total_latency_ms / metrics.total_requests
+                        print(f"📊 Latence moyenne: {avg_latency:.1f}ms | "
+                              f"Requêtes: {metrics.total_requests} | "
+                              f"Succès: {metrics.successful_requests}")
+                        
+                        self.validation_results["latency_measurements"].append({
+                            "timestamp": datetime.now().isoformat(),
+                            "average_latency_ms": avg_latency,
+                            "total_requests": metrics.total_requests,
+                            "success_rate": metrics.successful_requests / metrics.total_requests if metrics.total_requests > 0 else 0
+                        })
+                
+        except KeyboardInterrupt:
+            print("\n🛑 Test conversation libre terminé")
+        
+        # Évaluation utilisateur
+        self._evaluate_conversation_libre()
+    
+    def _evaluate_conversation_libre(self):
+        """Évaluation humaine de la conversation libre"""
+        print("\n📝 ÉVALUATION CONVERSATION LIBRE")
+        print("-" * 40)
+        
+        # Latence perçue
+        latence_ok = self._ask_user_yes_no("La latence était-elle acceptable (< 1.2s perçue) ?")
+        self.validation_results["success_criteria"]["latence_sous_1_2s"] = latence_ok
+        
+        # Fluidité conversation
+        fluidite_ok = self._ask_user_yes_no("La conversation était-elle fluide sans interruptions ?")
+        self.validation_results["success_criteria"]["conversation_fluide"] = fluidite_ok
+        
+        # Qualité audio
+        qualite_ok = self._ask_user_yes_no("La qualité audio des réponses était-elle acceptable ?")
+        self.validation_results["success_criteria"]["qualite_audio_acceptable"] = qualite_ok
+        
+        # Robustesse
+        robustesse_ok = self._ask_user_yes_no("Le pipeline a-t-il fonctionné de manière robuste ?")
+        self.validation_results["success_criteria"]["pipeline_robuste"] = robustesse_ok
+        
+        # Commentaires
+        commentaires = input("💬 Commentaires additionnels (optionnel): ").strip()
+        
+        self.validation_results["tests_performed"].append({
+            "test_name": "conversation_libre",
+            "timestamp": datetime.now().isoformat(),
+            "latence_acceptable": latence_ok,
+            "conversation_fluide": fluidite_ok,
+            "qualite_audio": qualite_ok,
+            "pipeline_robuste": robustesse_ok,
+            "commentaires": commentaires
+        })
+    
+    async def _test_phrases_predefinies(self):
+        """Test avec phrases prédéfinies pour consistance"""
+        print("\n📝 TEST 2: PHRASES PRÉDÉFINIES")
+        print("-" * 40)
+        print("🎯 Lisez chaque phrase clairement et évaluez la réponse")
+        
+        for i, phrase in enumerate(self.test_phrases, 1):
+            print(f"\n📢 Phrase {i}/{len(self.test_phrases)}: '{phrase}'")
+            input("🎤 Appuyez sur Entrée quand vous êtes prêt à parler...")
+            
+            start_time = time.time()
+            
+            # Attendre un peu pour laisser le temps de parler et avoir une réponse
+            await asyncio.sleep(10)
+            
+            elapsed = time.time() - start_time
+            print(f"⏱️ Temps écoulé: {elapsed:.1f}s")
+            
+            # Évaluation de cette phrase
+            reponse_ok = self._ask_user_yes_no(f"La réponse à '{phrase}' était-elle satisfaisante ?")
+            
+            self.validation_results["quality_evaluations"].append({
+                "phrase": phrase,
+                "timestamp": datetime.now().isoformat(),
+                "reponse_satisfaisante": reponse_ok,
+                "temps_ecoule_s": elapsed
+            })
+    
+    async def _test_robustesse(self):
+        """Test robustesse avec conditions difficiles"""
+        print("\n🔧 TEST 3: ROBUSTESSE PIPELINE")
+        print("-" * 40)
+        print("🎯 Test dans des conditions plus difficiles:")
+        print("  • Parlez plus vite ou plus lentement")
+        print("  • Variez le volume de votre voix")
+        print("  • Testez avec du bruit de fond")
+        
+        input("🎤 Appuyez sur Entrée pour commencer le test de robustesse...")
+        
+        try:
+            # Test pendant 2 minutes
+            await asyncio.sleep(120)
+        except KeyboardInterrupt:
+            print("\n🛑 Test robustesse terminé")
+        
+        robustesse_ok = self._ask_user_yes_no("Le pipeline a-t-il bien géré les conditions difficiles ?")
+        
+        self.validation_results["tests_performed"].append({
+            "test_name": "robustesse",
+            "timestamp": datetime.now().isoformat(),
+            "conditions_difficiles_ok": robustesse_ok
+        })
+    
+    def _evaluate_results(self):
+        """Évaluation finale des résultats"""
+        print("\n📊 ÉVALUATION FINALE VALIDATION HUMAINE")
+        print("="*50)
+        
+        criteria = self.validation_results["success_criteria"]
+        
+        print("🎯 Critères de succès:")
+        print(f"  ✅ Conversation fluide: {'✅ OUI' if criteria['conversation_fluide'] else '❌ NON'}")
+        print(f"  🔊 Qualité audio TTS: {'✅ OUI' if criteria['qualite_audio_acceptable'] else '❌ NON'}")
+        print(f"  ⏱️ Latence < 1.2s: {'✅ OUI' if criteria['latence_sous_1_2s'] else '❌ NON'}")
+        print(f"  🔧 Pipeline robuste: {'✅ OUI' if criteria['pipeline_robuste'] else '❌ NON'}")
+        
+        # Déterminer succès global
+        all_criteria_met = all(criteria.values())
+        self.validation_results["overall_success"] = all_criteria_met
+        
+        print(f"\n🎊 RÉSULTAT GLOBAL: {'✅ SUCCÈS' if all_criteria_met else '❌ ÉCHEC'}")
+        
+        if all_criteria_met:
+            print("🎉 SuperWhisper V6 est prêt pour la production !")
+        else:
+            print("⚠️ Des améliorations sont nécessaires avant production")
+    
+    def _save_results(self):
+        """Sauvegarde résultats de validation"""
+        try:
+            # Ajouter métriques finales
+            if self.orchestrator:
+                final_metrics = self.orchestrator.get_metrics()
+                self.validation_results["final_metrics"] = {
+                    "total_requests": final_metrics.total_requests,
+                    "successful_requests": final_metrics.successful_requests,
+                    "average_latency_ms": final_metrics.total_latency_ms / max(final_metrics.total_requests, 1),
+                    "stt_latency_ms": final_metrics.stt_latency_ms,
+                    "llm_latency_ms": final_metrics.llm_latency_ms,
+                    "tts_latency_ms": final_metrics.tts_latency_ms
+                }
+            
+            # Créer répertoire si nécessaire
+            Path(self.results_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            # Sauvegarder résultats
+            with open(self.results_path, 'w', encoding='utf-8') as f:
+                json.dump(self.validation_results, f, indent=2, ensure_ascii=False)
+            
+            print(f"\n💾 Résultats sauvegardés: {self.results_path}")
+            
+        except Exception as e:
+            LOGGER.error(f"Erreur sauvegarde résultats: {e}")
+    
+    async def _cleanup_pipeline(self):
+        """Nettoyage pipeline"""
+        try:
+            if hasattr(self.orchestrator, 'stop'):
+                await self.orchestrator.stop()
+            print("🧹 Pipeline nettoyé")
+        except Exception as e:
+            LOGGER.error(f"Erreur nettoyage: {e}")
+    
+    def _ask_user_yes_no(self, question: str) -> bool:
+        """Demander oui/non à l'utilisateur"""
+        while True:
+            response = input(f"❓ {question} (o/n): ").strip().lower()
+            if response in ['o', 'oui', 'y', 'yes']:
+                return True
+            elif response in ['n', 'non', 'no']:
+                return False
+            else:
+                print("   Répondez par 'o' (oui) ou 'n' (non)")
+    
+    def _ask_user_continue(self, question: str) -> bool:
+        """Demander si continuer"""
+        return self._ask_user_yes_no(question)
+
+# =============================================================================
+# MAIN FONCTION
+# =============================================================================
+
+async def main():
+    """Point d'entrée principal"""
+    print("🚀 DÉMARRAGE VALIDATION HUMAINE SUPERWHISPER V6")
+    
+    validator = ValidationHumaine()
+    await validator.run_validation()
+    
+    print("\n👋 Validation humaine terminée")
+
+def signal_handler(signum, frame):
+    """Gestionnaire signal pour arrêt propre"""
+    print(f"\n🛑 Signal {signum} reçu - Arrêt en cours...")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    # Gestionnaire signaux
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    # Lancer validation
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n🛑 Validation interrompue")
+    except Exception as e:
+        print(f"❌ Erreur fatale: {e}")
+        sys.exit(1) 

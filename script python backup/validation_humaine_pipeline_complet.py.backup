@@ -1,0 +1,316 @@
+#!/usr/bin/env python3
+"""
+Validation Humaine Pipeline Complet Voix-à-Voix
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+PIPELINE COMPLET : Microphone → STT → LLM → TTS → Audio
+Test conversation réelle avec validation humaine obligatoire
+"""
+
+import os
+import sys
+import asyncio
+import time
+import json
+from pathlib import Path
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Imports
+sys.path.insert(0, '.')
+
+def validate_rtx3090_configuration():
+    """Validation obligatoire de la configuration RTX 3090"""
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+        
+        cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+        if cuda_devices != '1':
+            raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
+        
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+        if gpu_memory < 20:  # RTX 3090 = ~24GB
+            raise RuntimeError(f"🚫 GPU ({gpu_memory:.1f}GB) trop petite - RTX 3090 requise")
+        
+        print(f"✅ RTX 3090 validée: {torch.cuda.get_device_name(0)} ({gpu_memory:.1f}GB)")
+        return True
+    except Exception as e:
+        print(f"⚠️ Validation GPU échouée: {e}")
+        return False
+
+async def test_pipeline_voix_a_voix_complet():
+    """Test pipeline complet voix-à-voix avec validation humaine"""
+    print("\n🎤 VALIDATION HUMAINE PIPELINE COMPLET VOIX-À-VOIX")
+    print("🔄 Microphone → STT → LLM → TTS → Audio")
+    print("=" * 70)
+    
+    # Validation GPU obligatoire
+    if not validate_rtx3090_configuration():
+        print("🚫 ÉCHEC: Configuration GPU RTX 3090 invalide")
+        return False
+    
+    try:
+        # Imports composants pipeline existants
+        from STT.unified_stt_manager import UnifiedSTTManager
+        from LLM.llm_manager_enhanced import EnhancedLLMManager  # Module existant
+        from TTS.tts_manager import UnifiedTTSManager
+        from PIPELINE.audio_output_manager import AudioOutputManager  # Module local
+        
+        # Import microphone depuis STT (streaming intégré)
+        from STT.streaming_microphone_manager import StreamingMicrophoneManager
+        
+        print("✅ Imports composants pipeline réussis")
+        
+        # Configuration composants
+        import yaml
+        
+        # Configuration STT
+        stt_config_path = Path("config/stt.yaml")
+        if stt_config_path.exists():
+            with open(stt_config_path, 'r', encoding='utf-8') as f:
+                stt_config = yaml.safe_load(f)
+        else:
+            stt_config = {}
+        
+        # Configuration TTS (EXISTANT INCHANGÉ)
+        tts_config_path = Path("config/tts.yaml")
+        if tts_config_path.exists():
+            with open(tts_config_path, 'r', encoding='utf-8') as f:
+                tts_config = yaml.safe_load(f)
+        else:
+            tts_config = {}
+        
+        # Configuration LLM
+        llm_config = {
+            "endpoints": [
+                {"url": "http://localhost:1234/v1", "name": "LM Studio"},
+                {"url": "http://localhost:11434/api", "name": "Ollama"}
+            ],
+            "fallback_responses": [
+                "Bonjour ! Je suis SuperWhisper V6, votre assistant vocal.",
+                "Je vous entends parfaitement. Comment puis-je vous aider ?",
+                "Excellent ! Le pipeline voix-à-voix fonctionne correctement."
+            ]
+        }
+        
+        print("🔧 Initialisation composants pipeline...")
+        
+        # Initialisation composants
+        microphone_manager = StreamingMicrophoneManager()
+        stt_manager = UnifiedSTTManager(stt_config)
+        llm_manager = EnhancedLLMManager(llm_config)  # Module existant
+        tts_manager = UnifiedTTSManager(tts_config)  # TTS EXISTANT INCHANGÉ
+        audio_manager = AudioOutputManager()
+        
+        print("✅ Tous les composants initialisés")
+        
+        # ÉTAPE 1: Enregistrement microphone
+        print("\n🎤 ÉTAPE 1: ENREGISTREMENT MICROPHONE")
+        print("🔴 Parlez maintenant pendant 10 secondes...")
+        print("💬 Dites quelque chose comme: 'Bonjour SuperWhisper, comment allez-vous ?'")
+        
+        start_total = time.time()
+        start_mic = time.time()
+        
+        # Enregistrement 10 secondes
+        audio_data = await microphone_manager.record_audio(duration_seconds=10)
+        
+        end_mic = time.time()
+        mic_latency = (end_mic - start_mic) * 1000
+        
+        if not audio_data:
+            print("🚫 ÉCHEC: Aucun audio enregistré")
+            return False
+        
+        print(f"✅ Audio enregistré: {len(audio_data):,} bytes")
+        print(f"⚡ Latence microphone: {mic_latency:.1f}ms")
+        
+        # ÉTAPE 2: Transcription STT
+        print("\n🎯 ÉTAPE 2: TRANSCRIPTION STT")
+        start_stt = time.time()
+        
+        stt_result = await stt_manager.transcribe_audio(audio_data)
+        
+        end_stt = time.time()
+        stt_latency = (end_stt - start_stt) * 1000
+        
+        if not stt_result or not stt_result.text:
+            print("🚫 ÉCHEC: Transcription STT échouée")
+            return False
+        
+        transcribed_text = stt_result.text.strip()
+        print(f"✅ Transcription: '{transcribed_text}'")
+        print(f"⚡ Latence STT: {stt_latency:.1f}ms")
+        
+        # ÉTAPE 3: Génération réponse LLM
+        print("\n🤖 ÉTAPE 3: GÉNÉRATION RÉPONSE LLM")
+        start_llm = time.time()
+        
+        prompt = f"Répondez brièvement et naturellement à: {transcribed_text}"
+        llm_response = await llm_manager.generate_response(prompt)
+        
+        end_llm = time.time()
+        llm_latency = (end_llm - start_llm) * 1000
+        
+        if not llm_response:
+            print("🚫 ÉCHEC: Génération LLM échouée")
+            return False
+        
+        print(f"✅ Réponse LLM: '{llm_response}'")
+        print(f"⚡ Latence LLM: {llm_latency:.1f}ms")
+        
+        # ÉTAPE 4: Synthèse TTS
+        print("\n🔊 ÉTAPE 4: SYNTHÈSE TTS (EXISTANT INCHANGÉ)")
+        start_tts = time.time()
+        
+        tts_result = await tts_manager.synthesize(llm_response)
+        
+        end_tts = time.time()
+        tts_latency = (end_tts - start_tts) * 1000
+        
+        if not tts_result or not tts_result.success or not tts_result.audio_data:
+            print("🚫 ÉCHEC: Synthèse TTS échouée")
+            if tts_result:
+                print(f"❌ Erreur TTS: {tts_result.error}")
+            return False
+        
+        print(f"✅ TTS réussi: {tts_result.backend_used}")
+        print(f"🔊 Audio généré: {len(tts_result.audio_data):,} bytes")
+        print(f"⚡ Latence TTS: {tts_latency:.1f}ms")
+        
+        # ÉTAPE 5: Lecture audio
+        print("\n🔈 ÉTAPE 5: LECTURE AUDIO RÉPONSE")
+        start_audio = time.time()
+        
+        # Sauvegarde audio réponse
+        output_file = Path("PIPELINE/test_output/pipeline_complet_reponse.wav")
+        output_file.parent.mkdir(exist_ok=True)
+        
+        with open(output_file, 'wb') as f:
+            f.write(tts_result.audio_data)
+        
+        # Lecture audio
+        await audio_manager.play_audio(tts_result.audio_data)
+        
+        end_audio = time.time()
+        audio_latency = (end_audio - start_audio) * 1000
+        
+        end_total = time.time()
+        total_latency = (end_total - start_total) * 1000
+        
+        print(f"✅ Audio lu avec succès")
+        print(f"⚡ Latence audio: {audio_latency:.1f}ms")
+        print(f"💾 Fichier sauvegardé: {output_file}")
+        
+        # MÉTRIQUES FINALES
+        print("\n" + "="*70)
+        print("📊 MÉTRIQUES PIPELINE COMPLET")
+        print("="*70)
+        print(f"🎤 Microphone: {mic_latency:.1f}ms")
+        print(f"🎯 STT: {stt_latency:.1f}ms")
+        print(f"🤖 LLM: {llm_latency:.1f}ms")
+        print(f"🔊 TTS: {tts_latency:.1f}ms")
+        print(f"🔈 Audio: {audio_latency:.1f}ms")
+        print(f"⚡ TOTAL: {total_latency:.1f}ms")
+        
+        # Objectif < 1200ms
+        objectif_ms = 1200
+        if total_latency < objectif_ms:
+            print(f"🎯 OBJECTIF ATTEINT: {total_latency:.1f}ms < {objectif_ms}ms ✅")
+        else:
+            print(f"⚠️ OBJECTIF MANQUÉ: {total_latency:.1f}ms > {objectif_ms}ms")
+        
+        # VALIDATION HUMAINE OBLIGATOIRE
+        print("\n" + "="*70)
+        print("🎧 VALIDATION HUMAINE PIPELINE COMPLET")
+        print("="*70)
+        print("🔄 PIPELINE TESTÉ:")
+        print(f"   1. 🎤 Votre parole → Transcription: '{transcribed_text}'")
+        print(f"   2. 🤖 LLM → Réponse: '{llm_response}'")
+        print(f"   3. 🔊 TTS → Audio lu automatiquement")
+        print()
+        print("❓ QUESTIONS VALIDATION:")
+        print("   - Avez-vous entendu votre réponse vocale ?")
+        print("   - La conversation voix-à-voix fonctionne-t-elle ?")
+        print("   - Le pipeline complet est-il opérationnel ?")
+        
+        response = input("\n✅ Validation pipeline complet (o/n): ").strip().lower()
+        
+        if response in ['o', 'oui', 'y', 'yes']:
+            print("🎊 VALIDATION HUMAINE PIPELINE COMPLET RÉUSSIE!")
+            
+            # Métriques finales
+            metrics = {
+                "validation_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "pipeline_test": "COMPLETE_SUCCESS",
+                "transcribed_text": transcribed_text,
+                "llm_response": llm_response,
+                "backend_used": tts_result.backend_used,
+                "latencies": {
+                    "microphone_ms": mic_latency,
+                    "stt_ms": stt_latency,
+                    "llm_ms": llm_latency,
+                    "tts_ms": tts_latency,
+                    "audio_ms": audio_latency,
+                    "total_ms": total_latency
+                },
+                "objective_1200ms": total_latency < 1200,
+                "audio_sizes": {
+                    "input_bytes": len(audio_data),
+                    "output_bytes": len(tts_result.audio_data)
+                },
+                "gpu_config": "RTX 3090 (CUDA:1)",
+                "human_validation": "SUCCESS",
+                "pipeline_complete": True
+            }
+            
+            metrics_file = Path("PIPELINE/reports/validation_pipeline_complet.json")
+            metrics_file.parent.mkdir(exist_ok=True)
+            
+            with open(metrics_file, 'w', encoding='utf-8') as f:
+                json.dump(metrics, f, indent=2, ensure_ascii=False)
+            
+            print(f"📊 Métriques complètes sauvegardées: {metrics_file}")
+            return True
+        else:
+            print("❌ VALIDATION HUMAINE PIPELINE COMPLET ÉCHOUÉE")
+            return False
+            
+    except Exception as e:
+        print(f"💥 ERREUR PIPELINE COMPLET: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+async def main():
+    """Point d'entrée principal"""
+    print("🎯 VALIDATION HUMAINE PIPELINE COMPLET VOIX-À-VOIX")
+    print("🚨 RTX 3090 (CUDA:1) OBLIGATOIRE")
+    print("🔄 Test conversation réelle: Microphone → STT → LLM → TTS → Audio")
+    print()
+    
+    success = await test_pipeline_voix_a_voix_complet()
+    
+    if success:
+        print("\n🎊 SUCCÈS COMPLET - PIPELINE VOIX-À-VOIX VALIDÉ!")
+        print("✅ Conversation réelle fonctionnelle")
+        print("✅ Pipeline complet opérationnel")
+        print("✅ Tâche 4 Validation Humaine TERMINÉE")
+    else:
+        print("\n❌ ÉCHEC - Pipeline voix-à-voix non validé")
+        print("🔧 Problème dans le pipeline complet")
+    
+    return success
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

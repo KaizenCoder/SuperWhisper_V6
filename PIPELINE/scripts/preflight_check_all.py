@@ -1,0 +1,313 @@
+#!/usr/bin/env python3
+"""
+🚀 PRÉ-FLIGHT CHECK PIPELINE - ORCHESTRATEUR COMPLET
+===================================================
+Script orchestrateur principal des validations pré-flight pour pipeline SuperWhisper V6
+
+VALIDATIONS COMPLÈTES :
+1. 🎮 GPU RTX 3090 exclusive CUDA_VISIBLE_DEVICES='1'
+2. 🎤 Audio devices Windows (permissions + énumération)
+3. 🤖 Serveur LLM local (health-check + inférence)
+4. 📋 Résumé final et autorisation pipeline
+
+Usage: python PIPELINE/scripts/preflight_check_all.py
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import subprocess
+import logging
+import time
+from pathlib import Path
+from typing import Dict, Any, List
+
+# Configuration RTX 3090 obligatoire AVANT import torch
+os.environ.setdefault('CUDA_VISIBLE_DEVICES', '1')        # RTX 3090 Bus PCI 1
+os.environ.setdefault('CUDA_DEVICE_ORDER', 'PCI_BUS_ID')  # Ordre physique stable
+os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'max_split_size_mb:1024')
+
+# Configuration logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("preflight_orchestrator")
+
+# Configuration checks
+PREFLIGHT_CHECKS = [
+    {
+        'name': 'GPU RTX 3090 Validation',
+        'script': 'assert_gpu_env.py',
+        'description': 'Validation GPU RTX 3090 exclusive CUDA_VISIBLE_DEVICES=1',
+        'critical': True,
+        'timeout': 30
+    },
+    {
+        'name': 'Audio Devices Validation',
+        'script': 'validate_audio_devices.py', 
+        'description': 'Validation permissions audio Windows + énumération devices',
+        'critical': True,
+        'timeout': 45
+    },
+    {
+        'name': 'LLM Server Health-Check',
+        'script': 'start_llm.py',
+        'description': 'Health-check serveur LLM local + test inférence',
+        'critical': True,
+        'timeout': 60
+    }
+]
+
+def run_preflight_check(check_config: Dict[str, Any], scripts_dir: Path) -> Dict[str, Any]:
+    """
+    Exécuter un check pré-flight individuel
+    
+    Args:
+        check_config: Configuration du check à exécuter
+        scripts_dir: Répertoire contenant les scripts
+        
+    Returns:
+        Dict avec résultats d'exécution
+    """
+    result = {
+        'name': check_config['name'],
+        'success': False,
+        'exit_code': -1,
+        'stdout': '',
+        'stderr': '',
+        'duration_seconds': 0,
+        'error': None
+    }
+    
+    try:
+        script_path = scripts_dir / check_config['script']
+        
+        if not script_path.exists():
+            raise FileNotFoundError(f"Script non trouvé: {script_path}")
+        
+        logger.info(f"🔍 Exécution {check_config['name']}...")
+        logger.info(f"   📄 Script: {script_path}")
+        logger.info(f"   📝 Description: {check_config['description']}")
+        
+        start_time = time.time()
+        
+        # Exécution avec timeout
+        process = subprocess.run(
+            [sys.executable, str(script_path)],
+            capture_output=True,
+            text=True,
+            timeout=check_config['timeout'],
+            cwd=scripts_dir.parent.parent  # Racine du projet
+        )
+        
+        duration = time.time() - start_time
+        result['duration_seconds'] = round(duration, 2)
+        result['exit_code'] = process.returncode
+        result['stdout'] = process.stdout
+        result['stderr'] = process.stderr
+        
+        if process.returncode == 0:
+            result['success'] = True
+            logger.info(f"✅ {check_config['name']} RÉUSSI ({duration:.1f}s)")
+        else:
+            logger.error(f"❌ {check_config['name']} ÉCHOUÉ (code {process.returncode})")
+            if process.stderr:
+                logger.error(f"   Erreur: {process.stderr.strip()}")
+                
+    except subprocess.TimeoutExpired:
+        result['error'] = f"Timeout après {check_config['timeout']}s"
+        logger.error(f"⏱️ {check_config['name']}: {result['error']}")
+        
+    except FileNotFoundError as e:
+        result['error'] = str(e)
+        logger.error(f"📄 {check_config['name']}: {result['error']}")
+        
+    except Exception as e:
+        result['error'] = str(e)
+        logger.error(f"💥 {check_config['name']}: {result['error']}")
+    
+    return result
+
+def generate_preflight_report(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Générer rapport consolidé des pré-flight checks
+    
+    Args:
+        results: Liste des résultats de checks
+        
+    Returns:
+        Dict avec rapport consolidé
+    """
+    report = {
+        'total_checks': len(results),
+        'successful_checks': 0,
+        'failed_checks': 0,
+        'critical_failures': 0,
+        'total_duration': 0,
+        'pipeline_authorized': False,
+        'detailed_results': results,
+        'summary': [],
+        'recommendations': []
+    }
+    
+    # Analyse des résultats
+    for i, result in enumerate(results):
+        check_config = PREFLIGHT_CHECKS[i]
+        report['total_duration'] += result['duration_seconds']
+        
+        if result['success']:
+            report['successful_checks'] += 1
+            report['summary'].append(f"✅ {result['name']}: OK ({result['duration_seconds']:.1f}s)")
+        else:
+            report['failed_checks'] += 1
+            
+            if check_config['critical']:
+                report['critical_failures'] += 1
+            
+            error_detail = result['error'] or f"Exit code {result['exit_code']}"
+            report['summary'].append(f"❌ {result['name']}: ÉCHEC - {error_detail}")
+            
+            # Recommandations spécifiques
+            if 'GPU' in result['name']:
+                report['recommendations'].append("🎮 Vérifier configuration dual-GPU RTX 3090")
+                report['recommendations'].append("🔧 Configurer CUDA_VISIBLE_DEVICES='1'")
+            elif 'Audio' in result['name']:
+                report['recommendations'].append("🎤 Vérifier permissions microphone Windows")
+                report['recommendations'].append("🔧 Installer PyAudio: pip install pyaudio")
+            elif 'LLM' in result['name']:
+                report['recommendations'].append("🤖 Démarrer serveur LLM (Ollama, LM Studio)")
+                report['recommendations'].append("🔧 Télécharger modèle LLM compatible")
+    
+    # Autorisation pipeline
+    report['pipeline_authorized'] = (report['critical_failures'] == 0)
+    
+    return report
+
+def main():
+    """Point d'entrée principal de l'orchestrateur pré-flight"""
+    logger.info("🚀 DÉMARRAGE PRÉ-FLIGHT CHECKS PIPELINE COMPLET...")
+    
+    try:
+        # Détermination répertoire scripts
+        current_dir = Path(__file__).parent
+        scripts_dir = current_dir
+        
+        logger.info(f"📂 Répertoire scripts: {scripts_dir}")
+        
+        # Vérification présence scripts
+        missing_scripts = []
+        for check in PREFLIGHT_CHECKS:
+            script_path = scripts_dir / check['script']
+            if not script_path.exists():
+                missing_scripts.append(check['script'])
+        
+        if missing_scripts:
+            raise FileNotFoundError(f"Scripts manquants: {', '.join(missing_scripts)}")
+        
+        # Exécution séquentielle des checks
+        results = []
+        total_start_time = time.time()
+        
+        for check_config in PREFLIGHT_CHECKS:
+            result = run_preflight_check(check_config, scripts_dir)
+            results.append(result)
+            
+            # Arrêt immédiat si check critique échoue
+            if not result['success'] and check_config['critical']:
+                logger.error(f"🛑 Check critique échoué: {check_config['name']}")
+                logger.error("   Pipeline ne peut pas continuer sans validation complète")
+                break
+        
+        total_duration = time.time() - total_start_time
+        
+        # Génération rapport final
+        report = generate_preflight_report(results)
+        
+        # Affichage rapport complet
+        print("\n" + "="*80)
+        print("🚀 RAPPORT FINAL PRÉ-FLIGHT CHECKS PIPELINE SUPERWHISPER V6")
+        print("="*80)
+        
+        print(f"⏱️ Durée totale: {total_duration:.1f}s")
+        print(f"📊 Checks exécutés: {report['total_checks']}")
+        print(f"✅ Réussis: {report['successful_checks']}")
+        print(f"❌ Échecs: {report['failed_checks']}")
+        print(f"🚨 Échecs critiques: {report['critical_failures']}")
+        
+        print(f"\n📋 RÉSULTATS DÉTAILLÉS:")
+        for summary_line in report['summary']:
+            print(f"   {summary_line}")
+        
+        if report['recommendations']:
+            print(f"\n🔧 RECOMMANDATIONS:")
+            for rec in report['recommendations']:
+                print(f"   {rec}")
+        
+        print("\n" + "="*80)
+        if report['pipeline_authorized']:
+            print("🎉 PIPELINE AUTORISÉ - Tous les pré-flight checks réussis")
+            print("🚀 Prêt pour démarrage infrastructure pipeline complet")
+        else:
+            print("🛑 PIPELINE BLOQUÉ - Corriger échecs critiques avant continuation")
+            print("⚠️ Configuration environnement requise avant poursuite")
+        print("="*80)
+        
+        # Code de sortie
+        return 0 if report['pipeline_authorized'] else 1
+        
+    except Exception as e:
+        print("\n" + "="*80)
+        print("🚫 ÉCHEC ORCHESTRATEUR PRÉ-FLIGHT CHECKS")
+        print("="*80)
+        print(f"❌ ERREUR: {e}")
+        print("\n🔧 ACTIONS REQUISES:")
+        print("   - Vérifier présence scripts pré-flight")
+        print("   - Valider structure répertoire PIPELINE/scripts/")
+        print("   - Corriger permissions d'exécution")
+        print("="*80)
+        print("🛑 PIPELINE BLOQUÉ - Corriger configuration avant continuation")
+        print("="*80)
+        
+        return 1
+
+if __name__ == "__main__":
+    exit_code = main()
+    sys.exit(exit_code) 

@@ -1,0 +1,177 @@
+# Configuration Pipeline SuperWhisper V6 - Pipeline Complet
+# ============================================================
+# Configuration YAML pour orchestrateur pipeline voix-à-voix
+# Version: 1.1.0 | Date: 2025-06-14
+
+pipeline:
+  name: "SuperWhisper V6 Pipeline Complet"
+  version: "1.1.0"
+  mode: "voice_to_voice"  # stt_only | tts_only | voice_to_voice
+  max_latency_ms: 1200    # Objectif performance E2E
+  
+  # Configuration GPU RTX 3090 obligatoire
+  gpu:
+    cuda_visible_devices: "1"           # RTX 3090 Bus PCI 1 exclusif
+    cuda_device_order: "PCI_BUS_ID"     # Ordre physique stable
+    pytorch_cuda_alloc_conf: "max_split_size_mb:1024"
+    memory_fraction: 0.9                # 90% VRAM RTX 3090
+    
+# Configuration STT (Speech-to-Text)
+stt:
+  backend: "unified_manager"
+  config_path: "config/stt.yaml"
+  
+  # Intégration StreamingMicrophoneManager
+  streaming:
+    enabled: true
+    manager_class: "STT.streaming_microphone_manager.StreamingMicrophoneManager"
+    chunk_duration_ms: 100
+    vad_threshold: 0.3
+    
+  # UnifiedSTTManager avec fallback
+  unified:
+    enabled: true
+    manager_class: "STT.unified_stt_manager.UnifiedSTTManager"
+    primary_backend: "prism"
+    fallback_backends: ["whisper_direct", "whisper_cpu"]
+    
+  # Performance
+  target_latency_ms: 400
+  max_workers: 2
+
+# Configuration LLM (Large Language Model)  
+llm:
+  # Serveurs LLM locaux supportés
+  endpoints:
+    - name: "LM Studio"
+      url: "http://localhost:1234/v1"
+      type: "openai_compatible"
+      timeout: 30
+      priority: 1
+      
+    - name: "Ollama"
+      url: "http://localhost:11434"
+      type: "ollama"
+      timeout: 15
+      priority: 2
+      
+    - name: "vLLM"
+      url: "http://localhost:8000"
+      type: "openai_compatible" 
+      timeout: 20
+      priority: 3
+      
+  # Configuration inférence
+  inference:
+    max_tokens: 150              # Réponses concises
+    temperature: 0.7             # Créativité modérée
+    top_p: 0.9                   # Diversité contrôlée
+    frequency_penalty: 0.1       # Anti-répétition
+    presence_penalty: 0.1        # Encourage nouveauté
+    
+  # Performance
+  target_latency_ms: 600
+  health_check_interval: 30
+  retry_attempts: 3
+
+# Configuration TTS (Text-to-Speech)
+tts:
+  backend: "unified_manager"
+  config_path: "config/tts.yaml"
+  
+  # Intégration UnifiedTTSManager Phase 3
+  unified:
+    enabled: true
+    manager_class: "TTS.tts_manager.UnifiedTTSManager"
+    primary_backend: "coqui"
+    fallback_backends: ["edge", "azure", "windows"]
+    
+  # Adaptation async pour pipeline
+  async_wrapper:
+    enabled: true
+    conversion_format: "numpy"    # wav_bytes -> np.ndarray
+    chunk_size: 4096
+    timeout: 30
+    
+  # Performance (Phase 3 validée)
+  target_latency_ms: 200         # Cache optimisé 29.5ms
+  cache_enabled: true
+  cache_hit_rate_target: 0.9
+
+# Configuration Workers Asynchrones
+workers:
+  stt_workers: 2                 # Workers STT parallèles
+  llm_workers: 1                 # Worker LLM (séquentiel)
+  tts_workers: 2                 # Workers TTS parallèles
+  
+  # Gestion erreurs et fallbacks
+  max_retries: 3
+  retry_delay_ms: 100
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout: 30
+
+# Configuration Monitoring & Métriques
+monitoring:
+  enabled: true
+  
+  # Métriques performance
+  metrics:
+    latency_percentiles: [50, 90, 95, 99]
+    throughput_window_s: 60
+    error_rate_threshold: 0.05
+    
+  # Export Prometheus/Grafana
+  prometheus:
+    enabled: true
+    port: 9090
+    metrics_prefix: "superwhisper_pipeline"
+    
+  # Logging
+  logging:
+    level: "INFO"                # DEBUG | INFO | WARNING | ERROR
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    file: "logs/pipeline.log"
+    max_size_mb: 100
+    backup_count: 5
+
+# Configuration Sécurité
+security:
+  # Validation entrées
+  input_validation:
+    max_audio_duration_s: 30     # Limite durée audio
+    max_text_length: 1000        # Limite longueur texte
+    allowed_formats: ["wav", "mp3", "m4a"]
+    
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    burst_size: 10
+    
+  # Audit et conformité
+  audit:
+    enabled: true
+    log_requests: true
+    log_responses: false         # Pas de données utilisateur
+    retention_days: 30
+
+# Configuration Tests et Validation
+testing:
+  # Tests automatisés
+  unit_tests:
+    coverage_threshold: 0.9      # 90% minimum
+    timeout_s: 300
+    
+  # Tests performance
+  performance_tests:
+    target_latency_ms: 1200      # Pipeline E2E
+    throughput_target: 10        # Requêtes/minute
+    stress_test_duration_s: 300
+    
+  # Validation humaine
+  human_validation:
+    enabled: true
+    sample_rate: 0.1             # 10% échantillons
+    quality_threshold: 0.8       # Qualité minimale 

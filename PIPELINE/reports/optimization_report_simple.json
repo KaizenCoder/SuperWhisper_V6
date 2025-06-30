@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-06-14T12:49:36.881865",
+  "optimization_session": {
+    "target_latency_ms": 1200.0,
+    "baseline_p95_ms": 553.8223732927919,
+    "optimized_p95_ms": 479.1813673508099,
+    "improvement_ms": 74.64100594198197,
+    "improvement_percent": 13.477426976847893,
+    "success": "True",
+    "optimizations_applied": [
+      "CUDA memory fraction: 90%",
+      "cuDNN benchmark activ\u00e9",
+      "CUDA allocator optimis\u00e9",
+      "CPU threads limit\u00e9s \u00e0 4",
+      "Configuration optimis\u00e9e sauv\u00e9e: C:\\Dev\\SuperWhisper_V6\\PIPELINE\\config\\pipeline_optimized.yaml",
+      "OMP_NUM_THREADS=4",
+      "MKL_NUM_THREADS=4",
+      "NUMEXPR_NUM_THREADS=4",
+      "OPENBLAS_NUM_THREADS=4"
+    ]
+  },
+  "baseline_stats": {
+    "count": 20,
+    "mean_ms": 503.3653706003349,
+    "median_ms": 524.4622228116413,
+    "p95_ms": 553.8223732927919,
+    "p99_ms": 558.1295737801523,
+    "min_ms": 412.829563928062,
+    "max_ms": 559.2063739019925,
+    "std_ms": 46.70510022564006
+  },
+  "optimized_stats": {
+    "count": 30,
+    "mean_ms": 425.8758639610572,
+    "median_ms": 437.0786820028154,
+    "p95_ms": 479.1813673508099,
+    "p99_ms": 489.0344676960209,
+    "min_ms": 285.8908136396294,
+    "max_ms": 492.7238683931047,
+    "std_ms": 49.40142138763597
+  },
+  "recommendations": [
+    "\u2705 OBJECTIF ATTEINT - Pipeline optimis\u00e9 avec succ\u00e8s",
+    "D\u00e9ployer configuration optimis\u00e9e en production"
+  ]
+}

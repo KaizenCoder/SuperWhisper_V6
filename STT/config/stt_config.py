@@ -4,9 +4,51 @@ Configuration STT principale - SuperWhisper V6
 🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 
 Configuration centralisée pour tous les backends STT
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
 """
 
 import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional
 from pathlib import Path
@@ -193,4 +235,28 @@ class STTConfig:
         }
 
 # Configuration par défaut
-DEFAULT_STT_CONFIG = STTConfig() 
+DEFAULT_STT_CONFIG = STTConfig()
+
+# Configuration Azure Speech Services (ajout)
+AZURE_SPEECH_CONFIG = {
+    'enabled': True,
+    'name': 'Azure Speech Services',
+    'backend_class': 'azure_speech_backend.AzureSpeechBackend',
+    'priority': 10,  # Haute priorité pour performance
+    'config': {
+        'azure_speech_key': None,  # À configurer via env ou config
+        'azure_speech_region': 'francecentral',  # Région Azure
+        'language': 'fr-FR',
+        'continuous_recognition': True,
+        'enable_detailed_results': True,
+        'enable_word_level_timestamps': True,
+        'segmentation_silence_timeout_ms': 500,  # Optimisé pour réactivité
+        'initial_silence_timeout_ms': 5000,
+        'profanity_option': 'Masked',
+        'custom_endpoint_id': None,  # Pour Custom Speech
+        'device': 'azure'
+    }
+}
+
+# Ajout aux backends disponibles
+STT_BACKENDS['azure_speech'] = AZURE_SPEECH_CONFIG 

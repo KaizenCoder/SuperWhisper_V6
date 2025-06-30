@@ -1,0 +1,453 @@
+#!/usr/bin/env python3
+"""
+SuperWhisper V6 Pipeline Orchestrator v1.1 - CODE OBLIGATOIRE
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Complete voice-to-voice pipeline: STT → LLM → TTS
+✔ Async workers with non-blocking queues
+✔ Graceful fallbacks for LLM and TTS
+✔ Prometheus metrics optional (disabled by default)
+
+CORRECTIONS v1.1:
+- Fixed TTS import: TTSManager → UnifiedTTSManager
+- Fixed audio format: TTSResult.audio_data (bytes) → np.ndarray conversion
+- Added audio conversion utilities
+- Enhanced error handling for TTS failures
+- Improved logging and metrics
+"""
+
+# ---------------------------------------------------------------------------
+# 1. HARD REQUIREMENTS – RTX 3090 CONFIG                                   
+# ---------------------------------------------------------------------------
+import os as _os
+_os.environ.setdefault("CUDA_VISIBLE_DEVICES", "1")      # *secondary* GPU
+_os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
+_os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "max_split_size_mb:1024")
+
+# ---------------------------------------------------------------------------
+# 2. STANDARD LIBS
+# ---------------------------------------------------------------------------
+import asyncio
+import time
+import logging
+import wave
+import io
+from pathlib import Path
+from typing import Optional, Dict, Any, List, Tuple
+from dataclasses import dataclass, field
+from datetime import datetime
+import queue, threading
+
+# ---------------------------------------------------------------------------
+# 3. THIRD‑PARTY LIBS (all offline‑friendly)
+# ---------------------------------------------------------------------------
+import httpx                         # async HTTP client for local LLM server
+import numpy as np
+import sounddevice as sd            # microphone + speaker I/O
+import simpleaudio as sa            # robust playback helper
+
+try:
+    from prometheus_client import Counter, Histogram, Gauge, start_http_server
+    _PROM_AVAILABLE = True
+except ImportError:                  # metrics are optional
+    _PROM_AVAILABLE = False
+
+# ---------------------------------------------------------------------------
+# 4. SUPERWHISPER V6 INTERNAL IMPORTS (CORRECTED)
+# ---------------------------------------------------------------------------
+from STT.streaming_microphone_manager import StreamingMicrophoneManager
+from STT.unified_stt_manager_optimized import OptimizedUnifiedSTTManager
+from TTS.tts_manager import UnifiedTTSManager  # ✅ CORRECTION: UnifiedTTSManager
+
+# ---------------------------------------------------------------------------
+# 5. LOGGER SETUP
+# ---------------------------------------------------------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s – %(levelname)s – %(name)s – %(message)s",
+)
+LOGGER = logging.getLogger("PipelineOrchestrator")
+
+# ---------------------------------------------------------------------------
+# 6. DATA CLASSES
+# ---------------------------------------------------------------------------
+@dataclass
+class PipelineMetrics:
+    total_requests: int = 0
+    successful_requests: int = 0
+    failed_requests: int = 0
+    total_latency_ms: float = 0.0
+    stt_latency_ms: float = 0.0
+    llm_latency_ms: float = 0.0
+    tts_latency_ms: float = 0.0
+    audio_latency_ms: float = 0.0
+    last_update: datetime = field(default_factory=datetime.utcnow)
+
+@dataclass
+class ConversationTurn:
+    user_text: str
+    assistant_text: str
+    total_latency_ms: float
+    stt_latency_ms: float
+    llm_latency_ms: float
+    tts_latency_ms: float
+    audio_latency_ms: float
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    success: bool = True
+    error: Optional[str] = None
+
+# ---------------------------------------------------------------------------
+# 7. GPU VALIDATION                                                         
+# ---------------------------------------------------------------------------
+
+def _validate_rtx3090() -> None:
+    """Abort early if we are not on the mandatory RTX 3090."""
+    import torch
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA not available – RTX 3090 required")
+    if _os.environ.get("CUDA_VISIBLE_DEVICES") != "1":
+        raise RuntimeError("CUDA_VISIBLE_DEVICES must be set to '1' (RTX 3090)")
+    props = torch.cuda.get_device_properties(0)
+    if props.total_memory < 20 * 1024 ** 3:  # < 20 GiB
+        raise RuntimeError("GPU VRAM insufficient – RTX 3090 expected")
+    LOGGER.info("✅ RTX 3090 validated: %s (%.1f GB)", props.name, props.total_memory/1024**3)
+
+# ---------------------------------------------------------------------------
+# 8. AUDIO CONVERSION UTILITIES (NEW)
+# ---------------------------------------------------------------------------
+
+def _wav_bytes_to_numpy(wav_bytes: bytes, target_sample_rate: int = 22050) -> np.ndarray:
+    """Convert WAV bytes to numpy array for audio playback."""
+    try:
+        # Parse WAV file from bytes
+        with wave.open(io.BytesIO(wav_bytes), 'rb') as wav_file:
+            frames = wav_file.readframes(-1)
+            sample_rate = wav_file.getframerate()
+            channels = wav_file.getnchannels()
+            sampwidth = wav_file.getsampwidth()
+            
+            # Convert to numpy array
+            if sampwidth == 1:
+                dtype = np.uint8
+            elif sampwidth == 2:
+                dtype = np.int16
+            elif sampwidth == 4:
+                dtype = np.int32
+            else:
+                raise ValueError(f"Unsupported sample width: {sampwidth}")
+            
+            audio = np.frombuffer(frames, dtype=dtype)
+            
+            # Handle stereo to mono conversion
+            if channels == 2:
+                audio = audio.reshape(-1, 2).mean(axis=1)
+            
+            # Convert to float32 [-1, 1] range
+            if dtype == np.int16:
+                audio = audio.astype(np.float32) / 32768.0
+            elif dtype == np.int32:
+                audio = audio.astype(np.float32) / 2147483648.0
+            elif dtype == np.uint8:
+                audio = (audio.astype(np.float32) - 128) / 128.0
+            
+            # Resample if needed (simple approach)
+            if sample_rate != target_sample_rate:
+                # Simple resampling - for production, use librosa or scipy
+                ratio = target_sample_rate / sample_rate
+                new_length = int(len(audio) * ratio)
+                audio = np.interp(
+                    np.linspace(0, len(audio), new_length),
+                    np.arange(len(audio)),
+                    audio
+                )
+            
+            return audio
+            
+    except Exception as e:
+        LOGGER.error("Audio conversion error: %s", e)
+        # Return silence as fallback
+        return np.zeros(int(target_sample_rate * 0.5), dtype=np.float32)
+
+# ---------------------------------------------------------------------------
+# 9. AUDIO OUTPUT MANAGER                                                   
+# ---------------------------------------------------------------------------
+class AudioOutputManager:
+    """Background playback queue built on simpleaudio (cross‑platform)."""
+
+    def __init__(self, sample_rate: int = 22050, channels: int = 1):
+        self.sample_rate = sample_rate
+        self.channels = channels
+        self._q: "queue.Queue[np.ndarray]" = queue.Queue()
+        self._worker: Optional[threading.Thread] = None
+        self._running = threading.Event()
+
+    # ---- public API ------------------------------------------------------
+    def play_async(self, audio: np.ndarray) -> None:
+        """Queue a chunk for non‑blocking playback."""
+        if len(audio) == 0:
+            LOGGER.warning("Empty audio array - skipping playback")
+            return
+        self._q.put(audio)
+        if not self._running.is_set():
+            self._start_worker()
+
+    def stop(self) -> None:
+        self._running.clear()
+        if self._worker and self._worker.is_alive():
+            self._worker.join(timeout=1)
+
+    # ---- internal --------------------------------------------------------
+    def _start_worker(self) -> None:
+        self._running.set()
+        self._worker = threading.Thread(target=self._loop, daemon=True)
+        self._worker.start()
+
+    def _loop(self) -> None:
+        while self._running.is_set():
+            try:
+                audio = self._q.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            try:
+                if audio.dtype != np.int16:
+                    audio = np.clip(audio, -1.0, 1.0)
+                    audio = (audio * 32767).astype(np.int16)
+                play_obj = sa.play_buffer(audio, self.channels, 2, self.sample_rate)
+                play_obj.wait_done()
+            except Exception as exc:
+                LOGGER.error("Audio playback error: %s", exc)
+
+# ---------------------------------------------------------------------------
+# 10. LOCAL LLM CLIENT (async, with fallback)                                
+# ---------------------------------------------------------------------------
+class LLMClient:
+    def __init__(self, endpoint: str, model: str = "llama‑3‑8b-instruct", timeout: float = 30.0):
+        self.endpoint = endpoint.rstrip("/") + "/v1/chat/completions"
+        self.model = model
+        self._client = httpx.AsyncClient(timeout=timeout)
+
+    async def generate(self, prompt: str, history: List[Dict[str, str]]) -> str:
+        """Return assistant text (fallbacks to canned answer on failure)."""
+        payload = {
+            "model": self.model,
+            "messages": history + [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": 150,
+        }
+        try:
+            r = await self._client.post(self.endpoint, json=payload)
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"].strip()
+        except Exception as exc:  # graceful fallback
+            LOGGER.warning("LLM fallback: %s", exc)
+            return self._fallback(prompt)
+
+    async def aclose(self):
+        await self._client.aclose()
+
+    # ---- fallback --------------------------------------------------------
+    @staticmethod
+    def _fallback(prompt: str) -> str:
+        p = prompt.lower()
+        if "heure" in p or "time" in p:
+            return f"Il est {datetime.now().strftime('%H:%M')}."
+        elif "bonjour" in p or "hello" in p:
+            return "Bonjour ! Comment puis-je vous aider ?"
+        elif "merci" in p or "thank" in p:
+            return "De rien ! Y a-t-il autre chose ?"
+        return f"J'ai entendu : {prompt}"
+
+# ---------------------------------------------------------------------------
+# 11. PIPELINE ORCHESTRATOR (ENHANCED)                                                
+# ---------------------------------------------------------------------------
+class PipelineOrchestrator:
+    def __init__(
+        self,
+        stt: OptimizedUnifiedSTTManager,
+        tts: UnifiedTTSManager,
+        llm_endpoint: str = "http://localhost:8000",
+        metrics_enabled: bool = False,
+    ):
+        _validate_rtx3090()
+
+        self.stt = stt
+        self.tts = tts
+        self.llm = LLMClient(llm_endpoint)
+        self.audio_out = AudioOutputManager()
+
+        self._text_q: asyncio.Queue[Tuple[str, float]] = asyncio.Queue(maxsize=16)
+        self._response_q: asyncio.Queue[Tuple[str, str, float, float]] = asyncio.Queue(maxsize=16)
+
+        self._history: List[ConversationTurn] = []
+        self._metrics = PipelineMetrics()
+        self._prom_enabled = metrics_enabled and _PROM_AVAILABLE
+        if self._prom_enabled:
+            start_http_server(9091)
+            self._metric_latency = Histogram("pipeline_latency_ms", "End‑to‑end latency")
+            self._metric_requests = Counter("pipeline_requests_total", "Total requests")
+            self._metric_errors = Counter("pipeline_errors_total", "Total errors")
+
+    # ------------------------------------------------------------------
+    # PUBLIC
+    async def start(self):
+        LOGGER.info("🚀 Starting SuperWhisper V6 pipeline… (Ctrl‑C to stop)")
+
+        # Initialize components
+        if not self.stt.initialized:
+            await self.stt.initialize()
+        
+        mic = StreamingMicrophoneManager(self.stt, on_transcription=self._on_transcription)
+        workers = [
+            asyncio.create_task(self._llm_worker(), name="llm_worker"),
+            asyncio.create_task(self._tts_worker(), name="tts_worker"),
+        ]
+        try:
+            await mic.run()               # blocks until Ctrl‑C
+        finally:
+            for w in workers:
+                w.cancel()
+            await self.llm.aclose()
+            self.audio_out.stop()
+
+    # ------------------------------------------------------------------
+    # INTERNAL
+    def _on_transcription(self, text: str, latency_ms: float):
+        """Called by StreamingMicrophoneManager when transcription is ready."""
+        try:
+            self._text_q.put_nowait((text, latency_ms))
+            self._metrics.total_requests += 1
+            if self._prom_enabled:
+                self._metric_requests.inc()
+        except asyncio.QueueFull:
+            LOGGER.warning("Text queue full – dropping transcription")
+
+    async def _llm_worker(self):
+        while True:
+            try:
+                user_text, stt_lat = await self._text_q.get()
+                t0 = time.perf_counter()
+                
+                history = self._build_history(max_turns=5)
+                assistant_text = await self.llm.generate(user_text, history)
+                
+                llm_lat = (time.perf_counter() - t0) * 1000
+                await self._response_q.put((user_text, assistant_text, stt_lat, llm_lat))
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                LOGGER.error("LLM worker error: %s", exc)
+                self._metrics.failed_requests += 1
+                if self._prom_enabled:
+                    self._metric_errors.inc()
+
+    async def _tts_worker(self):
+        while True:
+            try:
+                user_text, assistant_text, stt_lat, llm_lat = await self._response_q.get()
+                t0 = time.perf_counter()
+                
+                # ✅ CORRECTION: Use UnifiedTTSManager with proper error handling
+                tts_result = await asyncio.get_event_loop().run_in_executor(
+                    None, self.tts.synthesize, assistant_text
+                )
+                
+                if not tts_result.success:
+                    raise RuntimeError(f"TTS failed: {tts_result.error}")
+                
+                # ✅ CORRECTION: Convert bytes WAV → np.ndarray
+                audio = _wav_bytes_to_numpy(tts_result.audio_data)
+                
+                tts_lat = (time.perf_counter() - t0) * 1000
+
+                total_lat = stt_lat + llm_lat + tts_lat
+                self._metrics.stt_latency_ms = stt_lat
+                self._metrics.llm_latency_ms = llm_lat
+                self._metrics.tts_latency_ms = tts_lat
+                self._metrics.total_latency_ms = total_lat
+                self._metrics.successful_requests += 1
+
+                if self._prom_enabled:
+                    self._metric_latency.observe(total_lat)
+
+                # store history
+                self._history.append(ConversationTurn(
+                    user_text=user_text,
+                    assistant_text=assistant_text,
+                    total_latency_ms=total_lat,
+                    stt_latency_ms=stt_lat,
+                    llm_latency_ms=llm_lat,
+                    tts_latency_ms=tts_lat,
+                    audio_latency_ms=0.0,
+                ))
+
+                # playback (non‑blocking)
+                self.audio_out.play_async(audio)
+
+                LOGGER.info("🔊 E2E latency %.0f ms | '%s' → '%s'", 
+                           total_lat, user_text[:30], assistant_text[:30])
+                           
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                LOGGER.error("TTS worker error: %s", exc)
+                self._metrics.failed_requests += 1
+                if self._prom_enabled:
+                    self._metric_errors.inc()
+
+    # ------------------------------------------------------------------
+    # UTILS
+    def _build_history(self, max_turns: int) -> List[Dict[str, str]]:
+        msgs: List[Dict[str, str]] = []
+        for turn in self._history[-max_turns:]:
+            msgs.append({"role": "user", "content": turn.user_text})
+            msgs.append({"role": "assistant", "content": turn.assistant_text})
+        return msgs
+    
+    def get_metrics(self) -> PipelineMetrics:
+        """Get current pipeline metrics"""
+        self._metrics.last_update = datetime.utcnow()
+        return self._metrics
+    
+    def get_conversation_history(self, max_turns: int = 10) -> List[ConversationTurn]:
+        """Get recent conversation history"""
+        return self._history[-max_turns:]
+
+# ---------------------------------------------------------------------------
+# 12. CONVENIENCE BOOTSTRAP                                                
+# ---------------------------------------------------------------------------
+async def _bootstrap(cfg_path: Optional[str] = None):
+    import yaml
+    cfg: Dict[str, Any] = {}
+    if cfg_path and Path(cfg_path).exists():
+        cfg = yaml.safe_load(Path(cfg_path).read_text())
+
+    # ✅ CORRECTION: Use OptimizedUnifiedSTTManager
+    stt = OptimizedUnifiedSTTManager(cfg.get("stt", {}))
+    tts = UnifiedTTSManager(cfg.get("tts", {}))
+    orchestrator = PipelineOrchestrator(
+        stt,
+        tts,
+        llm_endpoint=cfg.get("pipeline", {}).get("llm_endpoint", "http://localhost:8000"),
+        metrics_enabled=cfg.get("pipeline", {}).get("enable_metrics", False),
+    )
+    await orchestrator.start()
+
+# ---------------------------------------------------------------------------
+# 13. SCRIPT ENTRY POINT                                                   
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    try:
+        import uvloop
+        uvloop.install()
+        LOGGER.info("✅ uvloop enabled for enhanced performance")
+    except ImportError:
+        LOGGER.info("uvloop not available – fallback to asyncio event‑loop")
+
+    try:
+        asyncio.run(_bootstrap("PIPELINE/config/pipeline.yaml"))
+    except KeyboardInterrupt:
+        LOGGER.info("👋 Keyboard interrupt – exit")
+    except Exception as e:
+        LOGGER.error("❌ Pipeline startup error: %s", e)
+        raise 

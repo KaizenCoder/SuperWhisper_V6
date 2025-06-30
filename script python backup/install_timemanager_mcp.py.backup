@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+"""
+Script d'installation automatique TimeManager MCP v2.0
+Compatible avec les dernières spécifications Cursor AI MCP
+"""
+
+import os
+import sys
+import json
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Dict, Any, Optional
+
+class TimeManagerMCPInstaller:
+    def __init__(self):
+        self.project_root = Path(__file__).parent.absolute()
+        self.home_dir = Path.home()
+        self.cursor_dir = self.home_dir / ".cursor"
+        self.cursor_mcp_file = self.cursor_dir / "mcp.json"
+        
+        # Configuration par défaut
+        self.default_config = {
+            "mcpServers": {
+                "timemanager": {
+                    "command": "python",
+                    "args": [str(self.project_root / "mcp_timemanager_server.py")],
+                    "env": {
+                        "PYTHONPATH": str(self.project_root),
+                        "TZ": "Europe/Paris"
+                    }
+                }
+            }
+        }
+    
+    def print_header(self):
+        """Affiche l'en-tête d'installation"""
+        print("=" * 60)
+        print("🕐 TimeManager MCP - Installation Automatique v2.0")
+        print("=" * 60)
+        print("📋 Fonctionnalités :")
+        print("  ✅ Gestion du temps centralisée")
+        print("  ✅ Mémoire persistante")
+        print("  ✅ Formats multiples (ISO, journal, etc.)")
+        print("  ✅ Compatible Cursor AI dernière version")
+        print()
+    
+    def check_prerequisites(self) -> bool:
+        """Vérifie les prérequis"""
+        print("🔍 Vérification des prérequis...")
+        
+        # Python version
+        python_version = sys.version_info
+        if python_version < (3, 8):
+            print(f"❌ Python 3.8+ requis (version actuelle: {python_version.major}.{python_version.minor})")
+            return False
+        print(f"✅ Python {python_version.major}.{python_version.minor}.{python_version.micro}")
+        
+        # Package MCP
+        try:
+            import mcp
+            print(f"✅ Package MCP installé (version: {mcp.__version__ if hasattr(mcp, '__version__') else 'inconnue'})")
+        except ImportError:
+            print("⚠️  Package MCP non trouvé. Installation en cours...")
+            if not self.install_mcp():
+                return False
+        
+        # TimeManager local
+        if not (self.project_root / "utils" / "time_manager.py").exists():
+            print("❌ TimeManager local non trouvé dans utils/time_manager.py")
+            return False
+        print("✅ TimeManager local trouvé")
+        
+        return True
+    
+    def install_mcp(self) -> bool:
+        """Installe le package MCP"""
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "mcp"], 
+                         check=True, capture_output=True)
+            print("✅ Package MCP installé avec succès")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Erreur installation MCP: {e}")
+            return False
+    
+    def create_cursor_directory(self):
+        """Crée le répertoire .cursor si nécessaire"""
+        if not self.cursor_dir.exists():
+            print(f"📁 Création du répertoire {self.cursor_dir}")
+            self.cursor_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            print(f"✅ Répertoire {self.cursor_dir} existe")
+    
+    def backup_existing_config(self) -> Optional[Path]:
+        """Sauvegarde la configuration existante"""
+        if self.cursor_mcp_file.exists():
+            backup_file = self.cursor_mcp_file.with_suffix('.json.backup')
+            shutil.copy2(self.cursor_mcp_file, backup_file)
+            print(f"💾 Configuration existante sauvegardée: {backup_file}")
+            return backup_file
+        return None
+    
+    def load_existing_config(self) -> Dict[str, Any]:
+        """Charge la configuration existante"""
+        if self.cursor_mcp_file.exists():
+            try:
+                with open(self.cursor_mcp_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, Exception) as e:
+                print(f"⚠️  Erreur lecture config existante: {e}")
+        return {"mcpServers": {}}
+    
+    def merge_configurations(self, existing_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Fusionne les configurations"""
+        if "mcpServers" not in existing_config:
+            existing_config["mcpServers"] = {}
+        
+        # Ajouter ou mettre à jour TimeManager
+        existing_config["mcpServers"]["timemanager"] = self.default_config["mcpServers"]["timemanager"]
+        
+        return existing_config
+    
+    def save_configuration(self, config: Dict[str, Any]):
+        """Sauvegarde la configuration"""
+        try:
+            with open(self.cursor_mcp_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2, ensure_ascii=False)
+            print(f"✅ Configuration sauvegardée: {self.cursor_mcp_file}")
+        except Exception as e:
+            print(f"❌ Erreur sauvegarde configuration: {e}")
+            return False
+        return True
+    
+    def test_server(self) -> bool:
+        """Test le serveur MCP"""
+        print("🧪 Test du serveur MCP...")
+        try:
+            # Test simple : import et instanciation
+            result = subprocess.run([
+                sys.executable, str(self.project_root / "mcp_timemanager_server.py")
+            ], timeout=5, capture_output=True, text=True)
+            
+            # Le serveur devrait démarrer et attendre les entrées
+            # Si pas d'erreur d'import, c'est bon
+            if "Erreur:" not in result.stderr:
+                print("✅ Serveur MCP fonctionnel")
+                return True
+            else:
+                print(f"❌ Erreur serveur: {result.stderr}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            # Timeout est normal (serveur en attente)
+            print("✅ Serveur MCP démarré correctement")
+            return True
+        except Exception as e:
+            print(f"❌ Erreur test serveur: {e}")
+            return False
+    
+    def create_project_config(self):
+        """Crée une configuration de projet optionnelle"""
+        project_cursor_dir = self.project_root / ".cursor"
+        project_mcp_file = project_cursor_dir / "mcp.json"
+        
+        if not project_cursor_dir.exists():
+            project_cursor_dir.mkdir(exist_ok=True)
+        
+        project_config = {
+            "mcpServers": {
+                "timemanager": {
+                    "command": "python",
+                    "args": ["./mcp_timemanager_server.py"],
+                    "env": {
+                        "PYTHONPATH": ".",
+                        "TZ": "Europe/Paris"
+                    }
+                }
+            }
+        }
+        
+        with open(project_mcp_file, 'w', encoding='utf-8') as f:
+            json.dump(project_config, f, indent=2, ensure_ascii=False)
+        
+        print(f"✅ Configuration projet créée: {project_mcp_file}")
+    
+    def display_next_steps(self):
+        """Affiche les étapes suivantes"""
+        print("\n" + "=" * 60)
+        print("🎉 Installation terminée avec succès !")
+        print("=" * 60)
+        print("\n📋 Étapes suivantes :")
+        print("1. 🔄 Redémarrer Cursor AI")
+        print("2. ⚙️  Aller dans Cursor > Settings > MCP")
+        print("3. ✅ Vérifier que 'timemanager' apparaît dans 'Available Tools'")
+        print("4. 🚀 Tester avec une commande comme 'Créer un fichier avec la date actuelle'")
+        print("\n🎮 Mode YOLO (optionnel) :")
+        print("   - Dans Settings > MCP, activer 'Auto-run MCP tools'")
+        print("   - L'IA utilisera TimeManager automatiquement")
+        print("\n🔧 Dépannage :")
+        print(f"   - Logs: Cursor > Help > Show Logs")
+        print(f"   - Config: {self.cursor_mcp_file}")
+        print(f"   - Test: python {self.project_root / 'mcp_timemanager_server.py'}")
+        print("\n📖 Documentation complète :")
+        print(f"   - {self.project_root / 'TIMEMANAGER_MCP_GUIDE_COMPLET.md'}")
+    
+    def install(self):
+        """Lance l'installation complète"""
+        self.print_header()
+        
+        # Vérifications préalables
+        if not self.check_prerequisites():
+            print("❌ Installation interrompue - prérequis non satisfaits")
+            return False
+        
+        # Création du répertoire Cursor
+        self.create_cursor_directory()
+        
+        # Sauvegarde et fusion des configurations
+        backup_file = self.backup_existing_config()
+        existing_config = self.load_existing_config()
+        merged_config = self.merge_configurations(existing_config)
+        
+        # Sauvegarde de la nouvelle configuration
+        if not self.save_configuration(merged_config):
+            print("❌ Installation interrompue - erreur de configuration")
+            return False
+        
+        # Test du serveur
+        if not self.test_server():
+            print("⚠️  Serveur non testé - vérifiez manuellement")
+        
+        # Configuration de projet
+        self.create_project_config()
+        
+        # Instructions finales
+        self.display_next_steps()
+        
+        return True
+
+def main():
+    """Point d'entrée principal"""
+    installer = TimeManagerMCPInstaller()
+    
+    try:
+        success = installer.install()
+        sys.exit(0 if success else 1)
+    except KeyboardInterrupt:
+        print("\n❌ Installation interrompue par l'utilisateur")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Erreur inattendue: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main() 

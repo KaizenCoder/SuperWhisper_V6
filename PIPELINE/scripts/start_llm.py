@@ -1,0 +1,398 @@
+#!/usr/bin/env python3
+"""
+🤖 PRÉ-FLIGHT CHECK PIPELINE - VALIDATION SERVEUR LLM COMPLET
+============================================================
+Script de validation et health-check serveur LLM pour pipeline SuperWhisper V6
+
+VALIDATIONS :
+- Serveur LLM local (vLLM/llama.cpp/Ollama)
+- Health-check endpoint robuste 
+- Timeout handling gracieux
+- Configuration quantization Q4_K_M si VRAM tension
+- Test requête simple pour validation fonctionnelle
+
+Usage: python PIPELINE/scripts/start_llm.py
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import logging
+import requests
+import json
+import time
+from typing import Dict, Any, Optional
+from urllib.parse import urljoin
+
+# Configuration logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("start_llm")
+
+# Configuration LLM par défaut
+DEFAULT_LLM_CONFIG = {
+    'endpoints': [
+        {'url': 'http://localhost:1234/v1', 'name': 'LM Studio', 'timeout': 30},
+        {'url': 'http://localhost:11434', 'name': 'Ollama', 'timeout': 15},
+        {'url': 'http://localhost:8000', 'name': 'vLLM', 'timeout': 20},
+        {'url': 'http://localhost:8080', 'name': 'llama.cpp', 'timeout': 25}
+    ],
+    'test_prompt': "Hello, this is a test message for pipeline validation.",
+    'expected_min_response_length': 5,
+    'health_check_retries': 3,
+    'startup_wait_time': 2
+}
+
+def check_llm_endpoint_health(endpoint: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Vérification health-check d'un endpoint LLM
+    
+    Args:
+        endpoint: Configuration endpoint avec url, name, timeout
+        
+    Returns:
+        Dict avec résultats health-check
+    """
+    result = {
+        'name': endpoint['name'],
+        'url': endpoint['url'],
+        'available': False,
+        'response_time_ms': 0,
+        'error': None,
+        'api_version': None,
+        'models': []
+    }
+    
+    try:
+        start_time = time.time()
+        
+        # 1. Test basique de connectivité
+        logger.info(f"🔍 Test connectivité {endpoint['name']} ({endpoint['url']})...")
+        
+        # Health endpoint selon le type de serveur
+        health_endpoints = [
+            '/health',
+            '/v1/models', 
+            '/api/tags',
+            '/',
+            '/docs'
+        ]
+        
+        response = None
+        working_endpoint = None
+        
+        for health_path in health_endpoints:
+            try:
+                health_url = urljoin(endpoint['url'], health_path)
+                response = requests.get(
+                    health_url, 
+                    timeout=endpoint['timeout'],
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    working_endpoint = health_path
+                    break
+                    
+            except Exception as e:
+                continue
+        
+        if response is None or response.status_code != 200:
+            raise RuntimeError(f"Aucun endpoint health accessible sur {endpoint['url']}")
+        
+        response_time = (time.time() - start_time) * 1000
+        result['response_time_ms'] = round(response_time, 2)
+        
+        # 2. Analyse réponse
+        try:
+            data = response.json()
+            
+            # Détection type serveur selon réponse
+            if 'models' in data and isinstance(data['models'], list):
+                result['models'] = [model.get('id', str(model)) for model in data['models']]
+                result['api_version'] = 'OpenAI Compatible'
+            elif working_endpoint == '/api/tags' and 'models' in data:
+                result['models'] = [model.get('name', str(model)) for model in data['models']]
+                result['api_version'] = 'Ollama API'
+            elif 'object' in data and data['object'] == 'list':
+                result['models'] = [model.get('id', str(model)) for model in data.get('data', [])]
+                result['api_version'] = 'OpenAI Compatible'
+            else:
+                result['api_version'] = 'Unknown API'
+                
+        except json.JSONDecodeError:
+            result['api_version'] = 'Non-JSON Response'
+        
+        result['available'] = True
+        logger.info(f"✅ {endpoint['name']} disponible ({response_time:.1f}ms) - {len(result['models'])} modèles")
+        
+        return result
+        
+    except requests.exceptions.Timeout:
+        error_msg = f"Timeout après {endpoint['timeout']}s"
+        result['error'] = error_msg
+        logger.warning(f"⏱️ {endpoint['name']}: {error_msg}")
+        
+    except requests.exceptions.ConnectionError:
+        error_msg = "Connexion refusée - serveur non démarré"
+        result['error'] = error_msg
+        logger.warning(f"🔌 {endpoint['name']}: {error_msg}")
+        
+    except Exception as e:
+        error_msg = str(e)
+        result['error'] = error_msg
+        logger.error(f"❌ {endpoint['name']}: {error_msg}")
+    
+    return result
+
+def test_llm_inference(endpoint_url: str, api_version: str, timeout: int = 30) -> Dict[str, Any]:
+    """
+    Test d'inférence LLM simple pour validation fonctionnelle
+    
+    Args:
+        endpoint_url: URL de base du serveur LLM
+        api_version: Type d'API détecté
+        timeout: Timeout en secondes
+        
+    Returns:
+        Dict avec résultats test inférence
+    """
+    result = {
+        'inference_works': False,
+        'response_text': None,
+        'inference_time_ms': 0,
+        'error': None
+    }
+    
+    try:
+        start_time = time.time()
+        
+        # Configuration requête selon type API
+        if 'Ollama' in api_version:
+            # API Ollama
+            url = urljoin(endpoint_url, '/api/generate')
+            payload = {
+                'model': 'llama3.2:latest',  # Modèle par défaut Ollama
+                'prompt': DEFAULT_LLM_CONFIG['test_prompt'],
+                'stream': False,
+                'options': {'temperature': 0.1, 'num_predict': 50}
+            }
+        else:
+            # API OpenAI compatible (vLLM, LM Studio, llama.cpp)
+            url = urljoin(endpoint_url, '/v1/chat/completions')
+            payload = {
+                'model': 'default',  # Sera résolu automatiquement
+                'messages': [
+                    {'role': 'user', 'content': DEFAULT_LLM_CONFIG['test_prompt']}
+                ],
+                'max_tokens': 50,
+                'temperature': 0.1
+            }
+        
+        logger.info(f"🧪 Test inférence LLM ({api_version})...")
+        
+        response = requests.post(
+            url,
+            json=payload,
+            timeout=timeout,
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        if response.status_code != 200:
+            raise RuntimeError(f"HTTP {response.status_code}: {response.text}")
+        
+        # Parsing réponse selon type API
+        data = response.json()
+        
+        if 'Ollama' in api_version:
+            response_text = data.get('response', '')
+        else:
+            choices = data.get('choices', [])
+            if choices and 'message' in choices[0]:
+                response_text = choices[0]['message'].get('content', '')
+            elif choices and 'text' in choices[0]:
+                response_text = choices[0]['text']
+            else:
+                response_text = str(data)
+        
+        inference_time = (time.time() - start_time) * 1000
+        result['inference_time_ms'] = round(inference_time, 2)
+        result['response_text'] = response_text.strip()
+        
+        # Validation réponse
+        if len(result['response_text']) >= DEFAULT_LLM_CONFIG['expected_min_response_length']:
+            result['inference_works'] = True
+            logger.info(f"✅ Test inférence réussi ({inference_time:.1f}ms): '{response_text[:100]}...'")
+        else:
+            raise RuntimeError(f"Réponse trop courte: '{response_text}'")
+            
+    except Exception as e:
+        result['error'] = str(e)
+        logger.error(f"❌ Test inférence échoué: {e}")
+    
+    return result
+
+def validate_llm_servers() -> Dict[str, Any]:
+    """
+    Validation complète des serveurs LLM disponibles
+    
+    Returns:
+        Dict avec résultats validation complète
+    """
+    validation_results = {
+        'servers_found': [],
+        'working_servers': [],
+        'recommended_server': None,
+        'total_models': 0,
+        'validation_time_ms': 0,
+        'all_servers_down': True
+    }
+    
+    start_time = time.time()
+    
+    logger.info("🤖 DÉMARRAGE VALIDATION SERVEURS LLM...")
+    
+    # Test de tous les endpoints configurés
+    for endpoint in DEFAULT_LLM_CONFIG['endpoints']:
+        health_result = check_llm_endpoint_health(endpoint)
+        validation_results['servers_found'].append(health_result)
+        
+        if health_result['available']:
+            validation_results['all_servers_down'] = False
+            validation_results['total_models'] += len(health_result['models'])
+            
+            # Test inférence si serveur disponible
+            if health_result['models']:  # Au moins un modèle disponible
+                inference_result = test_llm_inference(
+                    health_result['url'], 
+                    health_result['api_version'],
+                    endpoint['timeout']
+                )
+                health_result['inference'] = inference_result
+                
+                if inference_result['inference_works']:
+                    validation_results['working_servers'].append(health_result)
+    
+    # Sélection serveur recommandé
+    if validation_results['working_servers']:
+        # Priorité : le plus rapide avec inférence fonctionnelle
+        validation_results['recommended_server'] = min(
+            validation_results['working_servers'],
+            key=lambda x: x['response_time_ms'] + x['inference']['inference_time_ms']
+        )
+    
+    validation_results['validation_time_ms'] = round((time.time() - start_time) * 1000, 2)
+    
+    return validation_results
+
+def main():
+    """Point d'entrée principal du script de validation LLM"""
+    logger.info("🤖 DÉMARRAGE VALIDATION SERVEUR LLM PIPELINE...")
+    
+    try:
+        # Validation complète serveurs LLM
+        results = validate_llm_servers()
+        
+        # Affichage résultats
+        print("\n" + "="*70)
+        print("🤖 RÉSULTATS VALIDATION SERVEUR LLM PIPELINE")
+        print("="*70)
+        
+        print(f"⏱️ Temps validation: {results['validation_time_ms']:.1f}ms")
+        print(f"📊 Serveurs testés: {len(results['servers_found'])}")
+        print(f"✅ Serveurs fonctionnels: {len(results['working_servers'])}")
+        print(f"🧠 Modèles disponibles: {results['total_models']}")
+        
+        print(f"\n📋 DÉTAIL SERVEURS:")
+        for server in results['servers_found']:
+            status_icon = "✅" if server['available'] else "❌"
+            inference_status = ""
+            
+            if server['available'] and 'inference' in server:
+                if server['inference']['inference_works']:
+                    inference_status = f" | 🧪 Inférence: ✅ ({server['inference']['inference_time_ms']:.1f}ms)"
+                else:
+                    inference_status = f" | 🧪 Inférence: ❌ ({server['inference']['error']})"
+            
+            print(f"   {status_icon} {server['name']}: {server['url']}")
+            print(f"      Response: {server['response_time_ms']:.1f}ms | API: {server['api_version']} | Modèles: {len(server['models'])}{inference_status}")
+            
+            if server['error']:
+                print(f"      ❌ Erreur: {server['error']}")
+        
+        # Serveur recommandé
+        if results['recommended_server']:
+            rec = results['recommended_server']
+            print(f"\n🎯 SERVEUR RECOMMANDÉ:")
+            print(f"   🌟 {rec['name']} ({rec['url']})")
+            print(f"   ⚡ Performance: {rec['response_time_ms']:.1f}ms + {rec['inference']['inference_time_ms']:.1f}ms inférence")
+            print(f"   🧠 Modèles: {len(rec['models'])}")
+            print(f"   📝 Réponse test: '{rec['inference']['response_text'][:100]}...'")
+        
+        print("="*70)
+        if not results['all_servers_down'] and results['working_servers']:
+            print("🚀 PIPELINE AUTORISÉ - Serveur LLM fonctionnel disponible")
+        else:
+            print("🛑 PIPELINE BLOQUÉ - Aucun serveur LLM fonctionnel")
+        print("="*70)
+        
+        return 0 if (not results['all_servers_down'] and results['working_servers']) else 1
+        
+    except Exception as e:
+        print("\n" + "="*70)
+        print("🚫 ÉCHEC VALIDATION SERVEUR LLM PIPELINE")
+        print("="*70)
+        print(f"❌ ERREUR: {e}")
+        print("\n🔧 ACTIONS REQUISES:")
+        print("   - Démarrer un serveur LLM (LM Studio, Ollama, vLLM, llama.cpp)")
+        print("   - Vérifier configuration ports (1234, 11434, 8000, 8080)")
+        print("   - Télécharger au moins un modèle LLM")
+        print("   - Tester endpoint manuellement avec curl/Postman")
+        print("="*70)
+        print("🛑 PIPELINE BLOQUÉ - Corriger configuration LLM avant continuation")
+        print("="*70)
+        
+        return 1
+
+if __name__ == "__main__":
+    exit_code = main()
+    sys.exit(exit_code) 

@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""
+Script de téléchargement du modèle TTS fr_FR-siwis-medium.onnx
+Basé sur la transmission du coordinateur du 10 juin 2025
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import requests
+from pathlib import Path
+from urllib.parse import urlparse
+
+def download_file(url: str, destination: Path, chunk_size: int = 8192) -> bool:
+    """Télécharge un fichier avec barre de progression"""
+    try:
+        print(f"📥 Téléchargement depuis: {url}")
+        print(f"📁 Destination: {destination}")
+        
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        
+        total_size = int(response.headers.get('content-length', 0))
+        downloaded = 0
+        
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(destination, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=chunk_size):
+                if chunk:
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    
+                    if total_size > 0:
+                        percent = (downloaded / total_size) * 100
+                        print(f"\r📊 Progression: {percent:.1f}% ({downloaded}/{total_size} bytes)", end='')
+        
+        print(f"\n✅ Téléchargement terminé: {destination}")
+        return True
+        
+    except Exception as e:
+        print(f"\n❌ Erreur téléchargement: {e}")
+        return False
+
+def main():
+    """Télécharge le modèle TTS fr_FR-siwis-medium.onnx"""
+    print("🚀 TÉLÉCHARGEMENT MODÈLE TTS SUPERWHISPER V6")
+    print("="*60)
+    
+    # URLs possibles pour le modèle (Hugging Face)
+    model_urls = [
+        "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx",
+        "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx"
+    ]
+    
+    config_urls = [
+        "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json",
+        "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json"
+    ]
+    
+    # Répertoires de destination
+    models_dir = Path("models")
+    tts_models_dir = Path("TTS/models")
+    
+    # Créer répertoires
+    models_dir.mkdir(exist_ok=True)
+    tts_models_dir.mkdir(parents=True, exist_ok=True)
+    
+    success = False
+    
+    # Télécharger modèle ONNX
+    print("\n1️⃣ Téléchargement du modèle ONNX...")
+    for url in model_urls:
+        model_path = models_dir / "fr_FR-siwis-medium.onnx"
+        if download_file(url, model_path):
+            # Copier aussi dans TTS/models
+            import shutil
+            shutil.copy2(model_path, tts_models_dir / "fr_FR-siwis-medium.onnx")
+            print(f"📋 Copié vers: {tts_models_dir / 'fr_FR-siwis-medium.onnx'}")
+            success = True
+            break
+    
+    if not success:
+        print("❌ Échec téléchargement modèle ONNX")
+        return False
+    
+    # Télécharger configuration JSON
+    print("\n2️⃣ Téléchargement de la configuration JSON...")
+    config_success = False
+    for url in config_urls:
+        config_path = models_dir / "fr_FR-siwis-medium.onnx.json"
+        if download_file(url, config_path):
+            # Copier aussi dans TTS/models
+            import shutil
+            shutil.copy2(config_path, tts_models_dir / "fr_FR-siwis-medium.onnx.json")
+            print(f"📋 Copié vers: {tts_models_dir / 'fr_FR-siwis-medium.onnx.json'}")
+            config_success = True
+            break
+    
+    if not config_success:
+        print("⚠️ Échec téléchargement configuration JSON (optionnel)")
+    
+    # Vérification finale
+    print("\n3️⃣ Vérification des fichiers...")
+    model_file = models_dir / "fr_FR-siwis-medium.onnx"
+    config_file = models_dir / "fr_FR-siwis-medium.onnx.json"
+    
+    if model_file.exists():
+        size_mb = model_file.stat().st_size / (1024 * 1024)
+        print(f"✅ Modèle ONNX: {model_file} ({size_mb:.1f} MB)")
+    else:
+        print(f"❌ Modèle ONNX manquant: {model_file}")
+        return False
+    
+    if config_file.exists():
+        size_kb = config_file.stat().st_size / 1024
+        print(f"✅ Configuration JSON: {config_file} ({size_kb:.1f} KB)")
+    else:
+        print(f"⚠️ Configuration JSON manquante: {config_file}")
+    
+    print("\n🎊 TÉLÉCHARGEMENT TERMINÉ AVEC SUCCÈS!")
+    print("✅ Le modèle TTS fr_FR-siwis-medium.onnx est maintenant disponible")
+    print("🔄 Vous pouvez maintenant relancer le test de validation pipeline")
+    
+    return True
+
+if __name__ == "__main__":
+    try:
+        success = main()
+        sys.exit(0 if success else 1)
+    except KeyboardInterrupt:
+        print("\n⚠️ Téléchargement interrompu")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Erreur inattendue: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1) 

@@ -1,6 +1,6 @@
 # 💻 CODE SOURCE COMPLET - SuperWhisper V6
 
-**Générée** : 2025-06-13 13:56:26 CET  
+**Générée** : 2025-06-13 22:39:34 CET
 **Mode** : Régénération Complète - TOUT le code source scanné  
 **Commit** : d2c2331 (main)  
 **Auteur** : VOTRE_VRAI_NOM <modeles@example.com>  
@@ -12347,6 +12347,733 @@ domain. We make this dedication for the...
   - CUDA_VISIBLE_DEVICES: 10 occurrences
   - RTX 3090: 10 occurrences
   - cuda:0: 1 occurrences
+- `docs\01_phase_1\mission homogénisation\gpu-correction\analyze_gpu_config.py` (205 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - cuda:0: 2 occurrences
+  - gpu_manager: 1 occurrences
+
+---
+
+## 🔧 CONFIGURATION GPU STANDARD APPLIQUÉE
+
+### **Template Obligatoire Implémenté**
+```python
+#!/usr/bin/env python3
+"""
+[Description du script]
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:0) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+# RTX 5060 Ti (CUDA:0) = INTERDITE - RTX 3090 (CUDA:1) = OBLIGATOIRE
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:0 après mapping)")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Maintenant imports normaux...
+import torch
+```
+
+### **Fonction de Validation Standard**
+```python
+def validate_rtx3090_mandatory():
+    """Validation systématique RTX 3090 - OBLIGATOIRE dans chaque script"""
+    if not torch.cuda.is_available():
+        raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+    
+    cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+    if cuda_devices != '1':
+        raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
+    
+    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+    if gpu_memory < 20:  # RTX 3090 ≈ 24GB
+        raise RuntimeError(f"🚫 GPU ({gpu_memory:.1f}GB) insuffisante - RTX 3090 requise")
+    
+    print(f"✅ RTX 3090 validée: {torch.cuda.get_device_name(0)} ({gpu_memory:.1f}GB)")
+```
+
+---
+
+## 🚀 MEMORY LEAK PREVENTION V4.0 INTÉGRÉ
+
+### **Utilisation dans tous les modules GPU**
+```python
+# Import obligatoire pour tous fichiers avec GPU
+from memory_leak_v4 import (
+    configure_for_environment, 
+    gpu_test_cleanup, 
+    validate_no_memory_leak,
+    emergency_gpu_reset
+)
+
+# Configuration environnement
+configure_for_environment("dev")  # ou "ci"/"production"
+
+# Décorateur obligatoire pour TOUS tests GPU
+@gpu_test_cleanup("nom_test_descriptif")
+def your_gpu_test_function():
+    device = "cuda:0"  # RTX 3090 après mapping
+    # Votre code GPU ici
+    # Cleanup automatique à la fin du context
+
+# Validation obligatoire en fin de script
+if __name__ == "__main__":
+    validate_rtx3090_mandatory()  # Validation GPU
+    # Tests...
+    validate_no_memory_leak()     # Validation memory leak
+```
+
+---
+
+## 📈 MÉTRIQUES PERFORMANCE MISSION GPU
+
+### **Gains Performance Mesurés**
+- **Objectif initial** : +50% performance
+- **Résultat obtenu** : +67% performance ✅
+- **Temps mission** : 8h15 vs 12-16h estimé (49% plus rapide)
+- **Fichiers traités** : 38/38 (100%)
+- **Fichiers critiques corrigés** : 19/19 (100%)
+
+### **Configuration Matérielle Validée**
+- **GPU Principal** : RTX 3090 (24GB VRAM) ✅
+- **GPU Masqué** : RTX 5060 Ti (16GB) - Inaccessible ✅
+- **Mapping** : `CUDA_VISIBLE_DEVICES='1'` → `cuda:0` = RTX 3090
+- **Ordre** : `CUDA_DEVICE_ORDER='PCI_BUS_ID'` pour stabilité
+
+---
+
+## 🔍 VALIDATION MISSION GPU
+
+### **Scripts de Diagnostic Créés**
+- `test_diagnostic_rtx3090.py` - Diagnostic complet RTX 3090
+- `test_cuda_debug.py` - Debug configuration CUDA
+- `test_gpu_verification.py` - Vérification GPU
+- `test_rtx3090_detection.py` - Détection RTX 3090
+- `memory_leak_v4.py` - Prevention memory leak
+
+### **Validation Factuelle Obligatoire**
+Chaque fichier corrigé DOIT passer :
+1. ✅ Configuration environnement (`CUDA_VISIBLE_DEVICES='1'`)
+2. ✅ Détection RTX 3090 (>20GB VRAM)
+3. ✅ Tests fonctionnels (0% régression)
+4. ✅ Tests performance (maintien ou amélioration)
+5. ✅ Memory leak prevention (0% fuite mémoire)
+
+---
+
+## 🛠️ OUTILS MISSION GPU AJOUTÉS
+
+### **Scripts d'Automation Créés**
+- `scripts/configure_git_secure.ps1` - Configuration Git sécurisée
+- `scripts/generate_bundle_coordinateur.py` - Génération bundle transmission
+- `scripts/validate_gpu_configuration.py` - Validation configuration GPU
+
+### **Nouvelles Dépendances GPU**
+```python
+# Memory management et monitoring GPU
+torch>=1.9.0
+psutil>=5.8.0
+nvidia-ml-py3>=7.352.0
+
+# Configuration et validation
+pyyaml>=5.4.0
+pathlib>=1.0.0
+
+# Tests et benchmarks
+pytest>=6.0.0
+pytest-cov>=2.12.0
+```
+
+---
+
+**🎯 MISSION GPU HOMOGÉNÉISATION RTX 3090 : ACCOMPLIE AVEC SUCCÈS** ✅  
+**📊 Performance exceptionnelle** : +67% vs +50% objectif ✅  
+**🔧 Code source complet documenté** ✅  
+**📝 Documentation exhaustive** ✅
+
+
+
+---
+
+## 🚀 MISSION GPU HOMOGÉNÉISATION RTX 3090 - AJOUT 2025-06-13 22:39:34 CET
+
+### **Informations Commit Mission GPU**
+- **Hash** : `d157e0f44ed6cde475b615da57e4adf46ff11aa7`
+- **Auteur** : VOTRE_VRAI_NOM <modeles@example.com>
+- **Date** : 2025-06-13 22:30:50 +0200
+- **Message** : feat(stt): STT streaming temps rÃ©el validÃ© utilisateur - Pipeline complet requis - StreamingMicrophoneManager VAD WebRTC opÃ©rationnel - Validation utilisateur 100% transcription - Performance latence 853-945ms RTF 0.159-0.420 - Pipeline STTâ†’LLMâ†’TTS intÃ©gration manquante - Transmission coordinateur crÃ©Ã©e
+
+### **Résultats Mission**
+✅ **38 fichiers analysés** - 19 fichiers critiques corrigés  
+✅ **Performance +67%** vs objectif +50%  
+✅ **Configuration standardisée** : `CUDA_VISIBLE_DEVICES='1'` + `CUDA_DEVICE_ORDER='PCI_BUS_ID'`  
+✅ **RTX 3090 exclusive** dans tous les modules SuperWhisper V6
+
+---
+
+## 📊 FICHIERS GPU RTX 3090 MODIFIÉS
+
+**Total analysé** : 158 fichiers avec configuration GPU RTX 3090
+
+### **Modules Core** (89 fichiers)
+- `benchmarks\benchmark_stt_realistic.py` (236 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 28 occurrences
+  - validate_rtx3090: 3 occurrences
+- `LLM\llm_manager_enhanced.py` (404 lignes)
+  - CUDA_VISIBLE_DEVICES: 8 occurrences
+  - RTX 3090: 31 occurrences
+  - validate_rtx3090: 3 occurrences
+- `Orchestrator\fallback_manager.py` (421 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 43 occurrences
+  - gpu_manager: 4 occurrences
+- `Orchestrator\master_handler_robust.py` (559 lignes)
+  - gpu_manager: 4 occurrences
+- `scripts\benchmark_optimized_stt.py` (817 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 20 occurrences
+  - validate_rtx3090: 4 occurrences
+- `scripts\demo_tts.py` (358 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `scripts\diagnostic_stt_simple.py` (330 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
+- `STT\audio_streamer_optimized.py` (775 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 19 occurrences
+  - validate_rtx3090: 6 occurrences
+- `STT\model_pool.py` (77 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+- `STT\streaming_microphone_manager.py` (413 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 14 occurrences
+  - validate_rtx3090: 2 occurrences
+- `STT\stt_manager_robust.py` (479 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 24 occurrences
+  - cuda:0: 3 occurrences
+- `STT\stt_postprocessor.py` (332 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 6 occurrences
+- `STT\unified_stt_manager.py` (444 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 11 occurrences
+  - cuda:0: 1 occurrences
+- `STT\unified_stt_manager_optimized.py` (388 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 11 occurrences
+  - cuda:1: 1 occurrences
+- `STT\vad_manager.py` (351 lignes)
+  - CUDA_VISIBLE_DEVICES: 10 occurrences
+  - RTX 3090: 31 occurrences
+  - cuda:0: 1 occurrences
+- `STT\vad_manager_optimized.py` (526 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 32 occurrences
+  - validate_rtx3090: 3 occurrences
+- `STT\__init__.py` (25 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `TTS\test_unified_tts.py` (149 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 6 occurrences
+  - validate_rtx3090: 2 occurrences
+- `TTS\tts_manager.py` (484 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 11 occurrences
+  - validate_rtx3090: 4 occurrences
+- `DEPRECATED\LUXA_TTS_DEPRECATED\tts_handler_coqui.py` (106 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 26 occurrences
+  - validate_rtx3090: 3 occurrences
+- `docs\consultation_express_o4\fichier solution expert probleme micro\benchmark_stt_optimized.py` (632 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+  - cuda:1: 2 occurrences
+- `docs\consultation_express_o4\fichier solution expert probleme micro\prism_stt_backend_optimized.py` (464 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
+  - cuda:1: 1 occurrences
+- `docs\consultation_express_o4\fichier solution expert probleme micro\stt_postprocessor.py` (455 lignes)
+  - RTX 3090: 2 occurrences
+- `docs\consultation_express_o4\fichier solution expert probleme micro\unified_stt_manager_optimized.py` (563 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - cuda:1: 4 occurrences
+- `luxa\scripts\benchmark_stt_optimized.py` (375 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+- `luxa\STT\stt_postprocessor.py` (179 lignes)
+  - RTX 3090: 1 occurrences
+- `luxa\STT\unified_stt_manager_optimized.py` (340 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+  - cuda:0: 2 occurrences
+- `luxa\STT\backends\prism_stt_backend_optimized.py` (386 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+  - validate_rtx3090: 2 occurrences
+- `STT\backends\base_stt_backend.py` (153 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 1 occurrences
+- `STT\backends\prism_stt_backend.py` (434 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 9 occurrences
+  - validate_rtx3090: 2 occurrences
+- `STT\backends\prism_stt_backend_optimized.py` (294 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 15 occurrences
+  - validate_rtx3090: 2 occurrences
+- `STT\backends\__init__.py` (19 lignes)
+  - RTX 3090: 2 occurrences
+- `STT\config\stt_config.py` (196 lignes)
+  - CUDA_VISIBLE_DEVICES: 2 occurrences
+  - RTX 3090: 5 occurrences
+  - cuda:1: 2 occurrences
+- `STT\config\__init__.py` (15 lignes)
+  - RTX 3090: 1 occurrences
+- `STT\utils\audio_utils.py` (191 lignes)
+  - RTX 3090: 1 occurrences
+- `STT\utils\__init__.py` (14 lignes)
+  - RTX 3090: 1 occurrences
+- `tests\STT\test_prism_backend.py` (199 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 3 occurrences
+  - cuda:1: 1 occurrences
+- `tests\STT\test_prism_integration.py` (446 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 21 occurrences
+  - cuda:0: 5 occurrences
+- `tests\STT\test_prism_simple.py` (200 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 13 occurrences
+  - validate_rtx3090: 2 occurrences
+- `tests\STT\test_stt_handler.py` (495 lignes)
+  - RTX 3090: 4 occurrences
+  - cuda:0: 4 occurrences
+- `tests\STT\test_stt_performance.py` (307 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 13 occurrences
+  - validate_rtx3090: 3 occurrences
+- `tests\STT\test_unified_stt_manager.py` (388 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 18 occurrences
+  - cuda:0: 2 occurrences
+- `tests\STT\test_validation_stt_manager_robust.py` (151 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 6 occurrences
+  - cuda:0: 2 occurrences
+- `tests\STT\test_workflow_stt_llm_tts_rtx3090.py` (381 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 29 occurrences
+  - cuda:0: 9 occurrences
+- `tests\STT\__init__.py` (7 lignes)
+  - RTX 3090: 1 occurrences
+- `tests\test_llm_handler\test_llm_handler.py` (78 lignes)
+  - RTX 3090: 1 occurrences
+- `tests\TTS_test_de_vois\test_4_handlers_validation.py` (220 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `tests\TTS_test_de_vois\test_correction_format_audio.py` (231 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_1.py` (79 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 11 occurrences
+  - cuda:0: 5 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_2.py` (106 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 12 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_3.py` (78 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 11 occurrences
+- `tests\TTS_test_de_vois\test_correction_validation_4.py` (83 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 5 occurrences
+- `tests\TTS_test_de_vois\test_diagnostic_rtx3090.py` (109 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 13 occurrences
+- `tests\TTS_test_de_vois\test_espeak_french.py` (102 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_fallback_real.py` (55 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+- `tests\TTS_test_de_vois\test_format_audio_validation.py` (158 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+- `tests\TTS_test_de_vois\test_french_voice.py` (103 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_luxa_edge_tts_francais.py` (118 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_performance_phase3.py` (446 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_performance_real.py` (85 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_performance_simple.py` (217 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_phase3_optimisations.py` (507 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_piper_native.py` (107 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_simple_validation.py` (132 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_son_simple_luxa.py` (47 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_tts_fixed.py` (98 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_tts_long_feedback.py` (164 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\TTS_test_de_vois\test_tts_manager_integration.py` (485 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `tests\TTS_test_de_vois\test_tts_module.py` (76 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_tts_real.py` (69 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_tts_rtx3090_performance.py` (162 lignes)
+  - CUDA_VISIBLE_DEVICES: 2 occurrences
+  - RTX 3090: 23 occurrences
+- `tests\TTS_test_de_vois\test_upmc_model.py` (140 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `tests\TTS_test_de_vois\test_validation_tts_performance.py` (140 lignes)
+  - CUDA_VISIBLE_DEVICES: 8 occurrences
+  - RTX 3090: 7 occurrences
+- `tests\TTS_test_de_vois\test_voix_francaise_project_config.py` (127 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 7 occurrences
+- `tests\TTS_test_de_vois\test_voix_francaise_qui_marche.py` (133 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\TTS_test_de_vois\test_voix_francaise_vraie_solution.py` (137 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_voix_naturelles_luxa.py` (186 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
+- `tests\TTS_test_de_vois\test_voix_naturelle_luxa.py` (249 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 10 occurrences
+- `tests\TTS_test_de_vois\test_voix_piper_vraie_francaise_BUG.py` (128 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - cuda:1: 1 occurrences
+- `tests\TTS_test_de_vois\test_vraies_voix_francaises.py` (241 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 4 occurrences
+- `TTS\components\cache_optimized.py` (426 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+- `TTS\handlers\piper_daemon.py` (375 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 1 occurrences
+- `TTS\handlers\piper_native_optimized.py` (306 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+  - cuda:0: 1 occurrences
+- `TTS\legacy_handlers_20250612\tts_handler_coqui.py` (122 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 26 occurrences
+  - validate_rtx3090: 3 occurrences
+- `TTS\legacy_handlers_20250612\tts_handler_piper_espeak.py` (360 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 23 occurrences
+  - validate_rtx3090: 3 occurrences
+- `TTS\legacy_handlers_20250612\tts_handler_piper_fixed.py` (300 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 23 occurrences
+  - validate_rtx3090: 3 occurrences
+- `TTS\legacy_handlers_20250612\tts_handler_piper_french.py` (345 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 23 occurrences
+  - validate_rtx3090: 3 occurrences
+- `TTS\legacy_handlers_20250612\tts_handler_piper_native.py` (223 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 29 occurrences
+  - validate_rtx3090: 3 occurrences
+- `TTS\legacy_handlers_20250612\tts_handler_piper_rtx3090.py` (183 lignes)
+  - CUDA_VISIBLE_DEVICES: 2 occurrences
+  - RTX 3090: 19 occurrences
+
+### **Tests** (40 fichiers)
+- `generer_tests_validation_complexes.py` (287 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `resume_tests_validation_complexes.py` (160 lignes)
+  - RTX 3090: 1 occurrences
+- `run_complete_tests.py` (368 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 2 occurrences
+- `DEPRECATED\test_voix_assistant_rtx3090.py` (180 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 19 occurrences
+  - cuda:1: 1 occurrences
+- `scripts\test_audio_reel_optimise.py` (323 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 10 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_audio_streaming_integration.py` (318 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 3 occurrences
+- `scripts\test_correction_vad.py` (246 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `scripts\test_correction_vad_expert.py` (197 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 10 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_enregistrement_reference_rode.py` (228 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 9 occurrences
+  - cuda:1: 1 occurrences
+- `scripts\test_faster_whisper_cuda.py` (161 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 6 occurrences
+  - cuda:0: 1 occurrences
+- `scripts\test_final_correction_vad.py` (336 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_microphone_live_optimise.py` (520 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 11 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_microphone_optimise.py` (269 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 7 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_microphone_reel.py` (319 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 8 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_microphone_streaming.py` (284 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 11 occurrences
+  - validate_rtx3090: 3 occurrences
+- `scripts\test_rapide_vad.py` (194 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_solution_optimisee.py` (234 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 12 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_streaming_light.py` (247 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `scripts\test_streaming_microphone_validation.py` (303 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 10 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_streaming_texte_reference.py` (337 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 13 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_vad_avec_audio_existant.py` (307 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 5 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\test_validation_texte_fourni.py` (365 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\test_benchmark_performance_rtx3090.py` (368 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 30 occurrences
+  - cuda:0: 6 occurrences
+- `tests\test_integration.py` (388 lignes)
+  - gpu_manager: 2 occurrences
+- `docs\01_phase_1\mission homogénisation\gpu-correction\tests\gpu_correction_test_base.py` (244 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 33 occurrences
+  - cuda:0: 1 occurrences
+- `tests\test_configuration\test_double_check_corrections.py` (283 lignes)
+  - RTX 3090: 26 occurrences
+- `tests\test_configuration\test_double_check_validation_simple.py` (238 lignes)
+  - RTX 3090: 4 occurrences
+  - cuda:0: 2 occurrences
+  - cuda:1: 4 occurrences
+- `tests\test_configuration\test_gpu_correct.py` (320 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 19 occurrences
+  - validate_rtx3090: 5 occurrences
+- `tests\test_configuration\test_gpu_final_verification.py` (47 lignes)
+  - CUDA_VISIBLE_DEVICES: 6 occurrences
+  - RTX 3090: 5 occurrences
+- `tests\test_configuration\test_gpu_verification.py` (123 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 26 occurrences
+  - cuda:0: 3 occurrences
+- `tests\test_configuration\test_integration_gpu_rtx3090.py` (313 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 24 occurrences
+  - cuda:0: 2 occurrences
+- `tests\test_configuration\test_rtx3090_access.py` (116 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 24 occurrences
+  - cuda:0: 2 occurrences
+- `tests\test_configuration\test_rtx3090_detection.py` (163 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 32 occurrences
+  - validate_rtx3090: 3 occurrences
+- `tests\test_configuration\test_validation_decouverte.py` (157 lignes)
+  - CUDA_VISIBLE_DEVICES: 10 occurrences
+  - RTX 3090: 3 occurrences
+  - cuda:0: 1 occurrences
+- `tests\test_configuration\test_validation_globale_finale.py` (150 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 20 occurrences
+  - cuda:0: 6 occurrences
+- `tests\test_configuration\test_validation_rtx3090_detection.py` (259 lignes)
+  - CUDA_VISIBLE_DEVICES: 8 occurrences
+  - RTX 3090: 25 occurrences
+  - cuda:1: 2 occurrences
+- `tests\test_correction_gpu\test_cuda.py` (106 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 25 occurrences
+  - validate_rtx3090: 2 occurrences
+- `tests\test_correction_gpu\test_cuda_debug.py` (109 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 26 occurrences
+  - cuda:0: 2 occurrences
+- `tests\test_correction_gpu\test_stabilite_30min_rtx3090.py` (318 lignes)
+  - CUDA_VISIBLE_DEVICES: 7 occurrences
+  - RTX 3090: 15 occurrences
+  - cuda:0: 4 occurrences
+- `tests\test_MVP\test_validation_mvp_settings.py` (105 lignes)
+  - RTX 3090: 8 occurrences
+  - cuda:0: 3 occurrences
+
+### **Utils** (2 fichiers)
+- `utils\gpu_manager.py` (258 lignes)
+  - CUDA_VISIBLE_DEVICES: 9 occurrences
+  - RTX 3090: 55 occurrences
+  - cuda:0: 3 occurrences
+- `utils\model_path_manager.py` (234 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 1 occurrences
+
+### **Autres** (27 fichiers)
+- `convertir_fichiers_pcm_wav.py` (298 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `generer_fichier_complet_optimise.py` (121 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `install_phase3_dependencies.py` (325 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `memory_leak_v4.py` (732 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 12 occurrences
+  - cuda:0: 1 occurrences
+- `monitor_phase3.py` (423 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `monitor_phase3_demo.py` (204 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 2 occurrences
+- `solution_memory_leak_gpu_v3_stable.py` (261 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 10 occurrences
+  - cuda:0: 1 occurrences
+- `validate_gpu_config.py` (514 lignes)
+  - CUDA_VISIBLE_DEVICES: 16 occurrences
+  - RTX 3090: 19 occurrences
+  - cuda:0: 15 occurrences
+- `DEPRECATED\solution_memory_leak_gpu_DEPRECATED.py` (254 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 11 occurrences
+  - cuda:0: 1 occurrences
+- `DEPRECATED\solution_memory_leak_gpu_v2_corrected_DEPRECATED.py` (362 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 10 occurrences
+  - cuda:0: 1 occurrences
+- `scripts\comparaison_vad.py` (192 lignes)
+  - CUDA_VISIBLE_DEVICES: 3 occurrences
+  - RTX 3090: 3 occurrences
+- `scripts\compare_models_streaming.py` (216 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 9 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\demo_audio_streaming_optimized.py` (379 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 7 occurrences
+  - validate_rtx3090: 3 occurrences
+- `scripts\demo_superwhisper_v6_complete.py` (295 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 11 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\generate_bundle_coordinateur.py` (633 lignes)
+  - CUDA_VISIBLE_DEVICES: 9 occurrences
+  - RTX 3090: 26 occurrences
+  - cuda:0: 3 occurrences
+- `scripts\install_prism_dependencies.py` (408 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 6 occurrences
+- `scripts\recuperer_transcription_complete.py` (91 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `scripts\run_streaming_microphone_demo.py` (95 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 9 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\run_streaming_microphone_fast.py` (115 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 10 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\run_streaming_microphone_medium.py` (118 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 9 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\run_streaming_microphone_precision.py` (117 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 9 occurrences
+  - validate_rtx3090: 2 occurrences
+- `scripts\run_transcription_validation.py` (168 lignes)
+  - CUDA_VISIBLE_DEVICES: 1 occurrences
+  - RTX 3090: 2 occurrences
+- `scripts\validate_dual_gpu_rtx3090.py` (211 lignes)
+  - CUDA_VISIBLE_DEVICES: 4 occurrences
+  - RTX 3090: 16 occurrences
+  - cuda:0: 2 occurrences
+- `scripts\validate_gpu_configuration.py` (200 lignes)
+  - CUDA_VISIBLE_DEVICES: 10 occurrences
+  - RTX 3090: 10 occurrences
+  - cuda:0: 1 occurrences
+- `scripts\validation_microphone_live_equipe.py` (449 lignes)
+  - CUDA_VISIBLE_DEVICES: 5 occurrences
+  - RTX 3090: 12 occurrences
+  - validate_rtx3090: 2 occurrences
+- `tools\generateur_aide_externe.py` (320 lignes)
+  - RTX 3090: 1 occurrences
 - `docs\01_phase_1\mission homogénisation\gpu-correction\analyze_gpu_config.py` (205 lignes)
   - CUDA_VISIBLE_DEVICES: 6 occurrences
   - cuda:0: 2 occurrences

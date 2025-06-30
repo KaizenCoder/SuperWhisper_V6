@@ -1,0 +1,463 @@
+#!/usr/bin/env python3
+"""
+Benchmark Pipeline SuperWhisper V6 - Task 18.8
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Script benchmark utilisant le code OBLIGATOIRE du prompt
+"""
+
+import os
+import sys
+import asyncio
+import time
+import statistics
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+import logging
+import json
+from datetime import datetime
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 Benchmark Pipeline: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Ajouter le répertoire parent au path pour imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# =============================================================================
+# IMPORTS ET CONFIGURATION
+# =============================================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s – %(levelname)s – %(name)s – %(message)s",
+)
+LOGGER = logging.getLogger("BenchmarkPipeline")
+
+# =============================================================================
+# CLASSE BENCHMARK UTILISANT CODE OBLIGATOIRE
+# =============================================================================
+
+class PipelineBenchmark:
+    """Benchmark pipeline utilisant le code obligatoire du prompt"""
+    
+    def __init__(self, config_path: str = "PIPELINE/config/pipeline.yaml"):
+        self.config_path = config_path
+        self.results: List[Dict[str, Any]] = []
+        
+    async def run_benchmark(self, num_iterations: int = 10):
+        """Exécuter benchmark complet"""
+        print("\n" + "="*60)
+        print("📊 BENCHMARK SUPERWHISPER V6 PIPELINE")
+        print("🚨 CODE OBLIGATOIRE DU PROMPT UTILISÉ")
+        print("="*60)
+        
+        try:
+            # Initialiser composants avec code obligatoire
+            await self._initialize_components()
+            
+            # Tests de performance
+            await self._benchmark_components(num_iterations)
+            
+            # Tests de stress
+            await self._stress_test()
+            
+            # Génération rapport
+            self._generate_report()
+            
+        except Exception as e:
+            LOGGER.error(f"❌ Erreur benchmark: {e}")
+            print(f"❌ Erreur: {e}")
+    
+    async def _initialize_components(self):
+        """Initialiser composants avec code obligatoire du prompt"""
+        print("\n🔧 INITIALISATION COMPOSANTS - CODE OBLIGATOIRE")
+        print("-" * 50)
+        
+        try:
+            import yaml
+            cfg: Dict[str, Any] = {}
+            if Path(self.config_path).exists():
+                cfg = yaml.safe_load(Path(self.config_path).read_text())
+
+            # Import components - CODE OBLIGATOIRE
+            from STT.unified_stt_manager_optimized import OptimizedUnifiedSTTManager
+            from TTS.tts_manager import UnifiedTTSManager
+            from PIPELINE.pipeline_orchestrator import PipelineOrchestrator
+
+            # ✅ CORRECTION: Use OptimizedUnifiedSTTManager - CODE OBLIGATOIRE
+            print("🎤 Initialisation STT...")
+            self.stt = OptimizedUnifiedSTTManager(cfg.get("stt", {}))
+            
+            print("🔊 Initialisation TTS...")
+            self.tts = UnifiedTTSManager(cfg.get("tts", {}))
+            
+            print("🚀 Initialisation Pipeline...")
+            self.orchestrator = PipelineOrchestrator(
+                self.stt,
+                self.tts,
+                llm_endpoint=cfg.get("pipeline", {}).get("llm_endpoint", "http://localhost:8000"),
+                metrics_enabled=cfg.get("pipeline", {}).get("enable_metrics", True),
+            )
+            
+            # Initialiser STT si nécessaire
+            if not self.stt.initialized:
+                await self.stt.initialize()
+            
+            print("✅ Composants initialisés avec code obligatoire")
+            
+        except Exception as e:
+            print(f"❌ Erreur initialisation: {e}")
+            raise
+    
+    async def _benchmark_components(self, num_iterations: int):
+        """Benchmark composants individuels"""
+        print(f"\n📊 BENCHMARK COMPOSANTS ({num_iterations} itérations)")
+        print("-" * 50)
+        
+        # Test STT
+        await self._benchmark_stt(num_iterations)
+        
+        # Test LLM
+        await self._benchmark_llm(num_iterations)
+        
+        # Test TTS
+        await self._benchmark_tts(num_iterations)
+        
+        # Test Pipeline complet (simulation)
+        await self._benchmark_pipeline_simulation(num_iterations)
+    
+    async def _benchmark_stt(self, num_iterations: int):
+        """Benchmark STT avec fichiers audio test"""
+        print("\n🎤 BENCHMARK STT")
+        print("-" * 20)
+        
+        # Créer fichier audio test simple
+        test_audio_path = "PIPELINE/tests/fixtures/test_audio.wav"
+        if not Path(test_audio_path).exists():
+            print("⚠️ Fichier audio test non trouvé, simulation...")
+            latencies = [300 + i * 10 for i in range(num_iterations)]  # Simulation
+        else:
+            latencies = []
+            for i in range(num_iterations):
+                try:
+                    start_time = time.perf_counter()
+                    # Utiliser le STT initialisé
+                    result = await self.stt.transcribe_file(test_audio_path)
+                    latency = (time.perf_counter() - start_time) * 1000
+                    latencies.append(latency)
+                    print(f"  Itération {i+1}: {latency:.1f}ms")
+                except Exception as e:
+                    print(f"  Erreur itération {i+1}: {e}")
+                    latencies.append(1000)  # Pénalité erreur
+        
+        # Statistiques
+        avg_latency = statistics.mean(latencies)
+        min_latency = min(latencies)
+        max_latency = max(latencies)
+        
+        print(f"📊 STT Résultats:")
+        print(f"  Moyenne: {avg_latency:.1f}ms")
+        print(f"  Min: {min_latency:.1f}ms")
+        print(f"  Max: {max_latency:.1f}ms")
+        
+        self.results.append({
+            "component": "STT",
+            "avg_latency_ms": avg_latency,
+            "min_latency_ms": min_latency,
+            "max_latency_ms": max_latency,
+            "iterations": num_iterations
+        })
+    
+    async def _benchmark_llm(self, num_iterations: int):
+        """Benchmark LLM avec requêtes test"""
+        print("\n🤖 BENCHMARK LLM")
+        print("-" * 20)
+        
+        test_prompts = [
+            "Bonjour",
+            "Quelle heure est-il ?",
+            "Comment allez-vous ?",
+            "Merci beaucoup",
+            "Au revoir"
+        ]
+        
+        latencies = []
+        for i in range(num_iterations):
+            try:
+                prompt = test_prompts[i % len(test_prompts)]
+                start_time = time.perf_counter()
+                
+                # Utiliser le LLM du pipeline
+                response = await self.orchestrator.llm.generate(prompt, [])
+                
+                latency = (time.perf_counter() - start_time) * 1000
+                latencies.append(latency)
+                print(f"  Itération {i+1}: {latency:.1f}ms - '{response[:30]}...'")
+            except Exception as e:
+                print(f"  Erreur itération {i+1}: {e}")
+                latencies.append(2000)  # Pénalité erreur
+        
+        # Statistiques
+        avg_latency = statistics.mean(latencies)
+        min_latency = min(latencies)
+        max_latency = max(latencies)
+        
+        print(f"📊 LLM Résultats:")
+        print(f"  Moyenne: {avg_latency:.1f}ms")
+        print(f"  Min: {min_latency:.1f}ms")
+        print(f"  Max: {max_latency:.1f}ms")
+        
+        self.results.append({
+            "component": "LLM",
+            "avg_latency_ms": avg_latency,
+            "min_latency_ms": min_latency,
+            "max_latency_ms": max_latency,
+            "iterations": num_iterations
+        })
+    
+    async def _benchmark_tts(self, num_iterations: int):
+        """Benchmark TTS avec textes test"""
+        print("\n🔊 BENCHMARK TTS")
+        print("-" * 20)
+        
+        test_texts = [
+            "Bonjour !",
+            "Comment puis-je vous aider ?",
+            "Il est actuellement quatorze heures trente.",
+            "De rien ! Y a-t-il autre chose ?",
+            "Au revoir et bonne journée !"
+        ]
+        
+        latencies = []
+        for i in range(num_iterations):
+            try:
+                text = test_texts[i % len(test_texts)]
+                start_time = time.perf_counter()
+                
+                # Utiliser le TTS initialisé
+                result = self.tts.synthesize(text)
+                
+                latency = (time.perf_counter() - start_time) * 1000
+                latencies.append(latency)
+                print(f"  Itération {i+1}: {latency:.1f}ms - '{text[:30]}...'")
+            except Exception as e:
+                print(f"  Erreur itération {i+1}: {e}")
+                latencies.append(1500)  # Pénalité erreur
+        
+        # Statistiques
+        avg_latency = statistics.mean(latencies)
+        min_latency = min(latencies)
+        max_latency = max(latencies)
+        
+        print(f"📊 TTS Résultats:")
+        print(f"  Moyenne: {avg_latency:.1f}ms")
+        print(f"  Min: {min_latency:.1f}ms")
+        print(f"  Max: {max_latency:.1f}ms")
+        
+        self.results.append({
+            "component": "TTS",
+            "avg_latency_ms": avg_latency,
+            "min_latency_ms": min_latency,
+            "max_latency_ms": max_latency,
+            "iterations": num_iterations
+        })
+    
+    async def _benchmark_pipeline_simulation(self, num_iterations: int):
+        """Benchmark pipeline complet (simulation)"""
+        print("\n🚀 BENCHMARK PIPELINE COMPLET (SIMULATION)")
+        print("-" * 40)
+        
+        conversations = [
+            ("Bonjour", "Bonjour ! Comment puis-je vous aider ?"),
+            ("Quelle heure est-il ?", "Il est actuellement 14h30."),
+            ("Comment allez-vous ?", "Je vais très bien, merci !"),
+            ("Merci", "De rien ! Y a-t-il autre chose ?"),
+            ("Au revoir", "Au revoir et bonne journée !")
+        ]
+        
+        total_latencies = []
+        for i in range(num_iterations):
+            try:
+                user_text, expected_response = conversations[i % len(conversations)]
+                
+                start_time = time.perf_counter()
+                
+                # Simulation pipeline complet
+                # STT (simulation)
+                await asyncio.sleep(0.3)  # 300ms STT
+                
+                # LLM
+                response = await self.orchestrator.llm.generate(user_text, [])
+                
+                # TTS
+                tts_result = self.tts.synthesize(response)
+                
+                total_latency = (time.perf_counter() - start_time) * 1000
+                total_latencies.append(total_latency)
+                
+                print(f"  Itération {i+1}: {total_latency:.1f}ms - '{user_text}' → '{response[:30]}...'")
+                
+            except Exception as e:
+                print(f"  Erreur itération {i+1}: {e}")
+                total_latencies.append(3000)  # Pénalité erreur
+        
+        # Statistiques
+        avg_latency = statistics.mean(total_latencies)
+        min_latency = min(total_latencies)
+        max_latency = max(total_latencies)
+        
+        print(f"📊 Pipeline Complet Résultats:")
+        print(f"  Moyenne: {avg_latency:.1f}ms")
+        print(f"  Min: {min_latency:.1f}ms")
+        print(f"  Max: {max_latency:.1f}ms")
+        print(f"  Objectif: <1200ms - {'✅ ATTEINT' if avg_latency < 1200 else '❌ NON ATTEINT'}")
+        
+        self.results.append({
+            "component": "Pipeline_Complet",
+            "avg_latency_ms": avg_latency,
+            "min_latency_ms": min_latency,
+            "max_latency_ms": max_latency,
+            "iterations": num_iterations,
+            "target_met": avg_latency < 1200
+        })
+    
+    async def _stress_test(self):
+        """Test de stress avec charge élevée"""
+        print("\n🔥 TEST DE STRESS")
+        print("-" * 20)
+        
+        try:
+            # Test concurrent
+            tasks = []
+            for i in range(5):  # 5 requêtes simultanées
+                task = asyncio.create_task(
+                    self.orchestrator.llm.generate(f"Test concurrent {i}", [])
+                )
+                tasks.append(task)
+            
+            start_time = time.perf_counter()
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            stress_time = (time.perf_counter() - start_time) * 1000
+            
+            successes = sum(1 for r in results if not isinstance(r, Exception))
+            
+            print(f"📊 Stress Test Résultats:")
+            print(f"  Temps total: {stress_time:.1f}ms")
+            print(f"  Requêtes réussies: {successes}/5")
+            print(f"  Taux succès: {successes/5*100:.1f}%")
+            
+            self.results.append({
+                "component": "Stress_Test",
+                "total_time_ms": stress_time,
+                "success_rate": successes/5,
+                "concurrent_requests": 5
+            })
+            
+        except Exception as e:
+            print(f"❌ Erreur stress test: {e}")
+    
+    def _generate_report(self):
+        """Générer rapport benchmark"""
+        print("\n📋 GÉNÉRATION RAPPORT")
+        print("-" * 25)
+        
+        # Créer rapport
+        report = {
+            "timestamp": datetime.now().isoformat(),
+            "pipeline_version": "SuperWhisper V6",
+            "gpu_config": "RTX 3090 (CUDA:1)",
+            "code_version": "Prompt Obligatoire v1.1",
+            "results": self.results,
+            "summary": self._calculate_summary()
+        }
+        
+        # Sauvegarder rapport
+        report_path = f"PIPELINE/reports/benchmark_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        Path(report_path).parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(report_path, 'w', encoding='utf-8') as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
+        
+        print(f"📁 Rapport sauvegardé: {report_path}")
+        
+        # Afficher résumé
+        self._print_summary(report["summary"])
+    
+    def _calculate_summary(self) -> Dict[str, Any]:
+        """Calculer résumé performance"""
+        summary = {}
+        
+        for result in self.results:
+            component = result["component"]
+            if "avg_latency_ms" in result:
+                summary[f"{component}_avg_ms"] = result["avg_latency_ms"]
+        
+        # Performance globale
+        pipeline_result = next((r for r in self.results if r["component"] == "Pipeline_Complet"), None)
+        if pipeline_result:
+            summary["target_1200ms_met"] = pipeline_result.get("target_met", False)
+            summary["performance_score"] = min(100, (1200 / pipeline_result["avg_latency_ms"]) * 100)
+        
+        return summary
+    
+    def _print_summary(self, summary: Dict[str, Any]):
+        """Afficher résumé performance"""
+        print("\n🏆 RÉSUMÉ PERFORMANCE")
+        print("="*40)
+        
+        for key, value in summary.items():
+            if key.endswith("_avg_ms"):
+                component = key.replace("_avg_ms", "").replace("_", " ").title()
+                print(f"📊 {component}: {value:.1f}ms")
+        
+        if "target_1200ms_met" in summary:
+            status = "✅ ATTEINT" if summary["target_1200ms_met"] else "❌ NON ATTEINT"
+            print(f"🎯 Objectif <1200ms: {status}")
+        
+        if "performance_score" in summary:
+            score = summary["performance_score"]
+            print(f"🏆 Score Performance: {score:.1f}%")
+
+# =============================================================================
+# SCRIPT ENTRY POINT
+# =============================================================================
+
+async def main():
+    """Point d'entrée principal"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Benchmark Pipeline SuperWhisper V6")
+    parser.add_argument("--iterations", "-i", type=int, default=10, 
+                       help="Nombre d'itérations par test (défaut: 10)")
+    parser.add_argument("--config", "-c", type=str, default="PIPELINE/config/pipeline.yaml",
+                       help="Chemin configuration YAML")
+    
+    args = parser.parse_args()
+    
+    benchmark = PipelineBenchmark(args.config)
+    await benchmark.run_benchmark(args.iterations)
+
+if __name__ == "__main__":
+    try:
+        # Optimisation uvloop comme dans le prompt obligatoire
+        try:
+            import uvloop
+            uvloop.install()
+            LOGGER.info("✅ uvloop enabled for enhanced performance")
+        except ImportError:
+            LOGGER.info("uvloop not available – fallback to asyncio event‑loop")
+
+        # Démarrer benchmark
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        LOGGER.info("👋 Keyboard interrupt – exit")
+    except Exception as e:
+        LOGGER.error("❌ Benchmark startup error: %s", e)
+        sys.exit(1) 

@@ -1,0 +1,16 @@
+{
+  "cursor.tmpDir": ".cursor-tmp",
+  "files.autoSave": "onWindowChange",
+  "files.exclude": {
+    ".cursor-tmp/**": true,
+    "**/*.tmp": true,
+    "**/scratch_*.py": true,
+    "**/tmp_*.py": true
+  },
+  "search.exclude": {
+    ".cursor-tmp/**": true,
+    "**/scratch_*.py": true,
+    "**/tmp_*.py": true
+  },
+  "python.defaultInterpreterPath": "./venv/Scripts/python.exe"
+} 

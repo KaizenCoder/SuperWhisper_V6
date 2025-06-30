@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+"""
+Serveur MCP TimeManager pour Cursor
+Fournit des outils de gestion du temps avec persistance
+"""
+
+import asyncio
+import json
+import os
+from pathlib import Path
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+import sys
+
+# Import MCP
+try:
+    from mcp.server import Server
+    from mcp.server.stdio import stdio_server
+    from mcp.types import (
+        CallToolResult,
+        ListToolsResult,
+        TextContent,
+        Tool,
+    )
+except ImportError:
+    print("Erreur: Le package MCP n'est pas installé. Exécutez: pip install mcp", file=sys.stderr)
+    sys.exit(1)
+
+# Import TimeManager
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+try:
+    from utils.time_manager import TimeContextManager
+except ImportError:
+    print("Erreur: TimeManager non trouvé. Assurez-vous que utils/time_manager.py existe.", file=sys.stderr)
+    sys.exit(1)
+
+# Configuration globale
+MEMORY_DIR = Path.home() / ".timemanager_mcp"
+MEMORY_FILE = MEMORY_DIR / "memory.json"
+
+class TimeManagerMCPServer:
+    def __init__(self):
+        self.server = Server("timemanager")
+        self.time_manager = TimeContextManager()
+        self.memory = self._load_memory()
+        
+        # Enregistrer les outils
+        self._register_tools()
+    
+    def _load_memory(self) -> Dict[str, Any]:
+        """Charge la mémoire persistante"""
+        MEMORY_DIR.mkdir(exist_ok=True)
+        if MEMORY_FILE.exists():
+            try:
+                with open(MEMORY_FILE, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Erreur lecture mémoire: {e}", file=sys.stderr)
+        
+        return {
+            "config": {
+                "timezone": "Europe/Paris",
+                "date_format": "iso",
+                "created": datetime.now(timezone.utc).isoformat()
+            },
+            "preferences": {},
+            "history": []
+        }
+    
+    def _save_memory(self):
+        """Sauvegarde la mémoire"""
+        try:
+            with open(MEMORY_FILE, 'w', encoding='utf-8') as f:
+                json.dump(self.memory, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"Erreur sauvegarde mémoire: {e}", file=sys.stderr)
+    
+    def _add_to_history(self, operation: str, result: Any):
+        """Ajoute une opération à l'historique"""
+        self.memory["history"].append({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "operation": operation,
+            "result": str(result)[:200]  # Limiter la taille
+        })
+        
+        # Garder seulement les 100 dernières entrées
+        if len(self.memory["history"]) > 100:
+            self.memory["history"] = self.memory["history"][-100:]
+        
+        self._save_memory()
+    
+    def _register_tools(self):
+        """Enregistre tous les outils MCP"""
+        
+        @self.server.list_tools()
+        async def list_tools() -> ListToolsResult:
+            return ListToolsResult(
+                tools=[
+                    Tool(
+                        name="get_current_time",
+                        description="Obtient l'heure actuelle avec tous les formats disponibles",
+                        inputSchema={
+                            "type": "object",
+                            "properties": {
+                                "include_formats": {
+                                    "type": "boolean",
+                                    "description": "Inclure tous les formats de date",
+                                    "default": True
+                                }
+                            }
+                        }
+                    ),
+                    Tool(
+                        name="format_time",
+                        description="Formate une date dans un format spécifique",
+                        inputSchema={
+                            "type": "object",
+                            "properties": {
+                                "format_type": {
+                                    "type": "string",
+                                    "enum": ["iso", "journal", "transmission", "logging"],
+                                    "description": "Type de format à utiliser"
+                                },
+                                "timestamp": {
+                                    "type": "string",
+                                    "description": "Timestamp ISO à formater (optionnel, utilise l'heure actuelle si omis)"
+                                }
+                            },
+                            "required": ["format_type"]
+                        }
+                    ),
+                    Tool(
+                        name="get_time_memory",
+                        description="Accède à la mémoire persistante et l'historique des opérations",
+                        inputSchema={
+                            "type": "object",
+                            "properties": {
+                                "section": {
+                                    "type": "string",
+                                    "enum": ["config", "preferences", "history", "all"],
+                                    "description": "Section de la mémoire à récupérer",
+                                    "default": "all"
+                                }
+                            }
+                        }
+                    ),
+                    Tool(
+                        name="set_time_preference",
+                        description="Configure les préférences utilisateur pour la gestion du temps",
+                        inputSchema={
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string",
+                                    "description": "Clé de préférence"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "description": "Valeur de préférence"
+                                }
+                            },
+                            "required": ["key", "value"]
+                        }
+                    )
+                ]
+            )
+        
+        @self.server.call_tool()
+        async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
+            try:
+                if name == "get_current_time":
+                    include_formats = arguments.get("include_formats", True)
+                    current_time = self.time_manager.get_current_time()
+                    
+                    result = {
+                        "current_time": current_time.isoformat(),
+                        "timezone": str(current_time.tzinfo)
+                    }
+                    
+                    if include_formats:
+                        result.update({
+                            "iso_format": self.time_manager.get_current_timestamp_iso(),
+                            "journal_format": self.time_manager.format_for_journal(),
+                            "transmission_format": self.time_manager.format_for_transmission(),
+                            "logging_format": self.time_manager.get_current_time().strftime("%Y-%m-%d %H:%M:%S %Z")
+                        })
+                    
+                    self._add_to_history("get_current_time", result)
+                    return CallToolResult(content=[TextContent(type="text", text=json.dumps(result, indent=2))])
+                
+                elif name == "format_time":
+                    format_type = arguments["format_type"]
+                    timestamp_str = arguments.get("timestamp")
+                    
+                    if timestamp_str:
+                        # Parse le timestamp fourni
+                        try:
+                            timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                        except ValueError:
+                            return CallToolResult(content=[TextContent(type="text", text="Erreur: Format de timestamp invalide")])
+                    else:
+                        timestamp = self.time_manager.get_current_time()
+                    
+                    if format_type == "iso":
+                        result = timestamp.isoformat()
+                    elif format_type == "journal":
+                        result = timestamp.strftime("%Y-%m-%d %H:%M")
+                    elif format_type == "transmission":
+                        result = timestamp.strftime("%Y%m%d_%H%M%S")
+                    elif format_type == "logging":
+                        result = timestamp.strftime("%Y-%m-%d %H:%M:%S %Z")
+                    else:
+                        result = timestamp.isoformat()
+                    
+                    self._add_to_history(f"format_time_{format_type}", result)
+                    return CallToolResult(content=[TextContent(type="text", text=result)])
+                
+                elif name == "get_time_memory":
+                    section = arguments.get("section", "all")
+                    
+                    if section == "all":
+                        result = self.memory
+                    elif section in self.memory:
+                        result = self.memory[section]
+                    else:
+                        result = {"error": f"Section '{section}' non trouvée"}
+                    
+                    return CallToolResult(content=[TextContent(type="text", text=json.dumps(result, indent=2, ensure_ascii=False))])
+                
+                elif name == "set_time_preference":
+                    key = arguments["key"]
+                    value = arguments["value"]
+                    
+                    self.memory["preferences"][key] = value
+                    self._save_memory()
+                    
+                    result = f"Préférence '{key}' définie à '{value}'"
+                    self._add_to_history("set_preference", f"{key}={value}")
+                    return CallToolResult(content=[TextContent(type="text", text=result)])
+                
+                else:
+                    return CallToolResult(content=[TextContent(type="text", text=f"Outil '{name}' non reconnu")])
+            
+            except Exception as e:
+                error_msg = f"Erreur dans l'outil '{name}': {str(e)}"
+                return CallToolResult(content=[TextContent(type="text", text=error_msg)])
+    
+    async def run(self):
+        """Lance le serveur MCP"""
+        async with stdio_server() as (read_stream, write_stream):
+            await self.server.run(
+                read_stream, 
+                write_stream, 
+                initialization_options={}
+            )
+
+def main():
+    """Point d'entrée principal"""
+    server = TimeManagerMCPServer()
+    asyncio.run(server.run())
+
+if __name__ == "__main__":
+    main() 

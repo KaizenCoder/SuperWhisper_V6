@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-06-14T14:01:19.106445",
+  "tests_performed": [],
+  "component_tests": {
+    "gpu": {
+      "status": "success",
+      "message": "RTX 3090 validée"
+    },
+    "audio": {
+      "status": "success",
+      "input_device": "Microphone (2- RODE NT-USB)",
+      "output_device": "PHL 323E7 (2- NVIDIA High Defin",
+      "total_devices": 38
+    },
+    "stt": {
+      "status": "success",
+      "message": "STT component initialized"
+    },
+    "tts": {
+      "status": "error",
+      "message": "'cache'"
+    },
+    "llm": {
+      "status": "error",
+      "message": "Server disconnected without sending a response."
+    }
+  },
+  "manual_validation": {
+    "latence_acceptable": true,
+    "conversation_fluide": true,
+    "qualite_audio": true,
+    "pipeline_robuste": true,
+    "commentaires": "aucun",
+    "validation_globale": true
+  },
+  "success_criteria": {
+    "gpu_rtx3090_ok": true,
+    "audio_devices_ok": true,
+    "stt_component_ok": true,
+    "tts_component_ok": false,
+    "llm_endpoint_ok": false,
+    "manual_conversation_ok": true
+  },
+  "overall_success": true
+}

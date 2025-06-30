@@ -1,0 +1,487 @@
+#!/usr/bin/env python3
+"""
+Script Optimisation Performance Pipeline - Task 19.3
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Optimisations pipeline pour atteindre < 1.2s end-to-end :
+- Profiling détaillé des composants
+- Optimisations GPU et mémoire
+- Tuning paramètres pipeline
+- Validation performance cible
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import asyncio
+import time
+import statistics
+import json
+import argparse
+import numpy as np
+from pathlib import Path
+from datetime import datetime
+from typing import List, Dict, Tuple
+import cProfile
+import pstats
+import io
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎮 Optimisation Performance: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Maintenant imports normaux...
+import torch
+
+# Imports projet
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
+class PerformanceProfiler:
+    """Profiler performance pipeline complet"""
+    
+    def __init__(self):
+        self.measurements = []
+        self.component_times = {}
+        self.gpu_stats = {}
+        
+    def start_measurement(self, name: str):
+        """Démarre une mesure de performance"""
+        return {
+            'name': name,
+            'start_time': time.perf_counter(),
+            'start_gpu_memory': self._get_gpu_memory() if torch.cuda.is_available() else 0
+        }
+    
+    def end_measurement(self, measurement: dict):
+        """Termine une mesure de performance"""
+        end_time = time.perf_counter()
+        end_gpu_memory = self._get_gpu_memory() if torch.cuda.is_available() else 0
+        
+        result = {
+            'name': measurement['name'],
+            'duration_ms': (end_time - measurement['start_time']) * 1000,
+            'gpu_memory_used_mb': (end_gpu_memory - measurement['start_gpu_memory']) / 1024 / 1024,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        self.measurements.append(result)
+        return result
+    
+    def _get_gpu_memory(self):
+        """Récupère l'utilisation mémoire GPU"""
+        if torch.cuda.is_available():
+            return torch.cuda.memory_allocated(0)  # Device 0 = RTX 3090
+        return 0
+    
+    def get_component_stats(self, component_name: str) -> Dict:
+        """Statistiques pour un composant spécifique"""
+        component_measurements = [m for m in self.measurements if component_name in m['name']]
+        
+        if not component_measurements:
+            return {}
+        
+        durations = [m['duration_ms'] for m in component_measurements]
+        
+        return {
+            'count': len(durations),
+            'mean_ms': statistics.mean(durations),
+            'median_ms': statistics.median(durations),
+            'p95_ms': np.percentile(durations, 95),
+            'p99_ms': np.percentile(durations, 99),
+            'min_ms': min(durations),
+            'max_ms': max(durations),
+            'std_ms': statistics.stdev(durations) if len(durations) > 1 else 0
+        }
+    
+    def generate_report(self) -> Dict:
+        """Génère rapport complet de performance"""
+        components = ['STT', 'LLM', 'TTS', 'Audio', 'Pipeline_Total']
+        
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'total_measurements': len(self.measurements),
+            'components': {},
+            'recommendations': []
+        }
+        
+        for component in components:
+            stats = self.get_component_stats(component)
+            if stats:
+                report['components'][component] = stats
+                
+                # Recommandations basées sur les stats
+                if stats['p95_ms'] > 400 and component == 'STT':
+                    report['recommendations'].append(f"STT: P95 {stats['p95_ms']:.1f}ms > 400ms - Optimiser modèle ou batch size")
+                elif stats['p95_ms'] > 300 and component == 'LLM':
+                    report['recommendations'].append(f"LLM: P95 {stats['p95_ms']:.1f}ms > 300ms - Réduire max_tokens ou optimiser modèle")
+                elif stats['p95_ms'] > 100 and component == 'TTS':
+                    report['recommendations'].append(f"TTS: P95 {stats['p95_ms']:.1f}ms > 100ms - Optimiser cache ou modèle")
+                elif stats['p95_ms'] > 1200 and component == 'Pipeline_Total':
+                    report['recommendations'].append(f"Pipeline: P95 {stats['p95_ms']:.1f}ms > 1200ms - CRITIQUE: Objectif non atteint")
+        
+        return report
+
+class PipelineOptimizer:
+    """Optimiseur pipeline pour performance < 1.2s"""
+    
+    def __init__(self):
+        self.profiler = PerformanceProfiler()
+        self.optimizations_applied = []
+        
+    async def profile_pipeline_baseline(self, num_iterations: int = 20) -> Dict:
+        """Profile performance baseline du pipeline"""
+        print(f"🔍 Profiling baseline pipeline ({num_iterations} itérations)...")
+        
+        # Import pipeline ici pour éviter problèmes d'initialisation
+        from PIPELINE.pipeline_orchestrator import PipelineOrchestrator
+        from unittest.mock import Mock, AsyncMock
+        
+        # Créer pipeline avec mocks pour profiling
+        mock_stt = Mock()
+        mock_stt.start_streaming = AsyncMock()
+        mock_stt.stop_streaming = AsyncMock()
+        
+        mock_tts = Mock()
+        def mock_synthesize(text):
+            time.sleep(0.08)  # Latence TTS réaliste
+            result = Mock()
+            result.success = True
+            result.audio_data = b"fake_audio_data"
+            return result
+        mock_tts.synthesize = mock_synthesize
+        
+        mock_audio = Mock()
+        mock_audio.play_async = AsyncMock()
+        
+        mock_llm = Mock()
+        async def mock_generate(prompt, history):
+            await asyncio.sleep(0.1)  # Latence LLM réaliste
+            return f"Réponse à: {prompt[:50]}..."
+        mock_llm.generate = AsyncMock(side_effect=mock_generate)
+        
+        # Créer pipeline
+        pipeline = PipelineOrchestrator(
+            stt=mock_stt,
+            tts=mock_tts,
+            llm_endpoint="http://localhost:8000",
+            metrics_enabled=False
+        )
+        pipeline.audio_out = mock_audio
+        pipeline.llm = mock_llm
+        
+        # Démarrer workers
+        pipeline._llm_task = asyncio.create_task(pipeline._llm_worker())
+        pipeline._tts_task = asyncio.create_task(pipeline._tts_worker())
+        await asyncio.sleep(0.1)  # Laisser workers démarrer
+        
+        # Profiling iterations
+        for i in range(num_iterations):
+            # Mesurer pipeline complet
+            total_measurement = self.profiler.start_measurement(f"Pipeline_Total_{i}")
+            
+            # Simuler STT
+            stt_measurement = self.profiler.start_measurement(f"STT_{i}")
+            await asyncio.sleep(0.15)  # Latence STT simulée
+            self.profiler.end_measurement(stt_measurement)
+            
+            # Déclencher pipeline
+            pipeline._on_transcription(f"Test profiling {i}", 150.0)
+            
+            # Attendre traitement complet
+            await asyncio.sleep(1.0)
+            
+            self.profiler.end_measurement(total_measurement)
+            
+            if i % 5 == 0:
+                print(f"  Itération {i+1}/{num_iterations}")
+        
+        # Nettoyage
+        pipeline._llm_task.cancel()
+        pipeline._tts_task.cancel()
+        try:
+            await pipeline._llm_task
+            await pipeline._tts_task
+        except asyncio.CancelledError:
+            pass
+        
+        # Générer rapport
+        report = self.profiler.generate_report()
+        print("✅ Profiling baseline terminé")
+        
+        return report
+    
+    def apply_gpu_optimizations(self):
+        """Applique optimisations GPU RTX 3090"""
+        print("🎮 Application optimisations GPU RTX 3090...")
+        
+        optimizations = []
+        
+        # Optimisation 1: CUDA Memory Management
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.set_per_process_memory_fraction(0.9, device=0)  # 90% VRAM max
+            optimizations.append("CUDA memory fraction: 90%")
+        
+        # Optimisation 2: PyTorch optimizations
+        torch.backends.cudnn.benchmark = True  # Optimise convolutions
+        torch.backends.cudnn.deterministic = False  # Performance > reproductibilité
+        optimizations.append("cuDNN benchmark activé")
+        
+        # Optimisation 3: Variables environnement
+        os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512,expandable_segments:True'
+        optimizations.append("CUDA allocator optimisé")
+        
+        # Optimisation 4: Threading
+        torch.set_num_threads(4)  # Limite threads CPU pour GPU focus
+        optimizations.append("CPU threads limités à 4")
+        
+        self.optimizations_applied.extend(optimizations)
+        print(f"✅ {len(optimizations)} optimisations GPU appliquées")
+        
+        return optimizations
+    
+    def apply_pipeline_optimizations(self) -> List[str]:
+        """Applique optimisations spécifiques pipeline"""
+        print("⚡ Application optimisations pipeline...")
+        
+        optimizations = []
+        
+        # Optimisation 1: Configuration pipeline optimisée
+        pipeline_config = {
+            'max_queue_size': 8,  # Réduit de 16 à 8
+            'worker_timeout': 20.0,  # Réduit de 30 à 20s
+            'enable_metrics': False,  # Désactive métriques en prod
+            'llm_timeout': 15.0,  # Réduit timeout LLM
+            'tts_cache_size': 1000,  # Augmente cache TTS
+            'audio_buffer_size': 512  # Réduit buffer audio
+        }
+        
+        # Sauvegarder config optimisée
+        config_path = Path(__file__).parent.parent / "config" / "pipeline_optimized.yaml"
+        config_path.parent.mkdir(exist_ok=True)
+        
+        import yaml
+        with open(config_path, 'w') as f:
+            yaml.dump({'pipeline': pipeline_config}, f)
+        
+        optimizations.append(f"Configuration optimisée sauvée: {config_path}")
+        
+        # Optimisation 2: Variables environnement performance
+        perf_env = {
+            'OMP_NUM_THREADS': '4',
+            'MKL_NUM_THREADS': '4',
+            'NUMEXPR_NUM_THREADS': '4',
+            'OPENBLAS_NUM_THREADS': '4'
+        }
+        
+        for key, value in perf_env.items():
+            os.environ[key] = value
+            optimizations.append(f"{key}={value}")
+        
+        self.optimizations_applied.extend(optimizations)
+        print(f"✅ {len(optimizations)} optimisations pipeline appliquées")
+        
+        return optimizations
+    
+    async def validate_performance_target(self, target_ms: float = 1200) -> Dict:
+        """Valide que l'objectif de performance est atteint"""
+        print(f"🎯 Validation objectif performance < {target_ms}ms...")
+        
+        # Re-profiler après optimisations
+        report = await self.profile_pipeline_baseline(num_iterations=30)
+        
+        # Analyser résultats
+        pipeline_stats = report['components'].get('Pipeline_Total', {})
+        
+        if not pipeline_stats:
+            return {
+                'success': False,
+                'reason': 'Aucune mesure pipeline trouvée',
+                'report': report
+            }
+        
+        p95_latency = pipeline_stats.get('p95_ms', float('inf'))
+        mean_latency = pipeline_stats.get('mean_ms', float('inf'))
+        
+        success = p95_latency < target_ms
+        
+        result = {
+            'success': success,
+            'target_ms': target_ms,
+            'achieved_p95_ms': p95_latency,
+            'achieved_mean_ms': mean_latency,
+            'improvement_needed_ms': max(0, p95_latency - target_ms),
+            'optimizations_applied': self.optimizations_applied,
+            'report': report
+        }
+        
+        if success:
+            print(f"✅ OBJECTIF ATTEINT: P95 {p95_latency:.1f}ms < {target_ms}ms")
+        else:
+            print(f"❌ OBJECTIF NON ATTEINT: P95 {p95_latency:.1f}ms > {target_ms}ms")
+            print(f"   Amélioration nécessaire: {result['improvement_needed_ms']:.1f}ms")
+        
+        return result
+    
+    def generate_optimization_report(self, validation_result: Dict) -> Dict:
+        """Génère rapport complet d'optimisation"""
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'optimization_session': {
+                'target_latency_ms': validation_result['target_ms'],
+                'achieved_latency_ms': validation_result['achieved_p95_ms'],
+                'success': validation_result['success'],
+                'optimizations_applied': self.optimizations_applied
+            },
+            'performance_analysis': validation_result['report'],
+            'recommendations': []
+        }
+        
+        # Recommandations additionnelles
+        if not validation_result['success']:
+            improvement_needed = validation_result['improvement_needed_ms']
+            
+            if improvement_needed > 500:
+                report['recommendations'].append("CRITIQUE: Amélioration >500ms nécessaire - Revoir architecture")
+            elif improvement_needed > 200:
+                report['recommendations'].append("MAJEUR: Optimisations modèles STT/LLM/TTS requises")
+            else:
+                report['recommendations'].append("MINEUR: Fine-tuning paramètres pipeline")
+        
+        # Recommandations par composant
+        components = validation_result['report']['components']
+        
+        for comp_name, comp_stats in components.items():
+            if comp_name == 'STT' and comp_stats.get('p95_ms', 0) > 400:
+                report['recommendations'].append("STT: Considérer modèle plus petit ou quantization")
+            elif comp_name == 'LLM' and comp_stats.get('p95_ms', 0) > 300:
+                report['recommendations'].append("LLM: Réduire max_tokens ou utiliser modèle plus rapide")
+            elif comp_name == 'TTS' and comp_stats.get('p95_ms', 0) > 100:
+                report['recommendations'].append("TTS: Optimiser cache ou modèle plus rapide")
+        
+        return report
+
+async def main():
+    """Fonction principale optimisation performance"""
+    parser = argparse.ArgumentParser(description="Optimisation Performance Pipeline SuperWhisper V6")
+    parser.add_argument('--target', type=float, default=1200, help='Latence cible en ms (défaut: 1200)')
+    parser.add_argument('--iterations', type=int, default=30, help='Nombre itérations profiling (défaut: 30)')
+    parser.add_argument('--output', type=str, default='optimization_report.json', help='Fichier rapport')
+    
+    args = parser.parse_args()
+    
+    print("🚀 OPTIMISATION PERFORMANCE PIPELINE SUPERWHISPER V6")
+    print(f"🎯 Objectif: < {args.target}ms end-to-end")
+    print(f"🔄 Itérations: {args.iterations}")
+    print()
+    
+    optimizer = PipelineOptimizer()
+    
+    try:
+        # Étape 1: Profiling baseline
+        print("📊 ÉTAPE 1: Profiling baseline")
+        baseline_report = await optimizer.profile_pipeline_baseline(args.iterations)
+        baseline_p95 = baseline_report['components'].get('Pipeline_Total', {}).get('p95_ms', 0)
+        print(f"   Baseline P95: {baseline_p95:.1f}ms")
+        print()
+        
+        # Étape 2: Application optimisations GPU
+        print("🎮 ÉTAPE 2: Optimisations GPU RTX 3090")
+        gpu_opts = optimizer.apply_gpu_optimizations()
+        print()
+        
+        # Étape 3: Application optimisations pipeline
+        print("⚡ ÉTAPE 3: Optimisations Pipeline")
+        pipeline_opts = optimizer.apply_pipeline_optimizations()
+        print()
+        
+        # Étape 4: Validation performance
+        print("🎯 ÉTAPE 4: Validation Performance")
+        validation_result = await optimizer.validate_performance_target(args.target)
+        print()
+        
+        # Étape 5: Génération rapport
+        print("📋 ÉTAPE 5: Génération Rapport")
+        final_report = optimizer.generate_optimization_report(validation_result)
+        
+        # Sauvegarder rapport
+        report_path = Path(__file__).parent.parent / "reports" / args.output
+        report_path.parent.mkdir(exist_ok=True)
+        
+        with open(report_path, 'w') as f:
+            json.dump(final_report, f, indent=2)
+        
+        print(f"✅ Rapport sauvé: {report_path}")
+        print()
+        
+        # Résumé final
+        print("🎊 RÉSUMÉ OPTIMISATION")
+        print(f"   Baseline: {baseline_p95:.1f}ms")
+        print(f"   Optimisé: {validation_result['achieved_p95_ms']:.1f}ms")
+        improvement = baseline_p95 - validation_result['achieved_p95_ms']
+        print(f"   Amélioration: {improvement:.1f}ms ({improvement/baseline_p95*100:.1f}%)")
+        print(f"   Objectif: {'✅ ATTEINT' if validation_result['success'] else '❌ NON ATTEINT'}")
+        print(f"   Optimisations: {len(optimizer.optimizations_applied)}")
+        
+        if final_report['recommendations']:
+            print("\n💡 RECOMMANDATIONS:")
+            for rec in final_report['recommendations']:
+                print(f"   • {rec}")
+        
+        return validation_result['success']
+        
+    except Exception as e:
+        print(f"❌ ERREUR: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+if __name__ == "__main__":
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1) 

@@ -1,0 +1,240 @@
+# SuperWhisper V6 - Configuration TaskMaster Pipeline Optimisée
+# ==============================================================
+# Version: 5.2 OPTIMISÉE avec recommandations d'amélioration
+# Date: 13 juin 2025
+# Durée: 2 jours optimisés avec pré-flight checks et tampon
+
+project:
+  name: "SuperWhisper V6 Pipeline Complet"
+  version: "5.2"
+  description: "Pipeline voix-à-voix complet STT→LLM→TTS optimisé"
+  duration_days: 2
+  
+# Pré-flight Checks Obligatoires
+preflight_checks:
+  assert_gpu_env:
+    duration: "5min"
+    script: |
+      python - <<'PY'
+      import os, sys
+      assert os.getenv("CUDA_VISIBLE_DEVICES")=="1", "Bad GPU mapping"
+      PY
+    critical: true
+    
+  validate_audio_devices:
+    duration: "15min"
+    script: "python scripts/validate_audio_devices.py --check-permissions --enumerate-devices"
+    description: "Vérifie permissions Windows + énumération devices"
+    critical: true
+    
+  start_llm:
+    duration: "10min"
+    script: "python scripts/start_llm.py --wait-healthy --timeout 60"
+    description: "Health-check LLM avec await until /health 200 OK AND first /completions < 5s"
+    health_check:
+      endpoint: "/health"
+      timeout: 5.0
+      retry_count: 3
+    critical: true
+    
+  quantize_llm:
+    duration: "variable"
+    script: "python scripts/quantize_llm.py --format Q4_K_M --auto"
+    description: "Génère version Q4_K_M si VRAM 3090 sous tension"
+    depends_on: ["start_llm"]
+    optional: true
+
+# Jour 1: Infrastructure & Orchestrateur (9h + 1h tampon)
+day1:
+  name: "Infrastructure & Orchestrateur"
+  duration: "10h"
+  buffer: "1h30"
+  
+  tasks:
+    structure_projet:
+      id: "1.1"
+      duration: "30min"
+      time_slot: "08:30-09:00"
+      description: "Structure répertoire PIPELINE/ avec sous-modules"
+      deliverable: "PIPELINE/ structure complète"
+      
+    config_llm:
+      id: "1.2" 
+      duration: "45min"
+      time_slot: "09:00-09:45"
+      description: "Configuration serveur LLM local avec health-check robuste"
+      depends_on: ["start_llm"]
+      deliverable: "LLM endpoint configuré"
+      
+    tts_async_adapter:
+      id: "1.3"
+      duration: "1h"
+      time_slot: "09:45-10:45"
+      description: "Adaptateur sync→async pour UnifiedTTSManager Phase 3"
+      deliverable: "Shim adaptateur async implémenté"
+      
+    pipeline_orchestrator:
+      id: "1.4"
+      duration: "2h"
+      time_slot: "10:45-12:45"
+      description: "PipelineOrchestrator principal avec code v1.1 corrigé OBLIGATOIRE"
+      code_version: "v1.1"
+      mandatory_code: true
+      deliverable: "PIPELINE/pipeline_orchestrator.py"
+      
+    tests_unitaires:
+      id: "1.5"
+      duration: "1h"
+      time_slot: "13:45-14:45"
+      description: "Suite tests unitaires pipeline orchestrateur"
+      min_coverage: 90
+      deliverable: "Tests unitaires > 90% coverage"
+      
+    metrics_monitoring:
+      id: "1.6"
+      duration: "1h"
+      time_slot: "14:45-15:45"
+      description: "Infrastructure métriques Prometheus + Grafana"
+      script: "python scripts/push_metrics_grafana.py"
+      deliverable: "Dashboard Grafana initial"
+      
+    scripts_utilitaires:
+      id: "1.7"
+      duration: "45min"
+      time_slot: "15:45-16:30"
+      description: "Scripts support et démonstration"
+      deliverable: "Scripts demo et benchmark"
+      
+    tampon:
+      id: "1.8"
+      duration: "1h30"
+      time_slot: "16:30-18:00"
+      description: "Débogage imprévu, ajustements, finalisation"
+      type: "buffer"
+
+# Jour 2: Tests & Validation (8h)
+day2:
+  name: "Tests & Validation"
+  duration: "8h"
+  
+  tasks:
+    tests_integration:
+      id: "2.1"
+      duration: "2h"
+      time_slot: "08:00-10:00"
+      description: "Tests intégration pipeline complet"
+      min_coverage: 90
+      deliverable: "Tests E2E > 90% coverage"
+      
+    optimisation:
+      id: "2.2"
+      duration: "1h30"
+      time_slot: "10:00-11:30"
+      description: "Optimisation performance pipeline selon métriques"
+      script: "python scripts/optimise.py --latency 1200"
+      target_latency: "1200ms"
+      deliverable: "Performance < 1.2s validée"
+      
+    validation_humaine:
+      id: "2.3"
+      duration: "2h"
+      time_slot: "11:30-13:30"
+      description: "Validation humaine pipeline complet en conditions réelles"
+      type: "human_validation"
+      mandatory: true
+      deliverable: "Validation conversation complète"
+      
+    security_review:
+      id: "2.4"
+      duration: "1h"
+      time_slot: "14:30-15:30"
+      description: "Sécurité et conformité SI interne"
+      reviewer: "PM/Tech-Writer"
+      deliverable: "Security review approuvée"
+      
+    documentation_finale:
+      id: "2.5"
+      duration: "1h30"
+      time_slot: "15:30-17:00"
+      description: "Documentation complète projet"
+      deliverable: "Documentation finale complète"
+
+# KPI et Métriques
+kpi:
+  latency_e2e:
+    target: "1200ms"
+    critical: "1500ms"
+    measurement: "95ᵉ percentile glissant sur 100 derniers tours"
+    
+  availability:
+    target: "99%"
+    critical: "95%"
+    
+  test_coverage:
+    target: "90%"
+    critical: "80%"
+    
+  human_validation:
+    mandatory: true
+    criteria: ["fluidité", "qualité_audio", "satisfaction"]
+
+# Go/No-Go Decision
+go_no_go:
+  meeting_time: "Fin Jour 2 (17:00)"
+  participants: ["PM", "Tech Lead", "QA", "Utilisateur"]
+  meeting_notes: "docs/go_no_go_20250615.md"
+  
+  criteria_go:
+    - "Tests techniques > 90% réussis"
+    - "Validation humaine positive"
+    - "Performance objectifs atteints"
+    - "Security review approuvée"
+    - "Documentation complète"
+    
+  criteria_no_go:
+    - "Latence > 1.5s persistante"
+    - "Échec validation humaine"
+    - "Problèmes sécurité bloquants"
+    - "Tests < 80% coverage"
+
+# Configuration Technique
+technical_config:
+  gpu:
+    required: "RTX 3090"
+    cuda_visible_devices: "1"
+    vram_min: "20GB"
+    
+  llm:
+    endpoint: "http://localhost:8000"
+    model: "llama-3-8b-instruct"
+    timeout: 30.0
+    quantization: "Q4_K_M"
+    
+  pipeline:
+    max_queue_size: 10
+    worker_timeout: 30.0
+    enable_metrics: true
+    metrics_port: 9091
+    
+  audio:
+    sample_rate: 22050
+    format: "wav"
+    conversion: "auto"
+
+# Livrables Finaux
+deliverables:
+  day1:
+    - "PIPELINE/pipeline_orchestrator.py avec code v1.1 corrigé OBLIGATOIRE"
+    - "Interface UnifiedTTSManager adaptée pipeline"
+    - "Conversion audio bytes→np.ndarray implémentée"
+    - "Serveur LLM configuré avec health-check robuste"
+    - "Tests unitaires > 90% coverage"
+    - "Métriques Prometheus + dashboard Grafana"
+    
+  day2:
+    - "Tests intégration > 90% coverage"
+    - "Validation humaine réussie"
+    - "Performance < 1.2s validée"
+    - "Security review approuvée"
+    - "Documentation complète"
+    - "Pipeline production-ready" 

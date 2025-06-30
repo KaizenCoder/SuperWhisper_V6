@@ -1,0 +1,328 @@
+#!/usr/bin/env python3
+"""
+Assistant vocal simplifié pour Cursor - Dictée de prompts
+Version robuste avec multiples solutions de fallback
+Inspiré des scripts fonctionnels de SuperWhisper V6
+"""
+
+import asyncio
+import pyaudio
+import numpy as np
+import pyautogui
+import keyboard
+import time
+import os
+import sys
+import tempfile
+from typing import Optional
+
+print("🎙️ Assistant vocal pour Cursor - Version simplifiée")
+print("🔧 Configuration en cours...")
+
+class SimpleCursorVoiceAssistant:
+    """Assistant vocal simplifié avec fallback pour Cursor"""
+    
+    def __init__(self):
+        self.recording = False
+        self.audio_buffer = []
+        self.current_method = None
+        
+        # Configuration audio
+        self.sample_rate = 16000
+        self.chunk_size = 1024
+        self.format = pyaudio.paFloat32
+        
+        # PyAudio setup
+        self.audio = pyaudio.PyAudio()
+        self.stream = None
+        
+        # Méthodes disponibles (par ordre de préférence)
+        self.methods = [
+            ("Windows SAPI", self._sapi_transcribe),
+            ("Google TTS", self._gtts_transcribe),
+            ("Edge TTS", self._edge_transcribe),
+            ("Mode manuel", self._manual_mode)
+        ]
+        
+    async def initialize(self):
+        """Initialise l'assistant vocal"""
+        print("🎙️ Initialisation de l'assistant vocal pour Cursor...")
+        
+        # Test des méthodes disponibles
+        self.current_method = await self._find_best_method()
+        
+        # Stream audio
+        self.stream = self.audio.open(
+            format=self.format,
+            channels=1,
+            rate=self.sample_rate,
+            input=True,
+            frames_per_buffer=self.chunk_size,
+            stream_callback=self._audio_callback
+        )
+        
+        print("✅ Assistant vocal prêt !")
+        print("📌 Raccourcis:")
+        print("   - Ctrl+Shift+V : Commencer/arrêter la dictée")
+        print("   - Ctrl+Shift+M : Changer de méthode de reconnaissance")
+        print("   - Ctrl+Shift+Q : Quitter")
+        print(f"🎯 Méthode active: {self.current_method[0] if self.current_method else 'Aucune'}")
+        
+    async def _find_best_method(self):
+        """Trouve la meilleure méthode de transcription disponible"""
+        print("🔍 Test des méthodes de reconnaissance vocale...")
+        
+        for name, method in self.methods:
+            try:
+                print(f"   Testing {name}...")
+                if await self._test_method(method):
+                    print(f"✅ {name} disponible")
+                    return (name, method)
+                else:
+                    print(f"❌ {name} non disponible")
+            except Exception as e:
+                print(f"❌ {name} échoué: {e}")
+        
+        print("⚠️ Aucune méthode automatique disponible - Mode manuel activé")
+        return ("Mode manuel", self._manual_mode)
+    
+    async def _test_method(self, method):
+        """Test si une méthode de transcription fonctionne"""
+        try:
+            # Audio test court (1 seconde de silence)
+            test_audio = np.zeros(16000, dtype=np.float32)
+            result = await method(test_audio, test=True)
+            return result is not None
+        except:
+            return False
+    
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """Callback pour capturer l'audio"""
+        if self.recording:
+            audio_chunk = np.frombuffer(in_data, dtype=np.float32)
+            self.audio_buffer.extend(audio_chunk)
+        return (in_data, pyaudio.paContinue)
+    
+    async def start_dictation(self):
+        """Démarre la dictée"""
+        if self.recording:
+            return
+            
+        print(f"🔴 Dictée commencée avec {self.current_method[0]}... Parlez maintenant!")
+        self.recording = True
+        self.audio_buffer = []
+        
+    async def stop_dictation(self):
+        """Arrête la dictée et transcrit"""
+        if not self.recording:
+            return
+            
+        self.recording = False
+        print("⏹️ Dictée arrêtée, transcription en cours...")
+        
+        if len(self.audio_buffer) > 0:
+            # Convertir en numpy array
+            audio_data = np.array(self.audio_buffer, dtype=np.float32)
+            
+            # Transcription avec la méthode active
+            if self.current_method:
+                try:
+                    text = await self.current_method[1](audio_data)
+                    
+                    if text and text.strip():
+                        print(f"📝 Transcrit: {text}")
+                        
+                        # Insérer le texte à la position du curseur dans Cursor
+                        await asyncio.sleep(0.1)  # Petit délai pour assurer le focus
+                        pyautogui.typewrite(text)
+                        
+                        print("✅ Texte inséré dans Cursor")
+                    else:
+                        print("❌ Transcription vide ou échouée")
+                        
+                except Exception as e:
+                    print(f"❌ Erreur transcription: {e}")
+            else:
+                print("❌ Aucune méthode de transcription disponible")
+        else:
+            print("⚠️ Aucun audio capturé")
+    
+    async def _sapi_transcribe(self, audio_data, test=False):
+        """Transcription via Windows SAPI"""
+        try:
+            import win32com.client
+            import speech_recognition as sr
+            
+            if test:
+                # Test simple de disponibilité
+                speaker = win32com.client.Dispatch("SAPI.SpVoice")
+                return True
+            
+            # Utiliser speech_recognition pour la transcription
+            r = sr.Recognizer()
+            
+            # Sauvegarder audio temporaire
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
+                import soundfile as sf
+                sf.write(tmp.name, audio_data, 16000)
+                
+                with sr.AudioFile(tmp.name) as source:
+                    audio = r.record(source)
+                
+                # Transcription en français
+                text = r.recognize_google(audio, language='fr-FR')
+                os.unlink(tmp.name)
+                return text
+                
+        except ImportError:
+            if not test:
+                print("💡 Installez: pip install pywin32 SpeechRecognition soundfile")
+            return None
+        except Exception as e:
+            if not test:
+                print(f"Erreur SAPI: {e}")
+            return None
+    
+    async def _gtts_transcribe(self, audio_data, test=False):
+        """Transcription via Google Speech Recognition"""
+        try:
+            import speech_recognition as sr
+            
+            if test:
+                return True
+            
+            r = sr.Recognizer()
+            
+            # Sauvegarder audio temporaire  
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
+                import soundfile as sf
+                sf.write(tmp.name, audio_data, 16000)
+                
+                with sr.AudioFile(tmp.name) as source:
+                    audio = r.record(source)
+                
+                text = r.recognize_google(audio, language='fr-FR')
+                os.unlink(tmp.name)
+                return text
+                
+        except ImportError:
+            if not test:
+                print("💡 Installez: pip install SpeechRecognition soundfile")
+            return None
+        except Exception as e:
+            if not test:
+                print(f"Erreur Google: {e}")
+            return None
+    
+    async def _edge_transcribe(self, audio_data, test=False):
+        """Transcription via Azure Speech (si disponible)"""
+        try:
+            import azure.cognitiveservices.speech as speechsdk
+            
+            if test:
+                return True
+            
+            # Note: Nécessite une clé API Azure
+            print("💡 Transcription Azure nécessite une clé API")
+            return None
+            
+        except ImportError:
+            return None
+    
+    async def _manual_mode(self, audio_data, test=False):
+        """Mode manuel - guide l'utilisateur"""
+        if test:
+            return True
+            
+        print("💡 Mode manuel activé:")
+        print("   1. Audio capturé - utilisez Win+H pour la dictée Windows")
+        print("   2. Ou tapez manuellement votre texte")
+        print("   3. Appuyez sur Entrée quand terminé")
+        
+        # Demander texte manuel
+        try:
+            text = input("📝 Votre texte: ")
+            return text if text.strip() else None
+        except:
+            return None
+    
+    async def toggle_dictation(self):
+        """Bascule entre démarrer/arrêter la dictée"""
+        if self.recording:
+            await self.stop_dictation()
+        else:
+            await self.start_dictation()
+    
+    async def change_method(self):
+        """Change la méthode de reconnaissance"""
+        print("\n🔄 Changement de méthode...")
+        # Trouver la prochaine méthode disponible
+        current_index = next((i for i, (name, _) in enumerate(self.methods) 
+                            if name == self.current_method[0]), -1)
+        
+        # Essayer les méthodes suivantes
+        for i in range(len(self.methods)):
+            next_index = (current_index + 1 + i) % len(self.methods)
+            name, method = self.methods[next_index]
+            
+            if await self._test_method(method):
+                self.current_method = (name, method)
+                print(f"✅ Méthode changée: {name}")
+                return
+        
+        print("⚠️ Aucune autre méthode disponible")
+    
+    def setup_hotkeys(self):
+        """Configure les raccourcis clavier"""
+        # Ctrl+Shift+V pour basculer la dictée
+        keyboard.add_hotkey('ctrl+shift+v', 
+                          lambda: asyncio.create_task(self.toggle_dictation()))
+        
+        # Ctrl+Shift+M pour changer de méthode
+        keyboard.add_hotkey('ctrl+shift+m',
+                          lambda: asyncio.create_task(self.change_method()))
+        
+        # Ctrl+Shift+Q pour quitter
+        keyboard.add_hotkey('ctrl+shift+q', self.shutdown)
+    
+    async def run(self):
+        """Boucle principale de l'assistant"""
+        await self.initialize()
+        self.setup_hotkeys()
+        
+        try:
+            print("🎯 Assistant vocal actif - Prêt à dicter dans Cursor!")
+            print("💡 Placez votre curseur dans Cursor avant de dicter")
+            
+            # Boucle d'attente
+            while True:
+                await asyncio.sleep(0.1)
+                
+        except KeyboardInterrupt:
+            pass
+        finally:
+            await self.shutdown()
+    
+    async def shutdown(self):
+        """Ferme proprement l'assistant"""
+        print("\n🛑 Arrêt de l'assistant vocal...")
+        
+        self.recording = False
+        
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+        
+        self.audio.terminate()
+        
+        print("👋 Au revoir !")
+        exit(0)
+
+async def main():
+    """Point d'entrée principal"""
+    assistant = SimpleCursorVoiceAssistant()
+    await assistant.run()
+
+if __name__ == "__main__":
+    print("🚀 Lancement de l'assistant vocal simple pour Cursor...")
+    asyncio.run(main()) 

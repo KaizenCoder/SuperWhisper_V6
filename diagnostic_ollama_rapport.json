@@ -1,0 +1,503 @@
+{
+  "timestamp": 1751232023.098645,
+  "health_check": {
+    "/api/tags": {
+      "status": "OK",
+      "data": {
+        "models": [
+          {
+            "name": "deepseek-cline-ultimate:latest",
+            "model": "deepseek-cline-ultimate:latest",
+            "modified_at": "2025-06-20T12:47:13.1943514+02:00",
+            "size": 18819457616,
+            "digest": "d4a2a59591581211d9d20581ad4efbc45474591e2557ba7811f9d6a733923a09",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "deepseek-cline-pro:latest",
+            "model": "deepseek-cline-pro:latest",
+            "modified_at": "2025-06-20T12:45:11.2272537+02:00",
+            "size": 18819457551,
+            "digest": "ad07fa274183adfb4a51b91bacff221e125dd0e111ec8715257c42260155b16c",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "deepseek-file-reader:latest",
+            "model": "deepseek-file-reader:latest",
+            "modified_at": "2025-06-20T11:59:49.131177+02:00",
+            "size": 18819457357,
+            "digest": "6b6fd78896da11ef454ab82d65b5f33712e9128d237d2291452c4ca0a0445432",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "qwen-void-test:latest",
+            "model": "qwen-void-test:latest",
+            "modified_at": "2025-06-20T11:53:58.7703092+02:00",
+            "size": 19851338007,
+            "digest": "a5815ac7966708870bf161614eab72209f1816f33655fa828e5337fb949f1735",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen2",
+              "families": [
+                "qwen2"
+              ],
+              "parameter_size": "32.8B",
+              "quantization_level": "Q4_K_M"
+            }
+          },
+          {
+            "name": "code-stral-void:latest",
+            "model": "code-stral-void:latest",
+            "modified_at": "2025-06-20T11:52:31.4112178+02:00",
+            "size": 8587265085,
+            "digest": "8ef919f3e8849f4eb90e55771c2d21e841266d134697b709d9afd5f45d00c647",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "19.8B",
+              "quantization_level": "Q3_K_S"
+            }
+          },
+          {
+            "name": "deepseek-void-ultimate:latest",
+            "model": "deepseek-void-ultimate:latest",
+            "modified_at": "2025-06-20T11:49:09.7159508+02:00",
+            "size": 18819457637,
+            "digest": "ad159ed3abaf2aa5606881448fff954237da724dd38c07e135cb523f503494d7",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "deepseek-void-fixed:latest",
+            "model": "deepseek-void-fixed:latest",
+            "modified_at": "2025-06-20T11:46:17.8495068+02:00",
+            "size": 18819457417,
+            "digest": "b8e74dc64033d93c3c103cecf461ea9082347cf0bad1f8dcbd091cc2fbd75db1",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "deepseek-void:latest",
+            "model": "deepseek-void:latest",
+            "modified_at": "2025-06-20T11:39:31.2473001+02:00",
+            "size": 18819457206,
+            "digest": "9adb2c53fbcf9e76e72ed5545e987d23863933103242d872a98e8a4fc8411b3a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "deepseek-extended:latest",
+            "model": "deepseek-extended:latest",
+            "modified_at": "2025-06-20T11:37:23.258667+02:00",
+            "size": 18819456930,
+            "digest": "07a16782e6cb8f40198e00d493180793c973236adb08ff58041f5ee2fa16e3ff",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33.3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "mixtral:8x7b-instruct-v0.1-q3_k_m",
+            "model": "mixtral:8x7b-instruct-v0.1-q3_k_m",
+            "modified_at": "2025-06-18T02:04:00.5232013+02:00",
+            "size": 22546463318,
+            "digest": "0f4e85e45e0c9c977b30657faa908c6397a696e44f6bc1de1ea09a7f9bba67a0",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "46.7B",
+              "quantization_level": "Q3_K_M"
+            }
+          },
+          {
+            "name": "nous-hermes-2-mistral-7b-dpo:latest",
+            "model": "nous-hermes-2-mistral-7b-dpo:latest",
+            "modified_at": "2025-06-14T17:04:05.7830832+02:00",
+            "size": 4140386028,
+            "digest": "90013e3d8bd22ed3b93cea3027069da34323d07ed05b813366fc0eeeb2619567",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "7.2B",
+              "quantization_level": "Q4_K_S"
+            }
+          },
+          {
+            "name": "llama3:8b-instruct-q6_k",
+            "model": "llama3:8b-instruct-q6_k",
+            "modified_at": "2025-06-14T16:52:41.4486735+02:00",
+            "size": 6596007069,
+            "digest": "5f6768e983ce717db9c7225020906cb88459530a653e336fc79b8693c75bee7e",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "8.0B",
+              "quantization_level": "Q6_K"
+            }
+          },
+          {
+            "name": "qwen2.5-coder:1.5b",
+            "model": "qwen2.5-coder:1.5b",
+            "modified_at": "2025-06-14T11:36:31.5060841+02:00",
+            "size": 986062089,
+            "digest": "d7372fd828518a4d38b1eb196c673c31a85f2ed302b3d1e406c4c2d1b64a0668",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen2",
+              "families": [
+                "qwen2"
+              ],
+              "parameter_size": "1.5B",
+              "quantization_level": "Q4_K_M"
+            }
+          },
+          {
+            "name": "starcoder2:3b",
+            "model": "starcoder2:3b",
+            "modified_at": "2025-06-13T20:01:37.8467775+02:00",
+            "size": 1709901728,
+            "digest": "9f4ae0aff61ee24fe4b7d9714c9382b5172551fa8e95aa064452ec2e62610835",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "starcoder2",
+              "families": [
+                "starcoder2"
+              ],
+              "parameter_size": "3B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "qwen-coder-32b:latest",
+            "model": "qwen-coder-32b:latest",
+            "modified_at": "2025-06-13T09:40:52.1699398+02:00",
+            "size": 19851336138,
+            "digest": "13dedafd261747314e141002d59f47d3b6e90dc20526fbdf6bb2e24e3da0b121",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen2",
+              "families": [
+                "qwen2"
+              ],
+              "parameter_size": "32.8B",
+              "quantization_level": "Q4_K_M"
+            }
+          },
+          {
+            "name": "code-stral:latest",
+            "model": "code-stral:latest",
+            "modified_at": "2025-06-13T09:38:30.9071383+02:00",
+            "size": 8587264211,
+            "digest": "d57f7863dc053e32a9178a5d24f6773cb277ac224783d09645d764355cbbbb9e",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "19.8B",
+              "quantization_level": "Q3_K_S"
+            }
+          },
+          {
+            "name": "deepseek-coder:33b",
+            "model": "deepseek-coder:33b",
+            "modified_at": "2025-06-12T23:15:46.3404807+02:00",
+            "size": 18819456424,
+            "digest": "acec7c0b0fd9ad4c9e82620b32dcb794120d40623ab53d5e1453a948d7d204d8",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "33B",
+              "quantization_level": "Q4_0"
+            }
+          },
+          {
+            "name": "lux_model:latest",
+            "model": "lux_model:latest",
+            "modified_at": "2025-06-06T10:55:43.7525491+02:00",
+            "size": 2019379357,
+            "digest": "bfb485974423d8a9f468d43d1c524409bd400499b8dd4bc7bdd51f925d62de75",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "llama",
+              "families": [
+                "llama"
+              ],
+              "parameter_size": "3.2B",
+              "quantization_level": "Q4_K_M"
+            }
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "model": "nomic-embed-text:latest",
+            "modified_at": "2025-06-06T10:55:42.6588232+02:00",
+            "size": 274302450,
+            "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "nomic-bert",
+              "families": [
+                "nomic-bert"
+              ],
+              "parameter_size": "137M",
+              "quantization_level": "F16"
+            }
+          }
+        ]
+      }
+    },
+    "/api/version": {
+      "status": "OK",
+      "data": {
+        "version": "0.9.3"
+      }
+    },
+    "/v1/models": {
+      "status": "OK",
+      "data": {
+        "object": "list",
+        "data": [
+          {
+            "id": "deepseek-cline-ultimate:latest",
+            "object": "model",
+            "created": 1750416433,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-cline-pro:latest",
+            "object": "model",
+            "created": 1750416311,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-file-reader:latest",
+            "object": "model",
+            "created": 1750413589,
+            "owned_by": "library"
+          },
+          {
+            "id": "qwen-void-test:latest",
+            "object": "model",
+            "created": 1750413238,
+            "owned_by": "library"
+          },
+          {
+            "id": "code-stral-void:latest",
+            "object": "model",
+            "created": 1750413151,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-void-ultimate:latest",
+            "object": "model",
+            "created": 1750412949,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-void-fixed:latest",
+            "object": "model",
+            "created": 1750412777,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-void:latest",
+            "object": "model",
+            "created": 1750412371,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-extended:latest",
+            "object": "model",
+            "created": 1750412243,
+            "owned_by": "library"
+          },
+          {
+            "id": "mixtral:8x7b-instruct-v0.1-q3_k_m",
+            "object": "model",
+            "created": 1750205040,
+            "owned_by": "library"
+          },
+          {
+            "id": "nous-hermes-2-mistral-7b-dpo:latest",
+            "object": "model",
+            "created": 1749913445,
+            "owned_by": "library"
+          },
+          {
+            "id": "llama3:8b-instruct-q6_k",
+            "object": "model",
+            "created": 1749912761,
+            "owned_by": "library"
+          },
+          {
+            "id": "qwen2.5-coder:1.5b",
+            "object": "model",
+            "created": 1749893791,
+            "owned_by": "library"
+          },
+          {
+            "id": "starcoder2:3b",
+            "object": "model",
+            "created": 1749837697,
+            "owned_by": "library"
+          },
+          {
+            "id": "qwen-coder-32b:latest",
+            "object": "model",
+            "created": 1749800452,
+            "owned_by": "library"
+          },
+          {
+            "id": "code-stral:latest",
+            "object": "model",
+            "created": 1749800310,
+            "owned_by": "library"
+          },
+          {
+            "id": "deepseek-coder:33b",
+            "object": "model",
+            "created": 1749762946,
+            "owned_by": "library"
+          },
+          {
+            "id": "lux_model:latest",
+            "object": "model",
+            "created": 1749200143,
+            "owned_by": "library"
+          },
+          {
+            "id": "nomic-embed-text:latest",
+            "object": "model",
+            "created": 1749200142,
+            "owned_by": "library"
+          }
+        ]
+      }
+    },
+    "/health": {
+      "status": "ERROR",
+      "code": 404
+    }
+  },
+  "api_tests": {
+    "native_api": {
+      "success": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=11434): Read timed out. (read timeout=30)"
+    },
+    "openai_api": {
+      "success": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=11434): Read timed out. (read timeout=30)"
+    },
+    "chat_api": {
+      "success": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=11434): Read timed out. (read timeout=30)"
+    },
+    "model_used": "nous-hermes-2-mistral-7b-dpo:latest"
+  },
+  "models_available": [
+    "deepseek-cline-ultimate:latest",
+    "deepseek-cline-pro:latest",
+    "deepseek-file-reader:latest",
+    "qwen-void-test:latest",
+    "code-stral-void:latest",
+    "deepseek-void-ultimate:latest",
+    "deepseek-void-fixed:latest",
+    "deepseek-void:latest",
+    "deepseek-extended:latest",
+    "mixtral:8x7b-instruct-v0.1-q3_k_m",
+    "nous-hermes-2-mistral-7b-dpo:latest",
+    "llama3:8b-instruct-q6_k",
+    "qwen2.5-coder:1.5b",
+    "starcoder2:3b",
+    "qwen-coder-32b:latest",
+    "code-stral:latest",
+    "deepseek-coder:33b",
+    "lux_model:latest",
+    "nomic-embed-text:latest"
+  ]
+}

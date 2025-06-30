@@ -83,3 +83,10 @@ __pycache__/
 temp/
 tmp/
 C:\Dev\SuperWhisper_V6\models
+
+# Fichiers temporaires Cursor - Solution 1 Propreté Répertoire
+.cursor-tmp/
+scratch_*.py
+tmp_*.py
+test_scratch_*.py
+temp_*.py

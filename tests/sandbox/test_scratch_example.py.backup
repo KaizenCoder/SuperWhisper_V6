@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""
+🧪 Test Scratch Exemple - Démonstration Système Sandbox
+
+Ce fichier démontre le workflow sandbox pour SuperWhisper V6.
+Il sera automatiquement supprimé après 7 jours par le script clean_sandbox.py
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+
+def test_sandbox_workflow():
+    """Test exploratoire - Workflow sandbox démonstration"""
+    print("🧪 Test sandbox workflow")
+    print("📂 Ce fichier est dans tests/sandbox/ - sera purgé après 7 jours")
+    print("✅ Une fois validé, déplacer vers tests/unit/ ou tests/integration/")
+    
+    # Simulation test exploratoire
+    result = {
+        "status": "experimental",
+        "location": "tests/sandbox/",
+        "lifespan": "7 days",
+        "promotion_path": ["tests/unit/", "tests/integration/"]
+    }
+    
+    return result
+
+if __name__ == "__main__":
+    print("🚀 Démonstration système sandbox SuperWhisper V6")
+    result = test_sandbox_workflow()
+    print(f"📊 Résultat: {result}")
+    print("\n💡 Workflow:")
+    print("   1. Créer tests ici pour expérimentation")
+    print("   2. Valider et itérer rapidement") 
+    print("   3. Déplacer vers tests/unit/ si validé")
+    print("   4. Purge automatique des anciens fichiers") 

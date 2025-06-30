@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""
+Assistant vocal pour Cursor - Dictée de prompts
+Utilise le système STT optimisé de SuperWhisper V6
+"""
+
+import asyncio
+import pyaudio
+import numpy as np
+import pyautogui
+import keyboard
+import time
+import sys
+import os
+from typing import Optional
+
+# Ajouter le chemin vers le système STT
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'STT'))
+
+try:
+    from unified_stt_manager_optimized import OptimizedUnifiedSTTManager
+except ImportError as e:
+    print(f"❌ Erreur importation STT: {e}")
+    print("💡 Utilisation de la version alternative...")
+    # Fallback vers une version simplifiée
+    OptimizedUnifiedSTTManager = None
+
+class CursorVoiceAssistant:
+    """Assistant vocal intégré pour Cursor"""
+    
+    def __init__(self):
+        self.stt_manager = None
+        self.recording = False
+        self.audio_buffer = []
+        
+        # Configuration audio
+        self.sample_rate = 16000
+        self.chunk_size = 1024
+        self.format = pyaudio.paFloat32
+        
+        # PyAudio setup
+        self.audio = pyaudio.PyAudio()
+        self.stream = None
+        
+    async def initialize(self):
+        """Initialise l'assistant vocal"""
+        print("🎙️ Initialisation de l'assistant vocal pour Cursor...")
+        
+        # Essayer d'initialiser le STT optimisé
+        if OptimizedUnifiedSTTManager:
+            try:
+                self.stt_manager = OptimizedUnifiedSTTManager()
+                await self.stt_manager.initialize()
+                print("✅ STT SuperWhisper V6 initialisé")
+            except Exception as e:
+                print(f"⚠️ Erreur STT optimisé: {e}")
+                print("💡 Basculement vers reconnaissance vocale système...")
+                self.stt_manager = None
+        
+        # Stream audio
+        self.stream = self.audio.open(
+            format=self.format,
+            channels=1,
+            rate=self.sample_rate,
+            input=True,
+            frames_per_buffer=self.chunk_size,
+            stream_callback=self._audio_callback
+        )
+        
+        print("✅ Assistant vocal prêt !")
+        print("📌 Raccourcis:")
+        print("   - Ctrl+Shift+V : Commencer/arrêter la dictée")
+        print("   - Ctrl+Shift+Q : Quitter")
+        
+        if not self.stt_manager:
+            print("⚠️ Mode basique activé - utilisez Win+H pour la dictée Windows native")
+        
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """Callback pour capturer l'audio"""
+        if self.recording:
+            audio_chunk = np.frombuffer(in_data, dtype=np.float32)
+            self.audio_buffer.extend(audio_chunk)
+        return (in_data, pyaudio.paContinue)
+    
+    async def start_dictation(self):
+        """Démarre la dictée"""
+        if self.recording:
+            return
+            
+        print("🔴 Dictée commencée... Parlez maintenant!")
+        self.recording = True
+        self.audio_buffer = []
+        
+    async def stop_dictation(self):
+        """Arrête la dictée et transcrit"""
+        if not self.recording:
+            return
+            
+        self.recording = False
+        print("⏹️ Dictée arrêtée, transcription en cours...")
+        
+        if len(self.audio_buffer) > 0:
+            # Convertir en numpy array
+            audio_data = np.array(self.audio_buffer, dtype=np.float32)
+            
+            # Transcription
+            if self.stt_manager:
+                try:
+                    result = await self.stt_manager.transcribe(audio_data)
+                    
+                    if result.success and result.text:
+                        print(f"📝 Transcrit: {result.text}")
+                        
+                        # Insérer le texte à la position du curseur dans Cursor
+                        pyautogui.typewrite(result.text)
+                        
+                        print(f"✅ Texte inséré avec confiance: {result.confidence:.2f}")
+                    else:
+                        print("❌ Transcription échouée ou vide")
+                        
+                except Exception as e:
+                    print(f"❌ Erreur transcription: {e}")
+            else:
+                # Mode basique - juste indiquer à l'utilisateur d'utiliser Win+H
+                print("💡 Audio capturé. Utilisez Win+H pour la dictée Windows native.")
+                print("   Ou redémarrez avec le STT corrigé.")
+        else:
+            print("⚠️ Aucun audio capturé")
+    
+    async def toggle_dictation(self):
+        """Bascule entre démarrer/arrêter la dictée"""
+        if self.recording:
+            await self.stop_dictation()
+        else:
+            await self.start_dictation()
+    
+    def setup_hotkeys(self):
+        """Configure les raccourcis clavier"""
+        # Ctrl+Shift+V pour basculer la dictée
+        keyboard.add_hotkey('ctrl+shift+v', 
+                          lambda: asyncio.create_task(self.toggle_dictation()))
+        
+        # Ctrl+Shift+Q pour quitter
+        keyboard.add_hotkey('ctrl+shift+q', self.shutdown)
+    
+    async def run(self):
+        """Boucle principale de l'assistant"""
+        await self.initialize()
+        self.setup_hotkeys()
+        
+        try:
+            print("🎯 Assistant vocal actif - Prêt à dicter dans Cursor!")
+            
+            # Boucle d'attente
+            while True:
+                await asyncio.sleep(0.1)
+                
+        except KeyboardInterrupt:
+            pass
+        finally:
+            await self.shutdown()
+    
+    async def shutdown(self):
+        """Ferme proprement l'assistant"""
+        print("\n🛑 Arrêt de l'assistant vocal...")
+        
+        self.recording = False
+        
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+        
+        self.audio.terminate()
+        
+        if self.stt_manager:
+            await self.stt_manager.shutdown()
+        
+        print("👋 Au revoir !")
+        exit(0)
+
+async def main():
+    """Point d'entrée principal"""
+    assistant = CursorVoiceAssistant()
+    await assistant.run()
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

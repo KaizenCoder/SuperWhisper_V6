@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(timeout 10 python3:*)",
+      "Bash(timeout 30 python3 validation_pipeline_complet_voix_a_voix.py)",
+      "Bash(timeout 30 python3:*)",
+      "Bash(timeout 60 python3 demo_pipeline_voix_a_voix.py)",
+      "Bash(curl:*)",
+      "Bash(ss:*)",
+      "Bash(cat:*)",
+      "Bash(cmd.exe /c \"where ollama\")"
+    ],
+    "deny": []
+  }
+}

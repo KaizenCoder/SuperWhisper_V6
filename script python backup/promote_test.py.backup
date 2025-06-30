@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""
+🚀 Script de Promotion de Tests - SuperWhisper V6
+
+Utilitaire pour promouvoir des tests depuis répertoires temporaires
+vers répertoires stables (unit/ ou integration/).
+
+Usage:
+    python tools/promote_test.py .cursor-tmp/scratch_test.py tests/unit/
+    python tools/promote_test.py tests/sandbox/experiment.py tests/integration/
+    python tools/promote_test.py .cursor-tmp/temp_stt.py tests/unit/ --rename=test_stt_optimized.py
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import shutil
+import pathlib
+import argparse
+from datetime import datetime
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée pour promote_test.py")
+
+# Répertoires valides pour promotion
+VALID_TARGET_DIRS = [
+    "tests/unit",
+    "tests/integration", 
+    "PIPELINE/tests/unit",
+    "PIPELINE/tests/integration"
+]
+
+def validate_source_file(source_path):
+    """Valide que le fichier source existe et est un test Python"""
+    source = pathlib.Path(source_path)
+    
+    if not source.exists():
+        raise FileNotFoundError(f"❌ Fichier source non trouvé: {source}")
+    
+    if not source.suffix == '.py':
+        raise ValueError(f"❌ Le fichier doit être un script Python (.py): {source}")
+    
+    if not source.is_file():
+        raise ValueError(f"❌ Le chemin doit pointer vers un fichier: {source}")
+    
+    return source
+
+def validate_target_dir(target_dir):
+    """Valide que le répertoire cible est autorisé"""
+    target = pathlib.Path(target_dir)
+    
+    # Normaliser le chemin pour comparaison
+    target_str = str(target).replace('\\', '/')
+    
+    if target_str not in VALID_TARGET_DIRS:
+        print(f"⚠️  Répertoire cible non standard: {target_str}")
+        print(f"📋 Répertoires recommandés: {', '.join(VALID_TARGET_DIRS)}")
+        
+        response = input("🤔 Continuer quand même? [y/N]: ").lower()
+        if response not in ['y', 'yes']:
+            raise ValueError(f"❌ Promotion annulée par l'utilisateur")
+    
+    # Créer le répertoire cible s'il n'existe pas
+    target.mkdir(parents=True, exist_ok=True)
+    
+    return target
+
+def generate_target_filename(source_path, target_dir, custom_name=None):
+    """Génère le nom de fichier cible avec conventions"""
+    source = pathlib.Path(source_path)
+    target_dir = pathlib.Path(target_dir)
+    
+    if custom_name:
+        target_filename = custom_name
+        if not target_filename.endswith('.py'):
+            target_filename += '.py'
+    else:
+        # Nettoyer le nom: enlever préfixes temporaires
+        filename = source.name
+        
+        # Enlever préfixes temporaires courants
+        temp_prefixes = ['scratch_', 'tmp_', 'temp_', 'debug_']
+        for prefix in temp_prefixes:
+            if filename.startswith(prefix):
+                filename = filename[len(prefix):]
+                break
+        
+        # Assurer préfixe test_
+        if not filename.startswith('test_'):
+            filename = f"test_{filename}"
+        
+        target_filename = filename
+    
+    target_path = target_dir / target_filename
+    
+    # Éviter écrasement de fichiers existants
+    counter = 1
+    original_target = target_path
+    while target_path.exists():
+        stem = original_target.stem
+        suffix = original_target.suffix
+        target_path = original_target.parent / f"{stem}_{counter:02d}{suffix}"
+        counter += 1
+    
+    return target_path
+
+def update_test_header(source_path, target_path):
+    """Met à jour l'en-tête du test pour refléter sa promotion"""
+    try:
+        # Lire le contenu original
+        with open(source_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Préparer nouveau header
+        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
+        promotion_header = f'''#!/usr/bin/env python3
+"""
+✅ Test Promu - SuperWhisper V6
+
+Promu depuis: {source_path}
+Vers: {target_path}
+Date promotion: {timestamp}
+Statut: Test validé et permanent
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+
+'''
+        
+        # Extraire le contenu après les imports de base
+        lines = content.split('\n')
+        content_start = 0
+        
+        # Trouver où commence le vrai contenu (après imports système)
+        for i, line in enumerate(lines):
+            if line.strip().startswith('def ') or line.strip().startswith('class ') or \
+               (line.strip() and not line.strip().startswith('#') and 
+                not line.strip().startswith('import') and 
+                not line.strip().startswith('from') and 
+                not line.strip().startswith('os.environ') and
+                not line.strip().startswith('print(')):
+                content_start = i
+                break
+        
+        # Combiner nouveau header avec contenu existant
+        promoted_content = promotion_header + '\n'.join(lines[content_start:])
+        
+        # Écrire le fichier promu
+        with open(target_path, 'w', encoding='utf-8') as f:
+            f.write(promoted_content)
+            
+        return True
+        
+    except Exception as e:
+        print(f"⚠️  Erreur mise à jour header: {e}")
+        # Fallback: copie simple
+        shutil.copy2(source_path, target_path)
+        return False
+
+def promote_test(source_path, target_dir, custom_name=None, copy_mode=False):
+    """Promeut un test depuis répertoire temporaire vers répertoire stable"""
+    
+    print(f"🚀 Promotion de test en cours...")
+    print(f"📁 Source: {source_path}")
+    print(f"📂 Cible: {target_dir}")
+    
+    # Validations
+    source = validate_source_file(source_path)
+    target_dir_path = validate_target_dir(target_dir)
+    target_path = generate_target_filename(source_path, target_dir_path, custom_name)
+    
+    print(f"✨ Fichier cible: {target_path}")
+    
+    # Confirmation
+    print(f"\n📋 RÉSUMÉ PROMOTION:")
+    print(f"   Source: {source}")
+    print(f"   Cible: {target_path}")
+    print(f"   Mode: {'Copie' if copy_mode else 'Déplacement'}")
+    
+    response = input(f"\n🤔 Confirmer la promotion? [Y/n]: ").lower()
+    if response in ['n', 'no']:
+        print("❌ Promotion annulée")
+        return False
+    
+    try:
+        # Mise à jour contenu avec header promotion
+        header_updated = update_test_header(source, target_path)
+        
+        if header_updated:
+            print(f"✅ Header mis à jour avec info promotion")
+        else:
+            print(f"⚠️  Header standard appliqué")
+        
+        # Supprimer source si mode déplacement
+        if not copy_mode:
+            source.unlink()
+            print(f"🗑️  Fichier source supprimé: {source}")
+        
+        print(f"🎊 PROMOTION RÉUSSIE!")
+        print(f"✅ Test disponible dans: {target_path}")
+        
+        # Suggérer prochaines étapes
+        print(f"\n💡 PROCHAINES ÉTAPES:")
+        print(f"   1. Vérifier le test promu: python {target_path}")
+        print(f"   2. Commit Git: git add {target_path}")
+        if not copy_mode:
+            print(f"   3. Commit suppression: git rm {source}")
+        print(f"   4. Tests CI/CD: pytest {target_path}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erreur promotion: {e}")
+        return False
+
+def main():
+    """Fonction principale"""
+    parser = argparse.ArgumentParser(
+        description="🚀 Promote test files from temporary to stable directories",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    python tools/promote_test.py .cursor-tmp/scratch_stt.py tests/unit/
+    python tools/promote_test.py tests/sandbox/experiment.py tests/integration/
+    python tools/promote_test.py .cursor-tmp/temp_debug.py tests/unit/ --rename=test_gpu_validation.py
+    python tools/promote_test.py tests/sandbox/quick_test.py PIPELINE/tests/unit/ --copy
+        """
+    )
+    
+    parser.add_argument('source', help='Source file path (e.g., .cursor-tmp/scratch_test.py)')
+    parser.add_argument('target_dir', help='Target directory (e.g., tests/unit/)')
+    parser.add_argument('--rename', help='Custom filename for promoted test')
+    parser.add_argument('--copy', action='store_true', 
+                       help='Copy instead of move (keep original file)')
+    parser.add_argument('--force', action='store_true',
+                       help='Skip confirmation prompts')
+    
+    args = parser.parse_args()
+    
+    print("🚀 SuperWhisper V6 - Test Promotion Tool")
+    print("=" * 50)
+    
+    # Override confirmation si mode force
+    if args.force:
+        global input
+        input = lambda x: 'y'
+    
+    success = promote_test(
+        args.source, 
+        args.target_dir, 
+        args.rename, 
+        args.copy
+    )
+    
+    return 0 if success else 1
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print("\n⚠️  Promotion interrompue par l'utilisateur")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Erreur inattendue: {e}")
+        sys.exit(1) 

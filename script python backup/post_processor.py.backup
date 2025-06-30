@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""
+Post-processeur pour améliorer la qualité des transcriptions
+"""
+
+import re
+import unicodedata
+from typing import List, Tuple, Dict
+from difflib import SequenceMatcher
+import json
+from pathlib import Path
+
+class TranscriptionPostProcessor:
+    """Post-traitement avancé des transcriptions"""
+    
+    def __init__(self, config_path: str = None):
+        # Vocabulaire technique
+        self.technical_terms = {
+            "gpu": "GPU",
+            "rtx": "RTX",
+            "cpu": "CPU",
+            "ram": "RAM",
+            "stt": "STT",
+            "tts": "TTS",
+            "llm": "LLM",
+            "api": "API",
+            "vad": "VAD",
+            "cuda": "CUDA",
+            "vram": "VRAM"
+        }
+        
+        # Corrections courantes
+        self.common_corrections = {
+            # Homophones
+            "a": ["à", "a"],
+            "et": ["et", "est"],
+            "ses": ["ses", "ces", "c'est"],
+            "ou": ["ou", "où"],
+            
+            # Mots composés
+            "machine learning": ["machine learning", "machine-learning"],
+            "intelligence artificielle": ["intelligence artificielle", "IA"],
+            "faster whisper": ["faster-whisper", "faster whisper"],
+            "super whisper": ["superwhisper", "super whisper"],
+            
+            # Nombres
+            "deux mille": ["2000", "deux mille"],
+            "vingt quatre": ["24", "vingt-quatre"]
+        }
+        
+        # Chargement config personnalisée
+        if config_path and Path(config_path).exists():
+            with open(config_path, 'r', encoding='utf-8') as f:
+                custom_config = json.load(f)
+                self.technical_terms.update(custom_config.get('technical_terms', {}))
+                self.common_corrections.update(custom_config.get('corrections', {}))
+    
+    def process(self, text: str, confidence: float = 1.0) -> Tuple[str, Dict[str, Any]]:
+        """
+        Traite le texte avec toutes les corrections
+        
+        Returns:
+            (texte corrigé, métriques de correction)
+        """
+        original = text
+        metrics = {
+            "original_length": len(original),
+            "corrections_applied": 0,
+            "confidence_boost": 0.0
+        }
+        
+        # 1. Normalisation Unicode
+        text = self._normalize_unicode(text)
+        
+        # 2. Correction casse termes techniques
+        text, tech_corrections = self._fix_technical_terms(text)
+        metrics["corrections_applied"] += tech_corrections
+        
+        # 3. Correction ponctuation
+        text = self._fix_punctuation(text)
+        
+        # 4. Correction espacement
+        text = self._fix_spacing(text)
+        
+        # 5. Correction contextuelle
+        text, context_corrections = self._contextual_corrections(text)
+        metrics["corrections_applied"] += context_corrections
+        
+        # 6. Validation finale
+        text = self._final_validation(text)
+        
+        # Calcul boost confiance
+        if metrics["corrections_applied"] > 0:
+            # Boost confiance si corrections appliquées avec succès
+            similarity = SequenceMatcher(None, original, text).ratio()
+            metrics["confidence_boost"] = (1 - similarity) * 0.1  # Max 10% boost
+        
+        metrics["final_length"] = len(text)
+        metrics["similarity_ratio"] = SequenceMatcher(None, original, text).ratio()
+        
+        return text, metrics
+    
+    def _normalize_unicode(self, text: str) -> str:
+        """Normalise les caractères Unicode"""
+        # NFD puis NFC pour gérer les accents
+        text = unicodedata.normalize('NFD', text)
+        text = unicodedata.normalize('NFC', text)
+        
+        # Remplacer caractères problématiques
+        replacements = {
+            ''': "'",
+            ''': "'",
+            '"': '"',
+            '"': '"',
+            '…': '...',
+            '–': '-',
+            '—': '-'
+        }
+        
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        
+        return text
+    
+    def _fix_technical_terms(self, text: str) -> Tuple[str, int]:
+        """Corrige la casse des termes techniques"""
+        corrections = 0
+        
+        for term, correct in self.technical_terms.items():
+            # Recherche insensible à la casse
+            pattern = re.compile(r'\b' + re.escape(term) + r'\b', re.IGNORECASE)
+            matches = pattern.findall(text)
+            
+            if matches:
+                text = pattern.sub(correct, text)
+                corrections += len(matches)
+        
+        return text, corrections
+    
+    def _fix_punctuation(self, text: str) -> str:
+        """Corrige la ponctuation"""
+        # Espaces avant ponctuation (français)
+        text = re.sub(r'\s+([?!:;])', r' \1', text)
+        
+        # Pas d'espace avant virgule et point
+        text = re.sub(r'\s+([,.])', r'\1', text)
+        
+        # Espace après ponctuation
+        text = re.sub(r'([,.?!:;])([^\s])', r'\1 \2', text)
+        
+        # Majuscule après point
+        text = re.sub(r'(\. +)([a-z])', lambda m: m.group(1) + m.group(2).upper(), text)
+        
+        # Majuscule début
+        if text and text[0].islower():
+            text = text[0].upper() + text[1:]
+        
+        return text
+    
+    def _fix_spacing(self, text: str) -> str:
+        """Corrige les espaces"""
+        # Espaces multiples
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Espaces début/fin
+        text = text.strip()
+        
+        # Apostrophes
+        text = re.sub(r"\s+'", "'", text)
+        text = re.sub(r"'\s+", "'", text)
+        
+        return text
+    
+    def _contextual_corrections(self, text: str) -> Tuple[str, int]:
+        """Corrections contextuelles avancées"""
+        corrections = 0
+        
+        # Parcourir les corrections possibles
+        words = text.split()
+        
+        for i, word in enumerate(words):
+            word_lower = word.lower()
+            
+            # Vérifier dans le dictionnaire de corrections
+            for correct_forms in self.common_corrections.values():
+                if word_lower in [w.lower() for w in correct_forms]:
+                    # Analyser le contexte
+                    context_before = words[max(0, i-2):i]
+                    context_after = words[i+1:min(len(words), i+3)]
+                    
+                    # Choisir la meilleure forme selon le contexte
+                    best_form = self._choose_best_form(
+                        word_lower, 
+                        correct_forms, 
+                        context_before, 
+                        context_after
+                    )
+                    
+                    if best_form and best_form != word:
+                        words[i] = best_form
+                        corrections += 1
+        
+        return ' '.join(words), corrections
+    
+    def _choose_best_form(self, word: str, forms: List[str], 
+                         before: List[str], after: List[str]) -> str:
+        """Choisit la meilleure forme selon le contexte"""
+        # Logique simplifiée - peut être étendue avec ML
+        context = ' '.join(before + [word] + after)
+        
+        # Exemples de règles contextuelles
+        if word in ['a', 'à']:
+            # "a" est verbe, "à" est préposition
+            if before and before[-1] in ['il', 'elle', 'on']:
+                return 'a'
+            else:
+                return 'à'
+        
+        # Par défaut, retourner la forme la plus commune
+        return forms[0] if forms else word
+    
+    def _final_validation(self, text: str) -> str:
+        """Validation finale du texte"""
+        # Supprimer ponctuation double
+        text = re.sub(r'([.!?])\1+', r'\1', text)
+        
+        # Vérifier parenthèses/guillemets équilibrés
+        text = self._balance_delimiters(text)
+        
+        return text
+    
+    def _balance_delimiters(self, text: str) -> str:
+        """Équilibre les délimiteurs (parenthèses, guillemets)"""
+        # Compter délimiteurs
+        delimiters = {
+            '(': ')',
+            '[': ']',
+            '{': '}',
+            '"': '"',
+            "'": "'"
+        }
+        
+        for open_d, close_d in delimiters.items():
+            open_count = text.count(open_d)
+            close_count = text.count(close_d)
+            
+            # Ajouter délimiteurs manquants à la fin
+            if open_count > close_count:
+                text += close_d * (open_count - close_count)
+            elif close_count > open_count and open_d == close_d:
+                # Pour guillemets identiques
+                text = open_d * (close_count - open_count) + text
+        
+        return text

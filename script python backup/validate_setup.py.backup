@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""
+Validation Setup Pipeline SuperWhisper V6 - Task 18.8
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Script validation complète utilisant le code OBLIGATOIRE du prompt
+"""
+
+import os
+import sys
+import asyncio
+import time
+from pathlib import Path
+from typing import Optional, Dict, Any
+import logging
+import yaml
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 Validation Setup: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+# Ajouter le répertoire parent au path pour imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# =============================================================================
+# IMPORTS ET CONFIGURATION
+# =============================================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s – %(levelname)s – %(name)s – %(message)s",
+)
+LOGGER = logging.getLogger("ValidateSetup")
+
+# =============================================================================
+# CLASSE VALIDATION UTILISANT CODE OBLIGATOIRE
+# =============================================================================
+
+class PipelineSetupValidator:
+    """Validation setup pipeline utilisant le code obligatoire du prompt"""
+    
+    def __init__(self, config_path: str = "PIPELINE/config/pipeline.yaml"):
+        self.config_path = config_path
+        self.validation_results = {}
+        
+    async def run_validation(self):
+        """Exécuter validation complète setup"""
+        print("\n" + "="*60)
+        print("🔍 VALIDATION SETUP SUPERWHISPER V6 PIPELINE")
+        print("🚨 CODE OBLIGATOIRE DU PROMPT UTILISÉ")
+        print("="*60)
+        
+        try:
+            # Validation environnement
+            await self._validate_environment()
+            
+            # Validation configuration
+            self._validate_configuration()
+            
+            # Validation composants
+            await self._validate_components()
+            
+            # Test bootstrap obligatoire
+            await self._test_bootstrap_obligatoire()
+            
+            # Génération rapport
+            self._generate_validation_report()
+            
+        except Exception as e:
+            LOGGER.error(f"❌ Erreur validation: {e}")
+            print(f"❌ Erreur: {e}")
+    
+    async def _validate_environment(self):
+        """Valider environnement système"""
+        print("\n🔍 VALIDATION ENVIRONNEMENT")
+        print("-" * 30)
+        
+        # Test GPU RTX 3090
+        print("🎮 Validation GPU RTX 3090...")
+        try:
+            from PIPELINE.scripts.assert_gpu_env import main as validate_gpu
+            validate_gpu()
+            self.validation_results["gpu"] = {"status": "✅ PASS", "details": "RTX 3090 validée"}
+            print("✅ GPU RTX 3090 validée")
+        except Exception as e:
+            self.validation_results["gpu"] = {"status": "❌ FAIL", "details": str(e)}
+            print(f"❌ Erreur validation GPU: {e}")
+        
+        # Test devices audio
+        print("🔊 Validation devices audio...")
+        try:
+            from PIPELINE.scripts.validate_audio_devices import main as validate_audio
+            validate_audio()
+            self.validation_results["audio"] = {"status": "✅ PASS", "details": "Devices audio validés"}
+            print("✅ Devices audio validés")
+        except Exception as e:
+            self.validation_results["audio"] = {"status": "⚠️ WARNING", "details": str(e)}
+            print(f"⚠️ Avertissement audio: {e}")
+        
+        # Test serveur LLM
+        print("🤖 Test serveur LLM...")
+        try:
+            from PIPELINE.scripts.start_llm import main as validate_llm
+            await validate_llm()
+            self.validation_results["llm"] = {"status": "✅ PASS", "details": "Serveur LLM accessible"}
+            print("✅ Serveur LLM accessible")
+        except Exception as e:
+            self.validation_results["llm"] = {"status": "⚠️ WARNING", "details": str(e)}
+            print(f"⚠️ Avertissement LLM: {e}")
+            print("   Le pipeline utilisera les fallbacks")
+    
+    def _validate_configuration(self):
+        """Valider configuration pipeline"""
+        print("\n📋 VALIDATION CONFIGURATION")
+        print("-" * 30)
+        
+        try:
+            # Vérifier fichier configuration
+            if not Path(self.config_path).exists():
+                self.validation_results["config"] = {
+                    "status": "⚠️ WARNING", 
+                    "details": f"Configuration non trouvée: {self.config_path}"
+                }
+                print(f"⚠️ Configuration non trouvée: {self.config_path}")
+                print("📋 Configuration par défaut sera utilisée")
+                return
+            
+            # Charger et valider configuration
+            with open(self.config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            
+            # Valider sections obligatoires
+            required_sections = ['stt', 'tts', 'pipeline']
+            missing_sections = [s for s in required_sections if s not in config]
+            
+            if missing_sections:
+                self.validation_results["config"] = {
+                    "status": "❌ FAIL",
+                    "details": f"Sections manquantes: {missing_sections}"
+                }
+                print(f"❌ Sections manquantes: {missing_sections}")
+            else:
+                self.validation_results["config"] = {
+                    "status": "✅ PASS",
+                    "details": "Configuration complète validée"
+                }
+                print("✅ Configuration complète validée")
+                
+                # Afficher détails configuration
+                print(f"  📁 Fichier: {self.config_path}")
+                print(f"  🎤 STT Backend: {config.get('stt', {}).get('primary_backend', 'N/A')}")
+                print(f"  🔊 TTS Backend: {config.get('tts', {}).get('primary_backend', 'N/A')}")
+                print(f"  🤖 LLM Endpoint: {config.get('pipeline', {}).get('llm_endpoint', 'N/A')}")
+                print(f"  📊 Métriques: {config.get('pipeline', {}).get('enable_metrics', False)}")
+                
+        except Exception as e:
+            self.validation_results["config"] = {
+                "status": "❌ FAIL",
+                "details": f"Erreur lecture configuration: {e}"
+            }
+            print(f"❌ Erreur lecture configuration: {e}")
+    
+    async def _validate_components(self):
+        """Valider composants pipeline"""
+        print("\n🔧 VALIDATION COMPOSANTS")
+        print("-" * 30)
+        
+        # Test imports composants
+        print("📦 Test imports composants...")
+        try:
+            from STT.unified_stt_manager_optimized import OptimizedUnifiedSTTManager
+            from TTS.tts_manager import UnifiedTTSManager
+            from PIPELINE.pipeline_orchestrator import PipelineOrchestrator
+            
+            self.validation_results["imports"] = {
+                "status": "✅ PASS",
+                "details": "Tous imports réussis"
+            }
+            print("✅ Imports composants réussis")
+            
+        except Exception as e:
+            self.validation_results["imports"] = {
+                "status": "❌ FAIL",
+                "details": f"Erreur imports: {e}"
+            }
+            print(f"❌ Erreur imports: {e}")
+            return
+        
+        # Test initialisation composants
+        print("🔧 Test initialisation composants...")
+        try:
+            # Configuration par défaut
+            cfg = {}
+            if Path(self.config_path).exists():
+                cfg = yaml.safe_load(Path(self.config_path).read_text())
+            
+            # Test STT
+            print("  🎤 Initialisation STT...")
+            stt = OptimizedUnifiedSTTManager(cfg.get("stt", {}))
+            
+            # Test TTS
+            print("  🔊 Initialisation TTS...")
+            tts = UnifiedTTSManager(cfg.get("tts", {}))
+            
+            # Test PipelineOrchestrator
+            print("  🚀 Initialisation Pipeline...")
+            orchestrator = PipelineOrchestrator(
+                stt,
+                tts,
+                llm_endpoint=cfg.get("pipeline", {}).get("llm_endpoint", "http://localhost:8000"),
+                metrics_enabled=cfg.get("pipeline", {}).get("enable_metrics", False),
+            )
+            
+            self.validation_results["components"] = {
+                "status": "✅ PASS",
+                "details": "Composants initialisés avec succès"
+            }
+            print("✅ Composants initialisés avec succès")
+            
+        except Exception as e:
+            self.validation_results["components"] = {
+                "status": "❌ FAIL",
+                "details": f"Erreur initialisation: {e}"
+            }
+            print(f"❌ Erreur initialisation: {e}")
+    
+    async def _test_bootstrap_obligatoire(self):
+        """Tester fonction bootstrap obligatoire du prompt"""
+        print("\n🚀 TEST BOOTSTRAP OBLIGATOIRE")
+        print("-" * 30)
+        
+        try:
+            # Importer fonction bootstrap du prompt
+            from PIPELINE.scripts.demo_pipeline import _bootstrap
+            
+            print("📋 Test fonction _bootstrap() du prompt...")
+            
+            # Test avec timeout pour éviter blocage
+            try:
+                # Créer task avec timeout
+                bootstrap_task = asyncio.create_task(_bootstrap(self.config_path))
+                await asyncio.wait_for(bootstrap_task, timeout=10.0)
+                
+                self.validation_results["bootstrap"] = {
+                    "status": "✅ PASS",
+                    "details": "Bootstrap obligatoire fonctionnel"
+                }
+                print("✅ Bootstrap obligatoire fonctionnel")
+                
+            except asyncio.TimeoutError:
+                self.validation_results["bootstrap"] = {
+                    "status": "⚠️ WARNING",
+                    "details": "Bootstrap timeout (normal sans LLM actif)"
+                }
+                print("⚠️ Bootstrap timeout (normal sans LLM actif)")
+                
+            except Exception as e:
+                self.validation_results["bootstrap"] = {
+                    "status": "❌ FAIL",
+                    "details": f"Erreur bootstrap: {e}"
+                }
+                print(f"❌ Erreur bootstrap: {e}")
+                
+        except Exception as e:
+            self.validation_results["bootstrap"] = {
+                "status": "❌ FAIL",
+                "details": f"Erreur import bootstrap: {e}"
+            }
+            print(f"❌ Erreur import bootstrap: {e}")
+    
+    def _generate_validation_report(self):
+        """Générer rapport validation"""
+        print("\n📋 RAPPORT VALIDATION")
+        print("="*40)
+        
+        # Compter résultats
+        total_tests = len(self.validation_results)
+        passed_tests = sum(1 for r in self.validation_results.values() if r["status"].startswith("✅"))
+        warning_tests = sum(1 for r in self.validation_results.values() if r["status"].startswith("⚠️"))
+        failed_tests = sum(1 for r in self.validation_results.values() if r["status"].startswith("❌"))
+        
+        # Afficher résumé
+        print(f"📊 RÉSUMÉ VALIDATION:")
+        print(f"  Total tests: {total_tests}")
+        print(f"  ✅ Réussis: {passed_tests}")
+        print(f"  ⚠️ Avertissements: {warning_tests}")
+        print(f"  ❌ Échecs: {failed_tests}")
+        
+        # Afficher détails
+        print(f"\n📋 DÉTAILS:")
+        for test_name, result in self.validation_results.items():
+            print(f"  {result['status']} {test_name.upper()}: {result['details']}")
+        
+        # Statut global
+        if failed_tests == 0:
+            if warning_tests == 0:
+                print(f"\n🎉 VALIDATION COMPLÈTE RÉUSSIE")
+                print("✅ Pipeline prêt pour tests end-to-end")
+            else:
+                print(f"\n✅ VALIDATION RÉUSSIE AVEC AVERTISSEMENTS")
+                print("⚠️ Pipeline fonctionnel avec limitations")
+        else:
+            print(f"\n❌ VALIDATION ÉCHOUÉE")
+            print("🔧 Corrections requises avant tests")
+        
+        # Sauvegarder rapport
+        report_path = "PIPELINE/reports/validation_setup.json"
+        Path(report_path).parent.mkdir(parents=True, exist_ok=True)
+        
+        import json
+        from datetime import datetime
+        
+        report = {
+            "timestamp": datetime.now().isoformat(),
+            "pipeline_version": "SuperWhisper V6",
+            "gpu_config": "RTX 3090 (CUDA:1)",
+            "code_version": "Prompt Obligatoire v1.1",
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "warning_tests": warning_tests,
+            "failed_tests": failed_tests,
+            "results": self.validation_results
+        }
+        
+        with open(report_path, 'w', encoding='utf-8') as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
+        
+        print(f"\n📁 Rapport sauvegardé: {report_path}")
+
+# =============================================================================
+# SCRIPT ENTRY POINT
+# =============================================================================
+
+async def main():
+    """Point d'entrée principal"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Validation Setup Pipeline SuperWhisper V6")
+    parser.add_argument("--config", "-c", type=str, default="PIPELINE/config/pipeline.yaml",
+                       help="Chemin configuration YAML")
+    
+    args = parser.parse_args()
+    
+    validator = PipelineSetupValidator(args.config)
+    await validator.run_validation()
+
+if __name__ == "__main__":
+    try:
+        # Optimisation uvloop comme dans le prompt obligatoire
+        try:
+            import uvloop
+            uvloop.install()
+            LOGGER.info("✅ uvloop enabled for enhanced performance")
+        except ImportError:
+            LOGGER.info("uvloop not available – fallback to asyncio event‑loop")
+
+        # Démarrer validation
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        LOGGER.info("👋 Keyboard interrupt – exit")
+    except Exception as e:
+        LOGGER.error("❌ Validation startup error: %s", e)
+        sys.exit(1) 

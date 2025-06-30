@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""
+📥 IMPORT NOUS-HERMES-2-MISTRAL-7B-DPO DANS OLLAMA - SUPERWHISPER V6
+===================================================================
+Script pour importer le modèle Nous-Hermes-2-Mistral-7B-DPO dans Ollama
+
+MODÈLE SOURCE:
+- Fichier: Nous-Hermes-2-Mistral-7B-DPO.Q4_K_S.gguf
+- Localisation: D:\\modeles_llm\\NousResearch\\Nous-Hermes-2-Mistral-7B-DPO-GGUF\\
+- Avantages: DPO-tuned, conversation excellente, français natif
+
+ACTIONS:
+1. Création Modelfile Ollama optimisé
+2. Import modèle depuis fichier local
+3. Validation modèle chargé
+4. Test conversation française
+
+Usage: python scripts/import_nous_hermes_mistral_7b.py
+"""
+
+import os
+import sys
+import subprocess
+import time
+import logging
+import tempfile
+import httpx
+import asyncio
+
+# Configuration logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("nous_hermes_import")
+
+class NousHermesImporter:
+    """Importeur pour Nous-Hermes-2-Mistral-7B-DPO dans Ollama"""
+    
+    def __init__(self):
+        self.model_path = r"D:\modeles_llm\NousResearch\Nous-Hermes-2-Mistral-7B-DPO-GGUF\Nous-Hermes-2-Mistral-7B-DPO.Q4_K_S.gguf"
+        self.model_name = "nous-hermes-2-mistral-7b-dpo"
+        self.ollama_url = "http://localhost:11434"
+        
+    def validate_model_file(self):
+        """Valider que le fichier modèle existe"""
+        logger.info(f"🔍 Validation fichier modèle: {self.model_path}")
+        
+        if not os.path.exists(self.model_path):
+            raise FileNotFoundError(f"❌ Fichier modèle non trouvé: {self.model_path}")
+        
+        size_gb = os.path.getsize(self.model_path) / (1024**3)
+        logger.info(f"✅ Fichier trouvé: {size_gb:.1f}GB")
+        return True
+    
+    def create_modelfile(self):
+        """Créer le Modelfile pour Ollama"""
+        logger.info("📝 Création Modelfile Ollama...")
+        
+        modelfile_content = f"""FROM {self.model_path}
+
+# Configuration optimisée pour conversation française
+TEMPLATE \"\"\"<|im_start|>system
+Tu es un assistant IA conversationnel en français. Réponds de manière naturelle et concise.
+<|im_end|>
+<|im_start|>user
+{{{{ .Prompt }}}}
+<|im_end|>
+<|im_start|>assistant
+\"\"\"
+
+# Paramètres optimisés pour SuperWhisper V6
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.1
+PARAMETER num_ctx 2048
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+"""
+        
+        # Écrire dans fichier temporaire
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.modelfile', delete=False) as f:
+            f.write(modelfile_content)
+            modelfile_path = f.name
+        
+        logger.info(f"✅ Modelfile créé: {modelfile_path}")
+        return modelfile_path
+    
+    def import_model(self, modelfile_path):
+        """Importer le modèle dans Ollama"""
+        logger.info(f"📥 Import modèle {self.model_name} dans Ollama...")
+        
+        try:
+            cmd = ["ollama", "create", self.model_name, "-f", modelfile_path]
+            logger.info(f"🔧 Commande: {' '.join(cmd)}")
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            if result.returncode == 0:
+                logger.info(f"✅ Modèle {self.model_name} importé avec succès")
+                logger.info(f"📤 Sortie: {result.stdout}")
+                return True
+            else:
+                logger.error(f"❌ Erreur import: {result.stderr}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            logger.error("❌ Timeout lors de l'import (5min)")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Erreur import: {e}")
+            return False
+    
+    async def test_model(self):
+        """Tester le modèle importé"""
+        logger.info(f"🧪 Test modèle {self.model_name}...")
+        
+        test_prompts = [
+            "Bonjour, comment allez-vous ?",
+            "Quelle heure est-il ?",
+            "Merci pour votre aide"
+        ]
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            for i, prompt in enumerate(test_prompts, 1):
+                try:
+                    logger.info(f"🔍 Test {i}/3: '{prompt}'")
+                    
+                    payload = {
+                        "model": self.model_name,
+                        "prompt": prompt,
+                        "stream": False
+                    }
+                    
+                    start_time = time.time()
+                    response = await client.post(f"{self.ollama_url}/api/generate", json=payload)
+                    latency = (time.time() - start_time) * 1000
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        response_text = result.get("response", "").strip()
+                        logger.info(f"✅ Test {i} réussi ({latency:.1f}ms): '{response_text[:50]}...'")
+                    else:
+                        logger.error(f"❌ Test {i} échoué: {response.status_code}")
+                        
+                except Exception as e:
+                    logger.error(f"❌ Erreur test {i}: {e}")
+    
+    def cleanup(self, modelfile_path):
+        """Nettoyer les fichiers temporaires"""
+        try:
+            os.unlink(modelfile_path)
+            logger.info("🧹 Nettoyage fichiers temporaires terminé")
+        except Exception as e:
+            logger.warning(f"⚠️ Erreur nettoyage: {e}")
+
+async def main():
+    """Fonction principale d'import"""
+    logger.info("🚀 Démarrage import Nous-Hermes-2-Mistral-7B-DPO")
+    
+    importer = NousHermesImporter()
+    modelfile_path = None
+    
+    try:
+        # 1. Validation fichier
+        importer.validate_model_file()
+        
+        # 2. Création Modelfile
+        modelfile_path = importer.create_modelfile()
+        
+        # 3. Import modèle
+        success = importer.import_model(modelfile_path)
+        
+        if success:
+            # 4. Test modèle
+            await importer.test_model()
+            logger.info("🎊 Import Nous-Hermes-2-Mistral-7B-DPO terminé avec succès !")
+        else:
+            logger.error("❌ Échec import modèle")
+            
+    except Exception as e:
+        logger.error(f"❌ Erreur critique: {e}")
+    finally:
+        # 5. Nettoyage
+        if modelfile_path:
+            importer.cleanup(modelfile_path)
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

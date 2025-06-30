@@ -1,0 +1,11 @@
+{
+  "validation_time": "2025-06-14 14:47:41",
+  "pipeline_test": "SUCCESS",
+  "backend_used": "piper_native",
+  "latency_ms": 1827.6331424713135,
+  "audio_size_bytes": 196768,
+  "gpu_config": "RTX 3090 (CUDA:1)",
+  "human_validation": "SUCCESS",
+  "tts_modified": false,
+  "pipeline_integration": true
+}

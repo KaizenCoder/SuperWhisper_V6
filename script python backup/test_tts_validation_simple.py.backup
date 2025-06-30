@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+"""
+Validation TTS SuperWhisper V6 - Version Simplifiée
+==================================================
+• Test TTS avec approche directe
+• Évite les imports complexes
+• Configuration RTX 3090 obligatoire
+• Validation audio basique
+
+Exécution :
+```
+python tests/test_tts_validation_simple.py
+```
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+import time
+import subprocess
+from pathlib import Path
+from typing import Any, Dict
+
+import numpy as np
+import sounddevice as sd
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'  # Optimisation mémoire
+
+print("🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+def validate_rtx3090_configuration():
+    """Validation obligatoire de la configuration RTX 3090"""
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+        
+        cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+        if cuda_devices != '1':
+            raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
+        
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+        if gpu_memory < 20:  # RTX 3090 = ~24GB
+            raise RuntimeError(f"🚫 GPU ({gpu_memory:.1f}GB) trop petite - RTX 3090 requise")
+        
+        print(f"✅ RTX 3090 validée: {torch.cuda.get_device_name(0)} ({gpu_memory:.1f}GB)")
+        return True, torch.cuda.get_device_name(0), gpu_memory
+    except Exception as e:
+        print(f"⚠️ Validation GPU échouée: {e}")
+        return False, str(e), 0
+
+def test_tts_with_piper():
+    """Test TTS avec Piper directement (sans UnifiedTTSManager)"""
+    
+    print("\n████  SuperWhisper V6 – Test TTS Simplifié  ████")
+    
+    # =========================================================================
+    # ÉTAPE 1: VALIDATION GPU RTX 3090
+    # =========================================================================
+    print("\n🔧 ÉTAPE 1: VALIDATION GPU RTX 3090")
+    gpu_ok, gpu_name, gpu_memory = validate_rtx3090_configuration()
+    
+    if not gpu_ok:
+        print("❌ Validation GPU échouée - Arrêt du test")
+        return False
+
+    # =========================================================================
+    # ÉTAPE 2: VÉRIFICATION PIPER
+    # =========================================================================
+    print("\n🔧 ÉTAPE 2: VÉRIFICATION PIPER TTS")
+    
+    # Chercher l'exécutable Piper
+    piper_paths = [
+        "piper/piper.exe",
+        "TTS/piper/piper.exe", 
+        "C:/Dev/SuperWhisper_V6/piper/piper.exe",
+        "piper.exe"
+    ]
+    
+    piper_exe = None
+    for path in piper_paths:
+        if Path(path).exists():
+            piper_exe = path
+            break
+    
+    if not piper_exe:
+        print("❌ Exécutable Piper non trouvé")
+        print("📁 Chemins testés:")
+        for path in piper_paths:
+            print(f"   - {path}")
+        return False
+    
+    print(f"✅ Piper trouvé: {piper_exe}")
+    
+    # Chercher modèle Piper
+    model_paths = [
+        "TTS/models/fr_FR-siwis-medium.onnx",
+        "models/fr_FR-siwis-medium.onnx",
+        "piper/models/fr_FR-siwis-medium.onnx"
+    ]
+    
+    model_path = None
+    for path in model_paths:
+        if Path(path).exists():
+            model_path = path
+            break
+    
+    if not model_path:
+        print("❌ Modèle Piper non trouvé")
+        print("📁 Chemins testés:")
+        for path in model_paths:
+            print(f"   - {path}")
+        return False
+    
+    print(f"✅ Modèle trouvé: {model_path}")
+
+    # =========================================================================
+    # ÉTAPE 3: TEST SYNTHÈSE VOCALE DIRECTE
+    # =========================================================================
+    print("\n🔊 ÉTAPE 3: TEST SYNTHÈSE VOCALE DIRECTE")
+    
+    test_text = "Bonjour ! Je suis SuperWhisper V6, votre assistant vocal."
+    print(f"📝 Texte à synthétiser: '{test_text}'")
+    
+    try:
+        print("🔄 Synthèse avec Piper...")
+        start_time = time.perf_counter()
+        
+        # Commande Piper directe
+        cmd = [
+            piper_exe,
+            "--model", model_path,
+            "--output_raw"
+        ]
+        
+        # Exécution Piper
+        result = subprocess.run(
+            cmd,
+            input=test_text.encode('utf-8'),
+            capture_output=True,
+            timeout=10
+        )
+        
+        end_time = time.perf_counter()
+        latency_ms = (end_time - start_time) * 1000
+        
+        if result.returncode != 0:
+            print(f"❌ Erreur Piper: {result.stderr.decode()}")
+            return False
+        
+        audio_raw = result.stdout
+        print(f"✅ Synthèse réussie: {len(audio_raw):,} bytes")
+        print(f"⚡ Latence TTS: {latency_ms:.1f}ms")
+        
+    except subprocess.TimeoutExpired:
+        print("❌ Timeout Piper (>10s)")
+        return False
+    except Exception as e:
+        print(f"❌ Erreur synthèse: {e}")
+        return False
+
+    # =========================================================================
+    # ÉTAPE 4: LECTURE AUDIO SIMULÉE
+    # =========================================================================
+    print("\n🔈 ÉTAPE 4: VALIDATION AUDIO")
+    
+    try:
+        # Simulation lecture audio (Piper génère du PCM brut)
+        sample_rate = 22050  # Piper par défaut
+        duration_s = len(audio_raw) / (sample_rate * 2)  # 16-bit = 2 bytes
+        
+        print(f"🎵 Sample rate: {sample_rate}Hz")
+        print(f"⏱️ Durée audio: {duration_s:.1f}s")
+        print(f"📊 Taille: {len(audio_raw):,} bytes")
+        
+        # Conversion pour lecture (simulation)
+        if len(audio_raw) > 0:
+            # Convertir PCM 16-bit en numpy
+            audio_np = np.frombuffer(audio_raw, dtype=np.int16)
+            
+            print("🔊 Lecture audio simulée - Écoutez attentivement...")
+            sd.play(audio_np, samplerate=sample_rate)
+            sd.wait()
+            
+            print("✅ Audio joué avec succès")
+        else:
+            print("⚠️ Audio vide généré")
+            return False
+        
+    except Exception as e:
+        print(f"❌ Erreur lecture audio: {e}")
+        return False
+
+    # =========================================================================
+    # VALIDATION HUMAINE
+    # =========================================================================
+    print("\n" + "="*60)
+    print("🧑 VALIDATION HUMAINE TTS")
+    print("="*60)
+    print(f"📝 Texte synthétisé: '{test_text}'")
+    print(f"⚡ Latence TTS: {latency_ms:.1f}ms")
+    print(f"🎵 Durée audio: {duration_s:.1f}s")
+    print(f"🎮 GPU utilisée: {gpu_name}")
+    print(f"🔧 Outil: Piper TTS direct")
+    
+    # Questions validation
+    questions = [
+        "Avez-vous entendu l'audio TTS ?",
+        "La voix est-elle claire et compréhensible ?", 
+        "La latence TTS est-elle acceptable ?",
+        "Le TTS fonctionne-t-il correctement ?"
+    ]
+    
+    all_ok = True
+    for question in questions:
+        response = input(f"❓ {question} (y/n): ").strip().lower()
+        if not response.startswith("y"):
+            all_ok = False
+    
+    # Verdict final
+    print("\n" + "="*60)
+    if all_ok:
+        print("✅ VALIDATION TTS : SUCCÈS")
+        print("🎊 TTS SuperWhisper V6 VALIDÉ !")
+        print("="*60)
+        return True
+    else:
+        print("❌ VALIDATION TTS : ÉCHEC")
+        print("🔧 TTS nécessite des corrections")
+        print("="*60)
+        return False
+
+if __name__ == "__main__":
+    try:
+        success = test_tts_with_piper()
+        sys.exit(0 if success else 1)
+    except Exception as e:
+        print(f"\n❌ ERREUR CRITIQUE: {e}")
+        sys.exit(1) 

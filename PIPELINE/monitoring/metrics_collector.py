@@ -1,0 +1,564 @@
+#!/usr/bin/env python3
+"""
+Collecteur Métriques Pipeline - Task 18.7
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+Collecteur métriques Prometheus pour monitoring pipeline voix-à-voix :
+- Latence end-to-end et par composant
+- Throughput et taux d'erreur
+- Métriques GPU et VRAM
+- Dashboard Grafana compatible
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import time
+import threading
+import psutil
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+import logging
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 Metrics Collector: RTX 3090 (CUDA:1) forcée")
+print(f"🔒 CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+try:
+    from prometheus_client import (
+        Counter, Histogram, Gauge, Info, Enum,
+        start_http_server, generate_latest, CONTENT_TYPE_LATEST
+    )
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    print("⚠️ Prometheus client non disponible - métriques désactivées")
+
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    print("⚠️ PyTorch non disponible - métriques GPU désactivées")
+
+# =============================================================================
+# CONFIGURATION LOGGING
+# =============================================================================
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s – %(levelname)s – %(name)s – %(message)s",
+)
+LOGGER = logging.getLogger("MetricsCollector")
+
+# =============================================================================
+# MÉTRIQUES PROMETHEUS
+# =============================================================================
+
+class PipelineMetricsCollector:
+    """Collecteur métriques Prometheus pour pipeline SuperWhisper V6"""
+    
+    def __init__(self, enabled: bool = True, port: int = 9091):
+        self.enabled = enabled and PROMETHEUS_AVAILABLE
+        self.port = port
+        self._server_started = False
+        self._collection_thread: Optional[threading.Thread] = None
+        self._running = threading.Event()
+        
+        if not self.enabled:
+            LOGGER.warning("Métriques désactivées - Prometheus non disponible")
+            return
+            
+        self._init_metrics()
+        LOGGER.info("✅ Collecteur métriques initialisé")
+    
+    def _init_metrics(self):
+        """Initialiser les métriques Prometheus"""
+        if not self.enabled:
+            return
+            
+        # =================================================================
+        # MÉTRIQUES PIPELINE PRINCIPAL
+        # =================================================================
+        
+        # Latence end-to-end
+        self.pipeline_latency = Histogram(
+            'superwhisper_pipeline_latency_seconds',
+            'Latence totale pipeline voix-à-voix',
+            buckets=[0.1, 0.2, 0.5, 1.0, 1.2, 2.0, 5.0, 10.0]
+        )
+        
+        # Latence par composant
+        self.stt_latency = Histogram(
+            'superwhisper_stt_latency_seconds',
+            'Latence transcription STT',
+            buckets=[0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 2.0]
+        )
+        
+        self.llm_latency = Histogram(
+            'superwhisper_llm_latency_seconds', 
+            'Latence génération LLM',
+            buckets=[0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
+        )
+        
+        self.tts_latency = Histogram(
+            'superwhisper_tts_latency_seconds',
+            'Latence synthèse TTS', 
+            buckets=[0.05, 0.1, 0.2, 0.5, 1.0, 2.0]
+        )
+        
+        # Compteurs requêtes
+        self.requests_total = Counter(
+            'superwhisper_requests_total',
+            'Nombre total de requêtes pipeline',
+            ['status']  # success, error, timeout
+        )
+        
+        self.conversations_total = Counter(
+            'superwhisper_conversations_total',
+            'Nombre total de tours de conversation'
+        )
+        
+        # Métriques erreurs
+        self.errors_total = Counter(
+            'superwhisper_errors_total',
+            'Nombre total d\'erreurs',
+            ['component', 'error_type']  # stt/llm/tts, timeout/network/processing
+        )
+        
+        # =================================================================
+        # MÉTRIQUES SYSTÈME ET GPU
+        # =================================================================
+        
+        # Utilisation CPU/RAM
+        self.cpu_usage = Gauge(
+            'superwhisper_cpu_usage_percent',
+            'Utilisation CPU système'
+        )
+        
+        self.memory_usage = Gauge(
+            'superwhisper_memory_usage_bytes',
+            'Utilisation mémoire RAM'
+        )
+        
+        # Métriques GPU RTX 3090
+        if TORCH_AVAILABLE:
+            self.gpu_memory_used = Gauge(
+                'superwhisper_gpu_memory_used_bytes',
+                'Mémoire GPU utilisée RTX 3090'
+            )
+            
+            self.gpu_memory_total = Gauge(
+                'superwhisper_gpu_memory_total_bytes',
+                'Mémoire GPU totale RTX 3090'
+            )
+            
+            self.gpu_utilization = Gauge(
+                'superwhisper_gpu_utilization_percent',
+                'Utilisation GPU RTX 3090'
+            )
+        
+        # =================================================================
+        # MÉTRIQUES QUALITÉ ET PERFORMANCE
+        # =================================================================
+        
+        # Throughput
+        self.throughput_conversations_per_minute = Gauge(
+            'superwhisper_throughput_conversations_per_minute',
+            'Débit conversations par minute'
+        )
+        
+        # Queue sizes
+        self.queue_size = Gauge(
+            'superwhisper_queue_size',
+            'Taille des queues pipeline',
+            ['queue_type']  # text_queue, response_queue
+        )
+        
+        # Uptime
+        self.uptime_seconds = Gauge(
+            'superwhisper_uptime_seconds',
+            'Temps de fonctionnement pipeline'
+        )
+        
+        # Info système
+        self.system_info = Info(
+            'superwhisper_system_info',
+            'Informations système'
+        )
+        
+        # État pipeline
+        self.pipeline_status = Enum(
+            'superwhisper_pipeline_status',
+            'État du pipeline',
+            states=['starting', 'running', 'stopping', 'error']
+        )
+        
+        # Initialiser infos système
+        self._update_system_info()
+        
+        LOGGER.info("✅ Métriques Prometheus initialisées")
+    
+    def _update_system_info(self):
+        """Mettre à jour les informations système"""
+        if not self.enabled:
+            return
+            
+        info = {
+            'version': 'SuperWhisper_V6',
+            'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+            'platform': sys.platform,
+            'cpu_count': str(psutil.cpu_count()),
+            'memory_total_gb': f"{psutil.virtual_memory().total / 1024**3:.1f}",
+        }
+        
+        if TORCH_AVAILABLE and torch.cuda.is_available():
+            gpu_props = torch.cuda.get_device_properties(0)
+            info.update({
+                'gpu_name': gpu_props.name,
+                'gpu_memory_gb': f"{gpu_props.total_memory / 1024**3:.1f}",
+                'cuda_version': torch.version.cuda or 'unknown'
+            })
+        
+        self.system_info.info(info)
+    
+    def start_server(self):
+        """Démarrer le serveur HTTP Prometheus"""
+        if not self.enabled or self._server_started:
+            return
+            
+        try:
+            start_http_server(self.port)
+            self._server_started = True
+            LOGGER.info(f"✅ Serveur métriques Prometheus démarré sur port {self.port}")
+            
+            # Démarrer collecte automatique
+            self._start_collection()
+            
+        except Exception as e:
+            LOGGER.error(f"❌ Erreur démarrage serveur métriques: {e}")
+    
+    def _start_collection(self):
+        """Démarrer la collecte automatique des métriques système"""
+        if not self.enabled or self._collection_thread:
+            return
+            
+        self._running.set()
+        self._collection_thread = threading.Thread(
+            target=self._collection_loop,
+            daemon=True,
+            name="MetricsCollection"
+        )
+        self._collection_thread.start()
+        LOGGER.info("✅ Collecte automatique métriques démarrée")
+    
+    def _collection_loop(self):
+        """Boucle collecte métriques système"""
+        start_time = time.time()
+        
+        while self._running.is_set():
+            try:
+                # Métriques système
+                self.cpu_usage.set(psutil.cpu_percent())
+                self.memory_usage.set(psutil.virtual_memory().used)
+                
+                # Métriques GPU
+                if TORCH_AVAILABLE and torch.cuda.is_available():
+                    memory_used = torch.cuda.memory_allocated(0)
+                    memory_total = torch.cuda.get_device_properties(0).total_memory
+                    
+                    self.gpu_memory_used.set(memory_used)
+                    self.gpu_memory_total.set(memory_total)
+                    
+                    # Utilisation GPU (approximation via mémoire)
+                    gpu_util = (memory_used / memory_total) * 100
+                    self.gpu_utilization.set(gpu_util)
+                
+                # Uptime
+                uptime = time.time() - start_time
+                self.uptime_seconds.set(uptime)
+                
+                # Attendre 5 secondes
+                time.sleep(5)
+                
+            except Exception as e:
+                LOGGER.error(f"Erreur collecte métriques: {e}")
+                time.sleep(10)
+    
+    def stop(self):
+        """Arrêter la collecte métriques"""
+        if self._running.is_set():
+            self._running.clear()
+            LOGGER.info("🛑 Collecte métriques arrêtée")
+        
+        if self._collection_thread and self._collection_thread.is_alive():
+            self._collection_thread.join(timeout=2)
+    
+    # =================================================================
+    # MÉTHODES ENREGISTREMENT MÉTRIQUES PIPELINE
+    # =================================================================
+    
+    def record_pipeline_latency(self, latency_seconds: float):
+        """Enregistrer latence pipeline end-to-end"""
+        if self.enabled:
+            self.pipeline_latency.observe(latency_seconds)
+    
+    def record_stt_latency(self, latency_seconds: float):
+        """Enregistrer latence STT"""
+        if self.enabled:
+            self.stt_latency.observe(latency_seconds)
+    
+    def record_llm_latency(self, latency_seconds: float):
+        """Enregistrer latence LLM"""
+        if self.enabled:
+            self.llm_latency.observe(latency_seconds)
+    
+    def record_tts_latency(self, latency_seconds: float):
+        """Enregistrer latence TTS"""
+        if self.enabled:
+            self.tts_latency.observe(latency_seconds)
+    
+    def record_request(self, status: str = 'success'):
+        """Enregistrer requête pipeline"""
+        if self.enabled:
+            self.requests_total.labels(status=status).inc()
+    
+    def record_conversation(self):
+        """Enregistrer tour de conversation"""
+        if self.enabled:
+            self.conversations_total.inc()
+    
+    def record_error(self, component: str, error_type: str):
+        """Enregistrer erreur"""
+        if self.enabled:
+            self.errors_total.labels(component=component, error_type=error_type).inc()
+    
+    def set_queue_size(self, queue_type: str, size: int):
+        """Mettre à jour taille queue"""
+        if self.enabled:
+            self.queue_size.labels(queue_type=queue_type).set(size)
+    
+    def set_pipeline_status(self, status: str):
+        """Mettre à jour statut pipeline"""
+        if self.enabled:
+            self.pipeline_status.state(status)
+    
+    def update_throughput(self, conversations_count: int, time_window_minutes: float):
+        """Mettre à jour throughput"""
+        if self.enabled and time_window_minutes > 0:
+            throughput = conversations_count / time_window_minutes
+            self.throughput_conversations_per_minute.set(throughput)
+
+# =================================================================
+# DASHBOARD GRAFANA CONFIGURATION
+# =================================================================
+
+GRAFANA_DASHBOARD_JSON = """
+{
+  "dashboard": {
+    "id": null,
+    "title": "SuperWhisper V6 Pipeline Monitoring",
+    "tags": ["superwhisper", "pipeline", "voice"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "Pipeline Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, superwhisper_pipeline_latency_seconds)",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, superwhisper_pipeline_latency_seconds)", 
+            "legendFormat": "Median"
+          }
+        ],
+        "yAxes": [{"unit": "s", "max": 2.0}],
+        "alert": {
+          "conditions": [
+            {
+              "query": {"queryType": "", "refId": "A"},
+              "reducer": {"type": "last", "params": []},
+              "evaluator": {"params": [1.2], "type": "gt"}
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "Pipeline Latency Alert",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "title": "Component Latencies",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, superwhisper_stt_latency_seconds)",
+            "legendFormat": "STT"
+          },
+          {
+            "expr": "histogram_quantile(0.95, superwhisper_llm_latency_seconds)",
+            "legendFormat": "LLM"
+          },
+          {
+            "expr": "histogram_quantile(0.95, superwhisper_tts_latency_seconds)",
+            "legendFormat": "TTS"
+          }
+        ]
+      },
+      {
+        "title": "GPU Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "superwhisper_gpu_memory_used_bytes / 1024^3",
+            "legendFormat": "Used GB"
+          },
+          {
+            "expr": "superwhisper_gpu_memory_total_bytes / 1024^3",
+            "legendFormat": "Total GB"
+          }
+        ]
+      },
+      {
+        "title": "Throughput",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "superwhisper_throughput_conversations_per_minute",
+            "legendFormat": "Conversations/min"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(superwhisper_errors_total[5m])",
+            "legendFormat": "Errors/sec"
+          }
+        ]
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "refresh": "5s"
+  }
+}
+"""
+
+def save_grafana_dashboard(output_path: str = "PIPELINE/monitoring/grafana_dashboard.json"):
+    """Sauvegarder configuration dashboard Grafana"""
+    try:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(GRAFANA_DASHBOARD_JSON)
+        LOGGER.info(f"✅ Dashboard Grafana sauvegardé: {output_path}")
+    except Exception as e:
+        LOGGER.error(f"❌ Erreur sauvegarde dashboard: {e}")
+
+# =================================================================
+# EXEMPLE UTILISATION
+# =================================================================
+
+if __name__ == "__main__":
+    # Créer collecteur
+    collector = PipelineMetricsCollector(enabled=True, port=9091)
+    
+    # Démarrer serveur
+    collector.start_server()
+    
+    # Sauvegarder dashboard Grafana
+    save_grafana_dashboard()
+    
+    # Simuler quelques métriques
+    import random
+    
+    try:
+        print("🚀 Collecteur métriques démarré - http://localhost:9091/metrics")
+        print("📊 Dashboard Grafana: PIPELINE/monitoring/grafana_dashboard.json")
+        print("Ctrl+C pour arrêter...")
+        
+        collector.set_pipeline_status('running')
+        
+        # Simulation métriques
+        for i in range(100):
+            # Latences simulées
+            collector.record_stt_latency(random.uniform(0.1, 0.4))
+            collector.record_llm_latency(random.uniform(0.2, 0.8))
+            collector.record_tts_latency(random.uniform(0.1, 0.3))
+            
+            # Latence totale
+            total_latency = random.uniform(0.5, 1.1)
+            collector.record_pipeline_latency(total_latency)
+            
+            # Requête réussie
+            collector.record_request('success')
+            collector.record_conversation()
+            
+            # Quelques erreurs
+            if random.random() < 0.05:
+                collector.record_error('llm', 'timeout')
+                collector.record_request('error')
+            
+            # Tailles queues
+            collector.set_queue_size('text_queue', random.randint(0, 5))
+            collector.set_queue_size('response_queue', random.randint(0, 3))
+            
+            time.sleep(2)
+            
+    except KeyboardInterrupt:
+        print("\n🛑 Arrêt collecteur métriques...")
+        collector.set_pipeline_status('stopping')
+        collector.stop()
+        print("✅ Collecteur arrêté") 

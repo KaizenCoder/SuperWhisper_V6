@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+"""
+Gestionnaire Quantization LLM - VRAM RTX 3090 Optimisé
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+
+🚨 CONFIGURATION GPU: RTX 3090 (CUDA:1) OBLIGATOIRE
+"""
+
+import os
+import sys
+import pathlib
+
+# =============================================================================
+# 🚀 PORTABILITÉ AUTOMATIQUE - EXÉCUTABLE DEPUIS N'IMPORTE OÙ
+# =============================================================================
+def _setup_portable_environment():
+    """Configure l'environnement pour exécution portable"""
+    # Déterminer le répertoire racine du projet
+    current_file = pathlib.Path(__file__).resolve()
+    
+    # Chercher le répertoire racine (contient .git ou marqueurs projet)
+    project_root = current_file
+    for parent in current_file.parents:
+        if any((parent / marker).exists() for marker in ['.git', 'pyproject.toml', 'requirements.txt', '.taskmaster']):
+            project_root = parent
+            break
+    
+    # Ajouter le projet root au Python path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    # Changer le working directory vers project root
+    os.chdir(project_root)
+    
+    # Configuration GPU RTX 3090 obligatoire
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+    
+    print(f"🎮 GPU Configuration: RTX 3090 (CUDA:1) forcée")
+    print(f"📁 Project Root: {project_root}")
+    print(f"💻 Working Directory: {os.getcwd()}")
+    
+    return project_root
+
+# Initialiser l'environnement portable
+_PROJECT_ROOT = _setup_portable_environment()
+
+# Maintenant imports normaux...
+
+import psutil
+import subprocess
+import time
+from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from enum import Enum
+import logging
+
+# =============================================================================
+# 🚨 CONFIGURATION CRITIQUE GPU - RTX 3090 UNIQUEMENT 
+# =============================================================================
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'        # RTX 3090 24GB EXCLUSIVEMENT
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # Ordre stable des GPU
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:1024'
+
+print("🎮 Quantize Manager: RTX 3090 (CUDA:1) configuration forcée")
+
+try:
+    import torch
+    import GPUtil
+except ImportError as e:
+    print(f"⚠️ Import GPU libraries: {e}")
+
+
+class QuantizationLevel(Enum):
+    """Niveaux de quantization LLM"""
+    NONE = "none"           # FP16 - Qualité max, VRAM max
+    Q8_0 = "Q8_0"          # 8-bit - Compromis qualité/VRAM
+    Q4_K_M = "Q4_K_M"      # 4-bit - VRAM optimisée
+    Q4_0 = "Q4_0"          # 4-bit aggressif - VRAM minimale
+    Q2_K = "Q2_K"          # 2-bit - Urgence VRAM critique
+
+
+@dataclass
+class VRAMProfile:
+    """Profil utilisation VRAM"""
+    total_gb: float
+    used_gb: float
+    free_gb: float
+    utilization_percent: float
+    recommended_quantization: QuantizationLevel
+    can_load_model: bool
+
+
+class QuantizeManager:
+    """Gestionnaire quantization intelligent VRAM"""
+    
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.rtx3090_vram_gb = 24.0  # RTX 3090 VRAM
+        self.safety_margin_gb = 2.0   # Marge sécurité
+        self.target_utilization = 0.85  # 85% utilisation max
+        
+        self._setup_logging()
+        self._validate_rtx3090()
+        
+    def _setup_logging(self):
+        """Configuration logging"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        
+    def _validate_rtx3090(self):
+        """Validation RTX 3090 obligatoire"""
+        try:
+            if not torch.cuda.is_available():
+                raise RuntimeError("🚫 CUDA non disponible - RTX 3090 requise")
+            
+            # Vérification CUDA_VISIBLE_DEVICES
+            cuda_devices = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+            if cuda_devices != '1':
+                raise RuntimeError(f"🚫 CUDA_VISIBLE_DEVICES='{cuda_devices}' incorrect - doit être '1'")
+            
+            # Validation GPU
+            gpu_name = torch.cuda.get_device_name(0)
+            gpu_memory_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
+            
+            if gpu_memory_gb < 20:  # RTX 3090 = ~24GB
+                raise RuntimeError(f"🚫 GPU ({gpu_memory_gb:.1f}GB) trop petite - RTX 3090 requise")
+            
+            self.logger.info(f"✅ RTX 3090 validée: {gpu_name} ({gpu_memory_gb:.1f}GB)")
+            
+        except Exception as e:
+            self.logger.error(f"❌ Validation RTX 3090 échouée: {e}")
+            raise
+            
+    def get_vram_profile(self) -> VRAMProfile:
+        """Profil VRAM actuel RTX 3090"""
+        try:
+            # GPU utilization via PyTorch
+            torch.cuda.empty_cache()  # Nettoyage cache
+            
+            total_memory = torch.cuda.get_device_properties(0).total_memory
+            allocated_memory = torch.cuda.memory_allocated(0)
+            cached_memory = torch.cuda.memory_reserved(0)
+            
+            total_gb = total_memory / 1024**3
+            used_gb = max(allocated_memory, cached_memory) / 1024**3
+            free_gb = total_gb - used_gb
+            utilization_percent = (used_gb / total_gb) * 100
+            
+            # Recommandation quantization
+            recommended_quantization = self._recommend_quantization(free_gb, utilization_percent)
+            
+            # Capacité charger modèle
+            can_load_model = free_gb > self.safety_margin_gb
+            
+            profile = VRAMProfile(
+                total_gb=total_gb,
+                used_gb=used_gb,
+                free_gb=free_gb,
+                utilization_percent=utilization_percent,
+                recommended_quantization=recommended_quantization,
+                can_load_model=can_load_model
+            )
+            
+            self.logger.info(f"📊 VRAM Profile: {used_gb:.1f}GB/{total_gb:.1f}GB ({utilization_percent:.1f}%)")
+            
+            return profile
+            
+        except Exception as e:
+            self.logger.error(f"❌ Erreur profil VRAM: {e}")
+            # Profil par défaut conservateur
+            return VRAMProfile(
+                total_gb=self.rtx3090_vram_gb,
+                used_gb=12.0,
+                free_gb=12.0,
+                utilization_percent=50.0,
+                recommended_quantization=QuantizationLevel.Q4_K_M,
+                can_load_model=True
+            )
+            
+    def _recommend_quantization(self, free_gb: float, utilization_percent: float) -> QuantizationLevel:
+        """Recommandation quantization selon VRAM disponible"""
+        
+        # VRAM très libre (>16GB) - Pas de quantization
+        if free_gb > 16.0 and utilization_percent < 30:
+            return QuantizationLevel.NONE
+            
+        # VRAM libre (12-16GB) - Quantization légère
+        elif free_gb > 12.0 and utilization_percent < 50:
+            return QuantizationLevel.Q8_0
+            
+        # VRAM modérée (8-12GB) - Quantization recommandée
+        elif free_gb > 8.0 and utilization_percent < 70:
+            return QuantizationLevel.Q4_K_M
+            
+        # VRAM tendue (4-8GB) - Quantization aggressive
+        elif free_gb > 4.0 and utilization_percent < 85:
+            return QuantizationLevel.Q4_0
+            
+        # VRAM critique (<4GB) - Quantization max
+        else:
+            return QuantizationLevel.Q2_K
+            
+    def get_model_size_estimate(self, model_name: str, quantization: QuantizationLevel) -> float:
+        """Estimation taille modèle en GB selon quantization"""
+        
+        # Base size estimation (approximations)
+        base_sizes = {
+            "llama-7b": 13.5,
+            "llama-13b": 26.0,
+            "mistral-7b": 14.0,
+            "codellama-7b": 13.5,
+            "phi-3-mini": 7.6,
+            "gemma-7b": 16.3,
+            "default": 13.5  # Par défaut 7B model
+        }
+        
+        # Chercher taille base
+        base_size = base_sizes.get("default", 13.5)
+        for model_key, size in base_sizes.items():
+            if model_key.lower() in model_name.lower():
+                base_size = size
+                break
+                
+        # Facteurs compression quantization
+        compression_factors = {
+            QuantizationLevel.NONE: 1.0,     # FP16 baseline
+            QuantizationLevel.Q8_0: 0.6,     # ~40% réduction
+            QuantizationLevel.Q4_K_M: 0.35,  # ~65% réduction
+            QuantizationLevel.Q4_0: 0.3,     # ~70% réduction 
+            QuantizationLevel.Q2_K: 0.2      # ~80% réduction
+        }
+        
+        compressed_size = base_size * compression_factors[quantization]
+        
+        self.logger.info(f"📏 {model_name} {quantization.value}: {compressed_size:.1f}GB estimé")
+        
+        return compressed_size
+        
+    def can_load_model(self, model_name: str, quantization: QuantizationLevel) -> Tuple[bool, str]:
+        """Vérifie si modèle peut être chargé avec quantization"""
+        
+        profile = self.get_vram_profile()
+        estimated_size = self.get_model_size_estimate(model_name, quantization)
+        
+        # Vérification espace disponible
+        required_gb = estimated_size + self.safety_margin_gb
+        
+        if profile.free_gb >= required_gb:
+            message = f"✅ {model_name} {quantization.value}: OK ({estimated_size:.1f}GB + {self.safety_margin_gb}GB marge)"
+            return True, message
+        else:
+            shortage = required_gb - profile.free_gb
+            message = f"❌ {model_name} {quantization.value}: Insuffisant - manque {shortage:.1f}GB"
+            return False, message
+            
+    def optimize_for_pipeline(self) -> Dict[str, any]:
+        """Optimisation quantization pour pipeline complet"""
+        
+        profile = self.get_vram_profile()
+        
+        # Besoins VRAM pipeline complet
+        stt_vram_gb = 3.0      # STT Whisper models
+        tts_vram_gb = 2.0      # TTS models
+        pipeline_overhead_gb = 1.0  # Buffers, cache
+        
+        total_pipeline_gb = stt_vram_gb + tts_vram_gb + pipeline_overhead_gb
+        available_for_llm = profile.free_gb - total_pipeline_gb
+        
+        self.logger.info(f"🔧 VRAM pipeline: STT({stt_vram_gb}GB) + TTS({tts_vram_gb}GB) + overhead({pipeline_overhead_gb}GB)")
+        self.logger.info(f"🎯 VRAM disponible LLM: {available_for_llm:.1f}GB")
+        
+        # Recommandation selon VRAM disponible
+        if available_for_llm > 12.0:
+            recommended_quantization = QuantizationLevel.Q8_0
+            recommended_model = "llama-7b"
+        elif available_for_llm > 8.0:
+            recommended_quantization = QuantizationLevel.Q4_K_M
+            recommended_model = "llama-7b"
+        elif available_for_llm > 4.0:
+            recommended_quantization = QuantizationLevel.Q4_0
+            recommended_model = "phi-3-mini"
+        else:
+            recommended_quantization = QuantizationLevel.Q2_K
+            recommended_model = "phi-3-mini"
+            
+        return {
+            "vram_profile": {
+                "total_gb": profile.total_gb,
+                "used_gb": profile.used_gb,
+                "free_gb": profile.free_gb,
+                "utilization_percent": profile.utilization_percent
+            },
+            "pipeline_allocation": {
+                "stt_gb": stt_vram_gb,
+                "tts_gb": tts_vram_gb,
+                "overhead_gb": pipeline_overhead_gb,
+                "total_reserved_gb": total_pipeline_gb,
+                "available_for_llm_gb": available_for_llm
+            },
+            "recommendations": {
+                "quantization": recommended_quantization.value,
+                "model": recommended_model,
+                "estimated_llm_size_gb": self.get_model_size_estimate(recommended_model, recommended_quantization)
+            },
+            "can_run_pipeline": available_for_llm > 2.0,
+            "optimization_level": "aggressive" if available_for_llm < 6.0 else "balanced"
+        }
+        
+    def generate_quantization_command(self, model_path: str, quantization: QuantizationLevel, output_path: str) -> str:
+        """Génère commande quantization selon niveau"""
+        
+        commands = {
+            QuantizationLevel.Q8_0: f"./quantize {model_path} {output_path} Q8_0",
+            QuantizationLevel.Q4_K_M: f"./quantize {model_path} {output_path} Q4_K_M", 
+            QuantizationLevel.Q4_0: f"./quantize {model_path} {output_path} Q4_0",
+            QuantizationLevel.Q2_K: f"./quantize {model_path} {output_path} Q2_K"
+        }
+        
+        return commands.get(quantization, "# Pas de quantization nécessaire")
+
+
+# =============================================================================
+# FONCTIONS UTILITAIRES
+# =============================================================================
+
+def test_quantize_manager():
+    """Test gestionnaire quantization"""
+    print("🧪 Test Quantize Manager RTX 3090")
+    
+    manager = QuantizeManager()
+    
+    # Profil VRAM actuel
+    print("\n📊 Profil VRAM:")
+    profile = manager.get_vram_profile()
+    print(f"  Total: {profile.total_gb:.1f}GB")
+    print(f"  Utilisé: {profile.used_gb:.1f}GB ({profile.utilization_percent:.1f}%)")
+    print(f"  Libre: {profile.free_gb:.1f}GB")
+    print(f"  Recommandation: {profile.recommended_quantization.value}")
+    
+    # Test modèles
+    print("\n🔍 Test capacité modèles:")
+    models = ["llama-7b", "mistral-7b", "phi-3-mini"]
+    quantizations = [QuantizationLevel.NONE, QuantizationLevel.Q4_K_M, QuantizationLevel.Q2_K]
+    
+    for model in models:
+        for quant in quantizations:
+            can_load, message = manager.can_load_model(model, quant)
+            print(f"  {message}")
+            
+    # Optimisation pipeline
+    print("\n🎯 Optimisation pipeline:")
+    optimization = manager.optimize_for_pipeline()
+    print(f"  VRAM libre: {optimization['vram_profile']['free_gb']:.1f}GB")
+    print(f"  VRAM LLM: {optimization['pipeline_allocation']['available_for_llm_gb']:.1f}GB")
+    print(f"  Recommandation: {optimization['recommendations']['model']} {optimization['recommendations']['quantization']}")
+    print(f"  Pipeline OK: {optimization['can_run_pipeline']}")
+    
+    return manager
+
+
+if __name__ == "__main__":
+    test_quantize_manager() 
